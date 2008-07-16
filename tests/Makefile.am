@@ -8,11 +8,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-#include aminclude.am
-
-#MOSTLYCLEANFILES = $(DX_CLEANFILES)
-
-#EXTRA_DIST = reconf configure $(DX_CONFIG) doc/html
-EXTRA_DIST = reconf configure
-SUBDIRS = m4 lib src doc tests .
-
+bin_PROGRAMS = testfilter
+testfilter_SOURCES = testfilter.c
+testfilter_CPPFLAGS = -I${top_srcdir}/lib/utils -I${top_srcdir}/lib/filter
+testfilter_LDADD = ${top_srcdir}/lib/utils/libutils.la ${top_srcdir}/lib/filter/libfilter.la

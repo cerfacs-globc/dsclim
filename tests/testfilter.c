@@ -1,11 +1,11 @@
 /* ***************************************************** */
-/* dsclim Downscaling climate scenarios                  */
-/* dsclim.c                                              */
+/* testfilter Test hanning filter implementation.        */
+/* testfilter.c                                          */
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
-/*! \file dsclim.c
-    \brief Downscaling climate scenarios program.
+/*! \file testfilter.c
+    \brief Test hanning filter implementation.
 */
 
 /* C standard includes */
@@ -44,9 +44,21 @@ int main(int argc, char **argv)
 
   /* Command-line arguments variables */
   char filein[500]; /* Input filename */
+  char fileout[500]; /* Output filename */
+  FILE *inptr;
+  FILE *outptr;
+
+  short int end;
+  int numval;
+  int istat;
+  
+  double *invect;
+  double *outvect;
+  double value;
+  int width = 60;
 
   /* Print BEGIN banner */
-  (void) banner(basename(argv[0]), "0.1", "BEGIN");
+  (void) banner(basename(argv[0]), "1.0", "BEGIN");
 
   /* Get command-line arguments and set appropriate variables */
   if (argc <= 1) {
@@ -58,6 +70,10 @@ int main(int argc, char **argv)
     for (i=1; i<argc; i++) {
       if ( !strcmp(argv[i], "-i") )
         (void) strcpy(filein, argv[++i]);
+      else if ( !strcmp(argv[i], "-o") )
+        (void) strcpy(fileout, argv[++i]);
+      else if ( !strcmp(argv[i], "-w") )
+        (void) sscanf(argv[++i], "%d", &width);
       else {
         (void) fprintf(stderr, "%s:: Wrong arg %s.\n\n", basename(argv[0]), argv[i]);
         (void) show_usage(basename(argv[0]));
@@ -65,6 +81,45 @@ int main(int argc, char **argv)
         return 1;
       }
     }
+
+  inptr = fopen(filein, "r");
+  if (inptr == NULL) {
+    (void) fprintf(stderr, "Cannot open input file : %s.\n", filein);
+    exit(1);
+  }
+  outptr = fopen(fileout, "w");
+  if (outptr == NULL) {
+    (void) fprintf(stderr, "Cannot open output file : %s.\n", fileout);
+    exit(1);
+  }
+  (void) fprintf(stdout, "Filter width=%d\n", width);
+
+  end = FALSE;
+  numval = 0;
+  invect = NULL;
+  while (end == FALSE) {
+    istat = fscanf(inptr, "%lf", &value);
+    if ( istat != 1 )
+      /* EOF encountered or bad data */
+      end = TRUE;
+    else {
+      numval++;
+      invect = (double *) realloc(invect, numval * sizeof(double));
+      if (invect == NULL) alloc_error();
+      invect[numval-1] = value;
+    }
+  }
+
+  outvect = (double *) calloc(numval, sizeof(double));
+  if (outvect == NULL) alloc_error();
+  
+  filter(outvect, invect, width, numval);
+
+  for (i=0; i<numval; i++)
+    (void) fprintf(outptr, "%d %lf %lf\n", i, invect[i], outvect[i]);
+
+  (void) fclose(inptr);
+  (void) fclose(outptr);
   
   /* Print END banner */
   (void) banner(basename(argv[0]), "OK", "END");
@@ -73,11 +128,13 @@ int main(int argc, char **argv)
 }
 
 
-/** Subroutines **/
+/** Local Subroutines **/
 
 void show_usage(char *pgm) {
 
   (void) fprintf(stderr, "%s: usage:\n", pgm);
   (void) fprintf(stderr, "-i: input file\n");
+  (void) fprintf(stderr, "-o: output file\n");
+  (void) fprintf(stderr, "-w: filter width\n");
 
 }

@@ -40,16 +40,20 @@ AC_CHECK_HEADERS([stdlib.h math.h])
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 
-AC_PROG_RANLIB
+#AC_PROG_RANLIB
+AC_PROG_LIBTOOL
+AC_DISABLE_SHARED
 
 AC_CONFIG_FILES([
    Makefile
    README
    doc/Makefile
-   m4/Makefile   
-   src/utils/Makefile
-   src/filter/Makefile
+   m4/Makefile 
+   lib/Makefile
+   lib/utils/Makefile
+   lib/filter/Makefile
    src/Makefile
+   tests/Makefile
 ])
 
 AC_OUTPUT
