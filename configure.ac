@@ -49,9 +49,9 @@ AC_CONFIG_FILES([
    README
    doc/Makefile
    m4/Makefile 
-   lib/Makefile
-   lib/utils/Makefile
-   lib/filter/Makefile
+   src/lib/Makefile
+   src/lib/utils/Makefile
+   src/lib/filter/Makefile
    src/Makefile
    tests/Makefile
 ])
