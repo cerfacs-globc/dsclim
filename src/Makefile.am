@@ -8,3 +8,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+bin_PROGRAMS = dsclim
+dsclim_SOURCES = dsclim.c
+dsclim_CPPFLAGS = -Iutils -Ifilter
+dsclim_LDADD = utils/libutils.a filter/libfilter.a

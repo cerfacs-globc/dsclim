@@ -8,10 +8,5 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-#include aminclude.am
-
-#MOSTLYCLEANFILES = $(DX_CLEANFILES)
-
-#EXTRA_DIST = reconf configure $(DX_CONFIG) doc/html
-EXTRA_DIST = reconf configure
-SUBDIRS = m4 src/utils src/filter src doc
+noinst_LIBRARIES = libutils.a
+libutils_a_SOURCES = utils.h alloc_error.c banner.c

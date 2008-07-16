@@ -8,24 +8,47 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+# initial information about the project
 AC_INIT([dsclim],
         [0.1],
         [Christian Page christian.page@cerfacs.fr],
         [dsclim])
+
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(config.h)
+
+# check if the source folder is correct
+AC_CONFIG_SRCDIR(src/dsclim.c)
+
+# Checks for programs.
+AC_PROG_CC
+AM_PROG_CC_C_O
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([stdlib.h math.h])
+
+#DX_HTML_FEATURE(ON)
+#DX_CHM_FEATURE(OFF)
+#DX_CHI_FEATURE(OFF)
+#DX_MAN_FEATURE(OFF)
+#DX_RTF_FEATURE(OFF)
+#DX_XML_FEATURE(OFF)
+#DX_PDF_FEATURE(OFF)
+#DX_PS_FEATURE(OFF)
+#DX_INIT_DOXYGEN(dsclim, doxygen.cfg)
+
 AM_INIT_AUTOMAKE([dist-bzip2])
 
-LF_CONFIGURE_CC
-LF_HOST_TYPE
-LF_SET_WARNINGS
 AC_PROG_RANLIB
 
 AC_CONFIG_FILES([
    Makefile
    README
    doc/Makefile
-   m4/Makefile
+   m4/Makefile   
+   src/utils/Makefile
+   src/filter/Makefile
    src/Makefile
 ])
 
