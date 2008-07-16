@@ -8,5 +8,6 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-noinst_LIBRARIES = libfilter.a
-libfilter_a_SOURCES = filter.h filter.c filter_window.c
+noinst_LTLIBRARIES = libfilter.la
+libfilter_la_SOURCES = filter.h filter.c filter_window.c
+libfilter_la_LIBADD = ${top_srcdir}/lib/utils/libutils.la -lm

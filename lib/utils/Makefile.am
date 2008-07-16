@@ -8,5 +8,5 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-noinst_LIBRARIES = libutils.a
-libutils_a_SOURCES = utils.h alloc_error.c banner.c
+noinst_LTLIBRARIES = libutils.la
+libutils_la_SOURCES = utils.h alloc_error.c banner.c
