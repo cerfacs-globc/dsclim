@@ -9,6 +9,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define FALSE 0
+#define TRUE 1
+
 void alloc_error(void);
 void banner(char *pgm, char *verstat, char *type);
 
