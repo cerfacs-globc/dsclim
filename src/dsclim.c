@@ -8,6 +8,10 @@
     \brief Downscaling climate scenarios program.
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* C standard includes */
 #include <sys/types.h>
 #include <sys/stat.h>

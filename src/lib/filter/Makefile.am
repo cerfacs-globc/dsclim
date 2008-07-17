@@ -8,7 +8,6 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-bin_PROGRAMS = testfilter
-testfilter_SOURCES = testfilter.c
-testfilter_CPPFLAGS = -I${top_srcdir}/src/lib/utils -I${top_srcdir}/src/lib/filter
-testfilter_LDADD = ${top_srcdir}/src/lib/utils/libutils.la ${top_srcdir}/src/lib/filter/libfilter.la
+noinst_LTLIBRARIES = libfilter.la
+libfilter_la_SOURCES = filter.h filter.c filter_window.c
+libfilter_la_LIBADD = ../utils/libutils.la -lm

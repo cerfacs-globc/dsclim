@@ -8,7 +8,5 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-bin_PROGRAMS = testfilter
-testfilter_SOURCES = testfilter.c
-testfilter_CPPFLAGS = -I${top_srcdir}/src/lib/utils -I${top_srcdir}/src/lib/filter
-testfilter_LDADD = ${top_srcdir}/src/lib/utils/libutils.la ${top_srcdir}/src/lib/filter/libfilter.la
+noinst_LTLIBRARIES = libutils.la
+libutils_la_SOURCES = utils.h alloc_error.c banner.c

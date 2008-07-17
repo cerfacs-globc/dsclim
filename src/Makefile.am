@@ -10,5 +10,5 @@
 
 bin_PROGRAMS = dsclim
 dsclim_SOURCES = dsclim.c
-dsclim_CPPFLAGS = -I${top_srcdir}/lib/utils -I${top_srcdir}/lib/filter
-dsclim_LDADD = ${top_srcdir}/lib/utils/libutils.la ${top_srcdir}/lib/filter/libfilter.la
+dsclim_CPPFLAGS = -Ilib/utils -Ilib/filter
+dsclim_LDADD = lib/utils/libutils.la lib/filter/libfilter.la

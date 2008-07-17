@@ -27,6 +27,7 @@ AM_PROG_CC_C_O
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h math.h])
+AC_TYPE_SIGNAL
 
 #DX_HTML_FEATURE(ON)
 #DX_CHM_FEATURE(OFF)
@@ -52,6 +53,8 @@ AC_CONFIG_FILES([
    src/lib/Makefile
    src/lib/utils/Makefile
    src/lib/filter/Makefile
+   src/lib/classif/Makefile
+   src/lib/clim/Makefile
    src/Makefile
    tests/Makefile
 ])

@@ -14,5 +14,5 @@
 
 #EXTRA_DIST = reconf configure $(DX_CONFIG) doc/html
 EXTRA_DIST = reconf configure
-SUBDIRS = m4 src doc tests .
+SUBDIRS = m4 src/lib src doc tests .
 
