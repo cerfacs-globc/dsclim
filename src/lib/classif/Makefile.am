@@ -9,5 +9,5 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 noinst_LTLIBRARIES = libclassif.la
-libclassif_la_SOURCES = classif.h classif.c
+libclassif_la_SOURCES = classif.h class_days_pc_centroids.c generate_clusters.c
 libclassif_la_LIBADD = ../utils/libutils.la

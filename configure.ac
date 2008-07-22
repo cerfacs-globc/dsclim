@@ -20,14 +20,58 @@ AM_CONFIG_HEADER(config.h)
 # check if the source folder is correct
 AC_CONFIG_SRCDIR(src/dsclim.c)
 
+# get the flags
+CFLAGS="${CFLAGS=}"
+# this macro is used to get the arguments supplied
+# to the configure script (./configure --enable-debug)
+# Check if we have enable debug support.
+AC_MSG_CHECKING(whether to enable debugging)
+debug_default="yes"
+AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes] turn on debugging
+                       [default=$debug_default]],, enable_debug=$debug_default)
+# Yes, shell scripts can be used
+if test "x$enable_debug" = "xyes"; then
+         CFLAGS="$CFLAGS -g -DDEBUG"
+AC_MSG_RESULT(yes)
+else
+CFLAGS="$CFLAGS -O3"
+AC_MSG_RESULT(no)
+fi
+
+# Example to add --with option
+#AC_ARG_WITH([readline],
+#            [AS_HELP_STRING([--with-readline],
+#            [support fancy command line editing @<:@default=check@:>@])],
+#            [],
+#            [with_readline=check])
+#          
+#          LIBREADLINE=
+#          AS_IF([test "x$with_readline" != xno],
+#            [AC_CHECK_LIB([readline], [main],
+#              [AC_SUBST([LIBREADLINE], ["-lreadline -lncurses"])
+#               AC_DEFINE([HAVE_LIBREADLINE], [1],
+#                         [Define if you have libreadline])
+#              ],
+#              [if test "x$with_readline" != xcheck; then
+#                 AC_MSG_FAILURE(
+#                   [--with-readline was given, but test for readline failed])
+#
+#              ], -lncurses)])
+
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_CC_C_O
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h math.h])
+AC_CHECK_HEADERS([stdlib.h math.h libgen.h string.h])
 AC_TYPE_SIGNAL
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+
+AX_PATH_GSL(1.0, [], [])
 
 #DX_HTML_FEATURE(ON)
 #DX_CHM_FEATURE(OFF)
@@ -41,7 +85,6 @@ AC_TYPE_SIGNAL
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 
-#AC_PROG_RANLIB
 AC_PROG_LIBTOOL
 AC_DISABLE_SHARED
 

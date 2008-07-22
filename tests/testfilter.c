@@ -8,18 +8,28 @@
     \brief Test hanning filter implementation.
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* C standard includes */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_MATH_H
 #include <math.h>
-#include <errno.h>
-#include <pthread.h>
-#include <libgen.h>
+#endif
+#ifdef HAVE_LIBGEN_H
+#  include <libgen.h>
+#endif
 
 #define _GNU_SOURCE
 

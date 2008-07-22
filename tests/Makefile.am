@@ -8,7 +8,12 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-bin_PROGRAMS = testfilter
+bin_PROGRAMS = testfilter testrandomu
+
 testfilter_SOURCES = testfilter.c
 testfilter_CPPFLAGS = -I${top_srcdir}/src/lib/utils -I${top_srcdir}/src/lib/filter
 testfilter_LDADD = ${top_srcdir}/src/lib/utils/libutils.la ${top_srcdir}/src/lib/filter/libfilter.la
+
+testrandomu_SOURCES = testrandomu.c
+testrandomu_CPPFLAGS = -I${top_srcdir}/src/lib/utils $(GSL_CFLAGS)
+testrandomu_LDADD = ${top_srcdir}/src/lib/utils/libutils.la $(GSL_LIBS) -lgslcblas
