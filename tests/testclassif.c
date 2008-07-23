@@ -15,11 +15,21 @@
 #define _GNU_SOURCE
 
 /* C standard includes */
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
+#endif
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -33,7 +43,7 @@
 #include <time.h>
 #endif
 #ifdef HAVE_LIBGEN_H
-#  include <libgen.h>
+#include <libgen.h>
 #endif
 
 #include <gsl/gsl_rng.h>
@@ -81,7 +91,7 @@ int main(int argc, char **argv)
       (void) fprintf(stderr, "%s:: Wrong arg %s.\n\n", basename(argv[0]), argv[i]);
       (void) show_usage(basename(argv[0]));
       (void) banner(basename(argv[0]), "ABORT", "END");
-      return 1;
+      (void) abort();
     }
   }
 
@@ -97,13 +107,13 @@ int main(int argc, char **argv)
   /* Initialize random number generator */
   T = gsl_rng_default;
   rng = gsl_rng_alloc(T);
-  (void) gsl_rng_set(rng, time());
+  (void) gsl_rng_set(rng, time(NULL));
 
   /* Allocate memory */
   pc_eof_days = (double *) calloc(neof*ndays, sizeof(double));
-  if (pc_eof_days == NULL) alloc_error();
+  if (pc_eof_days == NULL) alloc_error(__FILE__, __LINE__);
   clusters = (double *) calloc(neof*nclusters, sizeof(double));
-  if (clusters == NULL) alloc_error();
+  if (clusters == NULL) alloc_error(__FILE__, __LINE__);
   
   /* Generate a double between 0.0 and 1.0 */
   for (i=0; i<neof; i++) {

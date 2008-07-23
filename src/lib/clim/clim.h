@@ -8,10 +8,20 @@
 #include <config.h>
 #endif
 
+#define _GNU_SOURCE
+
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#ifdef HAVE_SIGNAL_H
 #include <signal.h>
+#endif
+#ifdef HAVE_TIME_H
 #include <time.h>
+#endif
 
 typedef struct {
   int year;

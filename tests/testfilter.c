@@ -12,12 +12,24 @@
 #include <config.h>
 #endif
 
+#define _GNU_SOURCE
+
 /* C standard includes */
+#ifdef HAVE_SYS_TYPES
 #include <sys/types.h>
+#endif
+#ifdef HAVE_STAT_H
 #include <sys/stat.h>
+#endif
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
+#endif
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -28,10 +40,8 @@
 #include <math.h>
 #endif
 #ifdef HAVE_LIBGEN_H
-#  include <libgen.h>
+#include <libgen.h>
 #endif
-
-#define _GNU_SOURCE
 
 /* Local C includes */
 #include <utils.h>
@@ -74,7 +84,7 @@ int main(int argc, char **argv)
   if (argc <= 1) {
     (void) show_usage(basename(argv[0]));
     (void) banner(basename(argv[0]), "ABORT", "END");
-    return 1;
+    (void) abort();
   }
   else
     for (i=1; i<argc; i++) {
@@ -88,19 +98,19 @@ int main(int argc, char **argv)
         (void) fprintf(stderr, "%s:: Wrong arg %s.\n\n", basename(argv[0]), argv[i]);
         (void) show_usage(basename(argv[0]));
         (void) banner(basename(argv[0]), "ABORT", "END");
-        return 1;
+        (void) abort();
       }
     }
 
   inptr = fopen(filein, "r");
   if (inptr == NULL) {
     (void) fprintf(stderr, "Cannot open input file : %s.\n", filein);
-    exit(1);
+    (void) abort();
   }
   outptr = fopen(fileout, "w");
   if (outptr == NULL) {
     (void) fprintf(stderr, "Cannot open output file : %s.\n", fileout);
-    exit(1);
+    (void) abort();
   }
   (void) fprintf(stdout, "Filter width=%d\n", width);
 
@@ -115,13 +125,13 @@ int main(int argc, char **argv)
     else {
       numval++;
       invect = (double *) realloc(invect, numval * sizeof(double));
-      if (invect == NULL) alloc_error();
+      if (invect == NULL) alloc_error(__FILE__, __LINE__);
       invect[numval-1] = value;
     }
   }
 
   outvect = (double *) calloc(numval, sizeof(double));
-  if (outvect == NULL) alloc_error();
+  if (outvect == NULL) alloc_error(__FILE__, __LINE__);
   
   filter(outvect, invect, width, numval);
 
@@ -130,6 +140,9 @@ int main(int argc, char **argv)
 
   (void) fclose(inptr);
   (void) fclose(outptr);
+
+  (void) free(invect);
+  (void) free(outvect);
   
   /* Print END banner */
   (void) banner(basename(argv[0]), "OK", "END");

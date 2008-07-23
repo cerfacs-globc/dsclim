@@ -30,7 +30,7 @@ void filter(double *bufferf, double *buffer, int width, int nx) {
 
   /* Expanded version of vector: wrapping edges. */
   tmpvec = (double *) calloc(nx*2, sizeof(double));
-  if (tmpvec == NULL) alloc_error();
+  if (tmpvec == NULL) alloc_error(__FILE__, __LINE__);
 
   for (i=0; i<half_width; i++) {
     tmpvec[i] = buffer[nx-half_width+i];

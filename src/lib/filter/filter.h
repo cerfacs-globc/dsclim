@@ -8,8 +8,15 @@
 #include <config.h>
 #endif
 
+#define _GNU_SOURCE
+
+#ifdef HAVE_MATH_H
 #include <math.h>
+#endif
+
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
 
 void filter(double *bufferf, double *buffer, int width, int nx);
 void filter_window(double **filter_window, int width);

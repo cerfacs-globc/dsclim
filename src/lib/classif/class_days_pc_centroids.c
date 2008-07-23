@@ -57,7 +57,7 @@ void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, doubl
       }
       if (clust_dist_min == 9999) {
         (void) fprintf(stderr, "class_days_pc_centroids: ABORT: Impossible: no cluster was selected!! Problem in algorithm...\n");
-        exit(1);
+        (void) abort();
       }
       /* Assign cluster with minimum distance to all EOFs for this day */
       days_class_cluster[day] = clust_dist_min;
@@ -68,6 +68,6 @@ void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, doubl
   }
   else {
     (void) fprintf(stderr, "class_days_pc_centroids: ABORT: Unknown distance type=%s!!\n", type);
-    exit(1);
+    (void) abort();
   }
 }

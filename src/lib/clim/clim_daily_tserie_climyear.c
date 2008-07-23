@@ -22,7 +22,7 @@ void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime,
   int day;
 
   index = (int *) calloc(ntime, sizeof(short int));
-  if (index == NULL) alloc_error();
+  if (index == NULL) alloc_error(__FILE__, __LINE__);
 
   for (month=1; month<=12; month++) {
 

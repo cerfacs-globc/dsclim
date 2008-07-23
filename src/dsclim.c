@@ -12,20 +12,39 @@
 #include <config.h>
 #endif
 
-/* C standard includes */
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <errno.h>
-#include <pthread.h>
-#include <libgen.h>
-
 #define _GNU_SOURCE
+
+/* C standard includes */
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+#ifdef HAVE_LIBGEN_H
+#include <libgen.h>
+#endif
 
 /* Local C includes */
 #include <utils.h>
@@ -56,7 +75,7 @@ int main(int argc, char **argv)
   if (argc <= 1) {
     (void) show_usage(basename(argv[0]));
     (void) banner(basename(argv[0]), "ABORT", "END");
-    return 1;
+    (void) abort();
   }
   else
     for (i=1; i<argc; i++) {
@@ -66,7 +85,7 @@ int main(int argc, char **argv)
         (void) fprintf(stderr, "%s:: Wrong arg %s.\n\n", basename(argv[0]), argv[i]);
         (void) show_usage(basename(argv[0]));
         (void) banner(basename(argv[0]), "ABORT", "END");
-        return 1;
+        (void) abort();
       }
     }
   
@@ -81,7 +100,7 @@ int main(int argc, char **argv)
 
 void show_usage(char *pgm) {
 
-  (void) fprintf(stderr, "%s: usage:\n", pgm);
+  (void) fprintf(stderr, "%s:: usage:\n", pgm);
   (void) fprintf(stderr, "-i: input file\n");
 
 }

@@ -16,7 +16,7 @@ void remove_seasonal_cycle(double *bufout, double *bufin, tstruct *buftime, doub
   int nt;
 
   tmpbuf = (double *) calloc(ntime, sizeof(double));
-  if (tmpbuf == NULL) alloc_error();
+  if (tmpbuf == NULL) alloc_error(__FILE__, __LINE__);
 
   (void) fprintf(stdout, "remove_seasonal_cycle: Removing seasonal cycle for a time serie.\n");
 
@@ -29,7 +29,7 @@ void remove_seasonal_cycle(double *bufout, double *bufin, tstruct *buftime, doub
   }
   else {
     (void) fprintf(stderr, "remove_seasonal_cycle: ABORT: Unknown filtering type for climatology: %s\n", type);
-    exit(1);
+    (void) abort();
   }
 
   /* Remove climatology from time serie */

@@ -64,7 +64,7 @@ AM_PROG_CC_C_O
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h math.h libgen.h string.h])
+AC_CHECK_HEADERS([stdlib.h math.h libgen.h string.h signal.h sys/types.h stdio.h time.h fcntl.h unistd.h sys/stat.h])
 AC_TYPE_SIGNAL
 AC_C_CONST
 AC_C_INLINE

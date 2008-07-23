@@ -23,7 +23,7 @@ void filter_window(double **filter_window, int width) {
 
   /* Allocate memory */
   (*filter_window) = (double *) calloc(width, sizeof(double));
-  if ((*filter_window) == NULL) alloc_error();
+  if ((*filter_window) == NULL) alloc_error(__FILE__, __LINE__);
   
   /** We are using a hanning filter. **/
   
