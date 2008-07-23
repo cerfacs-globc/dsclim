@@ -22,7 +22,8 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   const gsl_rng_type *T;
   gsl_rng *rng;
 
-  double bary_coords;
+  double cluster_bary;
+  double ndiff_cluster_bary;
   double mean_days;
   double *eof_days_cluster = NULL;
   int *days_class_cluster = NULL;
@@ -59,20 +60,28 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   
   /* Initialize cluster PC array */
   for (eof=0; eof<neof; eof++)
-    for (clust=0; clust<ncluster; clust++)
+    for (clust=0; clust<ncluster; clust++) {
       eof_days_cluster[eof+clust*neof] = pc_eof_days[eof+random_num[clust]*neof];
+#ifdef DEBUG
+      /*      (void) fprintf(stderr, "eof=%d cluster=%d eof_days_cluster=%lf\n", eof, clust, eof_days_cluster[eof+clust*neof]);*/
+#endif
+    }
 
   (void) free(random_num);
 
-  /* Perform up to nclassif classifications. Stop if same cluster barycenter positions. */
-  bary_coords = -9999.9;
+  /* Perform up to nclassif classifications. Stop if same cluster center positions. */
+  cluster_bary = -9999.9;
+  ndiff_cluster_bary = -9999.9;
   classif = 0;
-  while (bary_coords != 0.0 && classif < nclassif) {
+  while (ndiff_cluster_bary != 0.0 && classif < nclassif) {
+#ifdef DEBUG
+    (void) fprintf(stderr, "classif=%d cluster_bary=%lf\n", classif, cluster_bary);
+#endif
     /* Classify each day (pc_eof_days) in the current clusters (eof_days_cluster) = days_class_cluster */
     (void) class_days_pc_centroids(days_class_cluster, pc_eof_days, eof_days_cluster, type, neof, ncluster, ndays);
     /* For each cluster, perform a mean of all points falling in that cluster.
        Compare to the current clusters by calculating the 'coordinates' (PC-space) of the 'new' cluster center. */
-    bary_coords = -9999.9;
+    cluster_bary = -9999.9;
     for (eof=0; eof<neof; eof++) {
       for (clust=0; clust<ncluster; clust++) {
         mean_days = 0.0;
@@ -83,19 +92,36 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
             mean_days += pc_eof_days[eof+day*neof];
             ndays_cluster++;
           }
-        mean_days = mean_days / (double) ndays_cluster;
-        /* Try to find the maximum distance (PC-space) between the new cluster center and the previous value */
-        if ( fabs(mean_days - eof_days_cluster[eof+clust*neof]) > bary_coords )
-          bary_coords = mean_days;
-        /* Store the new cluster center value */
-        clusters[eof+clust*neof] = mean_days;
+        if (ndays_cluster > 0) {
+          mean_days = mean_days / (double) ndays_cluster;
+          /* Try to find the maximum distance (PC-space) between the new cluster center and the previous value */
+#ifdef DEBUG
+          (void) fprintf(stderr, "eof=%d cluster=%d diff_cluster_bary=%lf mean_days=%lf eof_days_cluster=%lf\n",
+                         eof, clust, fabs(mean_days - eof_days_cluster[eof+clust*neof]), mean_days, eof_days_cluster[eof+clust*neof]);
+#endif
+          /* Compute the difference between the new cluster center position and the previous one */
+          ndiff_cluster_bary = fabs(mean_days - eof_days_cluster[eof+clust*neof]);
+          /* If this new cluster center position is further away than the other EOF's ones, chosse this new cluster center */
+          if ( ndiff_cluster_bary > cluster_bary )
+            cluster_bary = mean_days;
+          /* Store the new cluster center value */
+          clusters[eof+clust*neof] = mean_days;
+#ifdef DEBUG
+          if (classif == 0 || cluster_bary == 0.0)
+            (void) fprintf(stderr, "eof=%d cluster=%d mean_pc_days=%lf ndays_cluster=%d cluster_bary=%lf\n",
+                           eof, clust, mean_days, ndays_cluster, cluster_bary);
+#endif
+        }
+        else
+          clusters[eof+clust*neof] = 0;
       }
     }
     classif++;
     /* Update the cluster center matrix with the new values */
-    for (eof=0; eof<neof; eof++)
-      for (clust=0; clust<ncluster; clust++)
-        eof_days_cluster[eof+clust*neof] = clusters[eof+clust*neof];
+    if (cluster_bary != 0.0 && classif < nclassif)
+      for (eof=0; eof<neof; eof++)
+        for (clust=0; clust<ncluster; clust++)
+          eof_days_cluster[eof+clust*neof] = clusters[eof+clust*neof];
   }
 
   /* Free memory */

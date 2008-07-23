@@ -49,9 +49,11 @@ void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, doubl
         /* Euclidian distance: square root of squares */
         dist_clust = sqrt(dist_sum);
         /* Is it a cluster which has less distance as the minimum found yet ? */
-        if (dist_clust < dist_min)
+        if (dist_clust < dist_min) {
           /* Save cluster number */
           clust_dist_min = clust;
+          dist_min = dist_clust;
+        }
       }
       if (clust_dist_min == 9999) {
         (void) fprintf(stderr, "class_days_pc_centroids: ABORT: Impossible: no cluster was selected!! Problem in algorithm...\n");
@@ -59,6 +61,9 @@ void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, doubl
       }
       /* Assign cluster with minimum distance to all EOFs for this day */
       days_class_cluster[day] = clust_dist_min;
+#ifdef DEBUG
+      /*      (void) fprintf(stderr, "day %d cluster %d\n", day, clust_dist_min);*/
+#endif
     }
   }
   else {
