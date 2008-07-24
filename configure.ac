@@ -93,11 +93,11 @@ AC_CONFIG_FILES([
    README
    doc/Makefile
    m4/Makefile 
-   src/lib/Makefile
-   src/lib/utils/Makefile
-   src/lib/filter/Makefile
-   src/lib/classif/Makefile
-   src/lib/clim/Makefile
+   src/libs/Makefile
+   src/libs/utils/Makefile
+   src/libs/filter/Makefile
+   src/libs/classif/Makefile
+   src/libs/clim/Makefile
    src/Makefile
    tests/Makefile
 ])
