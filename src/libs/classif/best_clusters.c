@@ -33,6 +33,8 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
   int clust2;
   int eof;
 
+  (void) fprintf(stdout, "%s:: BEGIN: Find the best partition of clusters.\n", __FILE__);
+
   /* Allocate memory */
   tmpcluster = (double *) calloc(neof*ncluster, sizeof(double));
   if (tmpcluster == NULL) alloc_error(__FILE__, __LINE__);
@@ -40,7 +42,11 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
   if (testclusters == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Generate npart clusters, in the attempt to find the best clustering. */
+  (void) fprintf(stdout, "%s:: Generating %d partitions of clusters.\n", __FILE__, npart);
   for (part=0; part<npart; part++) {
+#if DEBUG >= 1
+    (void) fprintf(stdout, "%s:: Generating %d/%d partition of clusters.\n", __FILE__, part, npart);
+#endif
     (void) generate_clusters(tmpcluster, pc_eof_days, type, nclassif, neof, ncluster, ndays);
     for (clust=0; clust<ncluster; clust++)
       for (eof=0; eof<neof; eof++)
@@ -52,7 +58,11 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
   min_meandistval = 999999.9;
   min_partition = -1;
   /* Loop over all partition and compute distance between each other partition. */
+  (void) fprintf(stdout, "%s:: Computing distance between each partitions of clusters.\n", __FILE__);
   for (part1=0; part1<npart; part1++) {
+#if DEBUG >= 1
+    (void) fprintf(stdout, "%s:: Partition %d/%d.\n", __FILE__, part1, npart);
+#endif
     meandistval = 0.0;
     for (part2=0; part2<npart; part2++) {
 
@@ -119,6 +129,7 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
   }
 
   /* Save data for the best selected partition of clusters. */
+  (void) fprintf(stdout, "%s:: Save best partition of clusters.\n", __FILE__);
   for (clust=0; clust<ncluster; clust++)
     for (eof=0; eof<neof; eof++)
       best_clusters[eof+clust*neof] = testclusters[min_partition+eof*npart+clust*npart*neof];  
@@ -126,4 +137,6 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
   /* Free memory. */
   (void) free(tmpcluster);
   (void) free(testclusters);
+
+  (void) fprintf(stdout, "%s:: END: Find the best partition of clusters.\n", __FILE__);
 }

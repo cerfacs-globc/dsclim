@@ -133,7 +133,7 @@ int main(int argc, char **argv)
   outvect = (double *) calloc(numval, sizeof(double));
   if (outvect == NULL) alloc_error(__FILE__, __LINE__);
   
-  filter(outvect, invect, width, numval);
+  filter(outvect, invect, "hanning", width, numval);
 
   for (i=0; i<numval; i++)
     (void) fprintf(outptr, "%d %lf %lf\n", i, invect[i], outvect[i]);

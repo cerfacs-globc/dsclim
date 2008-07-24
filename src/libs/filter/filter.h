@@ -18,8 +18,12 @@
 #include <stdlib.h>
 #endif
 
-void filter(double *bufferf, double *buffer, int width, int nx);
-void filter_window(double **filter_window, int width);
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
+void filter(double *bufferf, double *buffer, char *type, int width, int nx);
+void filter_window(double **filter_window, char *type, int width);
 
 #endif
 

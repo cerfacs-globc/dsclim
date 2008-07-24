@@ -28,9 +28,13 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   double *eof_days_cluster = NULL;
   int *days_class_cluster = NULL;
   
+  (void) fprintf(stdout, "%s:: BEGIN: Find clusters among data points.\n", __FILE__);
+
   /***********************************/
   /** Generate ncluster random days **/
   /***********************************/
+
+  (void) fprintf(stdout, "%s:: Choosing %d random points.\n", __FILE__, ncluster);
 
   /* Initialize random number generator */
   T = gsl_rng_default;
@@ -59,11 +63,12 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   if (days_class_cluster == NULL) alloc_error(__FILE__, __LINE__);
   
   /* Initialize cluster PC array */
+  (void) fprintf(stdout, "%s:: Initializing cluster array.\n", __FILE__);
   for (clust=0; clust<ncluster; clust++)
     for (eof=0; eof<neof; eof++) {
       eof_days_cluster[eof+clust*neof] = pc_eof_days[eof+random_num[clust]*neof];
 
-#ifdef DEBUG
+#if DEBUG >= 7
       /*      (void) fprintf(stderr, "eof=%d cluster=%d eof_days_cluster=%lf\n", eof, clust, eof_days_cluster[eof+clust*neof]);*/
 #endif
     }
@@ -75,9 +80,11 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   ndiff_cluster_bary = -9999.9;
   classif = 0;
 
+  (void) fprintf(stdout, "%s:: Iterate up to %d classifications or when classification is stable.\n", __FILE__, nclassif);
+
   while (ndiff_cluster_bary != 0.0 && classif < nclassif) {
 
-#ifdef DEBUG
+#if DEBUG >= 7
     (void) fprintf(stderr, "classif=%d cluster_bary=%lf\n", classif, cluster_bary);
 #endif
 
@@ -106,7 +113,7 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
 
           /** Try to find the maximum distance (PC-space) between the new cluster center and the previous value **/
 
-#ifdef DEBUG
+#if DEBUG >= 7
           (void) fprintf(stderr, "eof=%d cluster=%d diff_cluster_bary=%lf mean_days=%lf eof_days_cluster=%lf\n",
                          eof, clust, fabs(mean_days - eof_days_cluster[eof+clust*neof]), mean_days, eof_days_cluster[eof+clust*neof]);
 #endif
@@ -121,7 +128,7 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
           /* Store the new cluster center value */
           clusters[eof+clust*neof] = mean_days;
 
-#ifdef DEBUG
+#if DEBUG >= 7
           if (classif == 0 || cluster_bary == 0.0)
             (void) fprintf(stderr, "eof=%d cluster=%d mean_pc_days=%lf ndays_cluster=%d cluster_bary=%lf\n",
                            eof, clust, mean_days, ndays_cluster, cluster_bary);
@@ -144,4 +151,6 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   /* Free memory */
   (void) free(eof_days_cluster);
   (void) free(days_class_cluster);
+
+  (void) fprintf(stdout, "%s:: END: Find clusters among data points.\n", __FILE__);
 }

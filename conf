@@ -1,1 +1,1 @@
-./configure --prefix=/home/page/codes/local
+./configure --prefix=/home/page/codes/local --enable-debug --with-debugging=6

@@ -20,6 +20,27 @@ AM_CONFIG_HEADER(config.h)
 # check if the source folder is correct
 AC_CONFIG_SRCDIR(src/dsclim.c)
 
+#
+# Utility stuff
+#
+# Did they want debugging?
+AC_MSG_CHECKING(for debugging level)
+AC_ARG_WITH(debugging, [  --with-debugging[=num]  enable debugging output, num is an integer 0-9], [
+if test "$withval" = "yes"; then
+  withval=4
+else
+:
+fi
+if test "$withval" != "no"; then 
+  echo "$withval"
+  AC_DEFINE_UNQUOTED(DEBUG, $withval, [Debugging level to compile in.])
+else
+  echo "no debugging"
+  AC_DEFINE_UNQUOTED(DEBUG, 0, [Debugging level to compile in.])
+fi], [echo "0"
+AC_DEFINE_UNQUOTED(DEBUG, 0, [Debugging level to compile in.])
+])
+
 # get the flags
 CFLAGS="${CFLAGS=}"
 # this macro is used to get the arguments supplied
@@ -31,10 +52,10 @@ AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes] turn on debugging
                        [default=$debug_default]],, enable_debug=$debug_default)
 # Yes, shell scripts can be used
 if test "x$enable_debug" = "xyes"; then
-         CFLAGS="$CFLAGS -g -DDEBUG"
+         CFLAGS="$CFLAGS -g $DEBUG"
 AC_MSG_RESULT(yes)
 else
-CFLAGS="$CFLAGS -O3"
+CFLAGS="$CFLAGS -O3 $DEBUG"
 AC_MSG_RESULT(no)
 fi
 

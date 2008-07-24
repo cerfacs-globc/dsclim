@@ -11,7 +11,7 @@
 #include <filter.h>
 
 /** Filter window subroutine. Uses hanning. */
-void filter_window(double **filter_window, int width) {
+void filter_window(double **filter_window, char *type, int width) {
 
   double scale_factor;
   double alpha = 0.5;
@@ -25,21 +25,26 @@ void filter_window(double **filter_window, int width) {
   (*filter_window) = (double *) calloc(width, sizeof(double));
   if ((*filter_window) == NULL) alloc_error(__FILE__, __LINE__);
   
-  /** We are using a hanning filter. **/
-  
-  /* Scale factor */
-  scale_factor = 2.0 * M_PI / (double) width;
-  
-  /* Compute filter window. */
-  sum = 0.0;
-  for (i=0; i<width; i++) {
-    /* Hanning definition */
-    (*filter_window)[i] = (alpha - 1.0) * cos( ((double) i) * scale_factor) + alpha;
-    sum += (*filter_window)[i];
+  if ( !strcmp(type, "hanning") ) {
+    /** We are using a hanning filter. **/
+    
+    /* Scale factor */
+    scale_factor = 2.0 * M_PI / (double) width;
+    
+    /* Compute filter window. */
+    sum = 0.0;
+    for (i=0; i<width; i++) {
+      /* Hanning definition */
+      (*filter_window)[i] = (alpha - 1.0) * cos( ((double) i) * scale_factor) + alpha;
+      sum += (*filter_window)[i];
+    }
+    
+    /* Normalizing to 1.0 */
+    for (i=0; i<width; i++)
+      (*filter_window)[i] /= sum;
   }
-  
-  /* Normalizing to 1.0 */
-  for (i=0; i<width; i++)
-    (*filter_window)[i] /= sum;
-
+  else {
+    (void) fprintf(stderr, "%s: ABORT: Unknown filtering type: %s\n", __FILE__, type);
+    (void) abort();
+  }
 }
