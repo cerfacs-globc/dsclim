@@ -19,26 +19,39 @@
     before the square root is applied. */
 void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, double *eof_days_cluster, char *type,
                              int neof, int ncluster, int ndays) {
+  /**
+     @param[out]     days_class_cluster      Cluster number associated for each day.
+     @param[in]      pc_eof_days             Principal Components of EOF (daily data).
+     @param[in]      eof_days_cluster        Clusters' centroid positions for each eof.
+     @param[in]      type                    Type of distance used. Possible values: euclidian.
+     @param[in]      neof                    Number of EOFs.
+     @param[in]      ncluster                Number of clusters.
+     @param[in]      ndays                   Number of days in the pc_eof_days vector.
+  */
 
-  double dist_min;
-  int clust_dist_min;
-  double dist_sum;
-  double val;
-  double dist_clust;
+  double dist_min; /* Minimum distance found between a given day PC (summed over all EOF) and each cluster centroid. */
+  int clust_dist_min; /* Cluster number which has the minimum distance dist_min */
+  double dist_sum; /* Sum of distances (partial computation) over all EOFs */
+  double val; /* Distance between a given day PC (for a particular EOF) and one cluster centroid. */
+  double dist_clust; /* Distance (full computation of dist_sum). */
   
-  int day;
-  int clust;
-  int eof;
+  int day; /* Loop counter for days */
+  int clust; /* Loop counter for cluster */
+  int eof; /* Loop counter for eofs */
 
   if ( !strcmp(type, "euclidian") ) {
+    /* Euclidian distance type */
 
     /* Parse each day */
     for (day=0; day<ndays; day++) {
+
       /* Initialize */
       dist_min = 9999.0;
       clust_dist_min = 9999;
+
       /* Parse each cluster */
       for (clust=0; clust<ncluster; clust++) {
+
         dist_sum = 0.0;
         /* Sum all distances (over EOF) between the PC of the day and the PC of the cluster centroid for each EOF respectively */
         for (eof=0; eof<neof; eof++) {
@@ -48,6 +61,7 @@ void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, doubl
         }
         /* Euclidian distance: square root of squares */
         dist_clust = sqrt(dist_sum);
+
         /* Is it a cluster which has less distance as the minimum found yet ? */
         if (dist_clust < dist_min) {
           /* Save cluster number */
@@ -56,6 +70,7 @@ void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, doubl
         }
       }
       if (clust_dist_min == 9999) {
+        /* Failing algorithm */
         (void) fprintf(stderr, "%s: ABORT: Impossible: no cluster was selected!! Problem in algorithm...\n", __FILE__);
         (void) abort();
       }
@@ -67,6 +82,7 @@ void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, doubl
     }
   }
   else {
+    /* Unknown distance type */
     (void) fprintf(stderr, "%s: ABORT: Unknown distance type=%s!!\n", __FILE__, type);
     (void) abort();
   }

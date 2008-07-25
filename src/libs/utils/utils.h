@@ -8,6 +8,7 @@
 #include <config.h>
 #endif
 
+/** GNU extensions */
 #define _GNU_SOURCE
 
 #ifdef HAVE_STDIO_H
@@ -28,8 +29,13 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
 
+/** TRUE value macro is 1. */
 #define TRUE 1
+/** FALSE value macro is 0. */
 #define FALSE 0
 
 void alloc_error(char *filename, int line);

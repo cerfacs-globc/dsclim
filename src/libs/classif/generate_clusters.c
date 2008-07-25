@@ -10,23 +10,33 @@
 
 #include <classif.h>
 
+/** Algorithm to generate clusters based on the Michelangeli et al (1995) methodology. */
 void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nclassif, int neof, int ncluster, int ndays) {
+  /**
+     @param[out]     clusters      Clusters' positions.
+     @param[in]      pc_eof_days   Principal Components of EOF (daily data).
+     @param[in]      type          Type of distance used. Possible values: euclidian.
+     @param[in]      nclassif      Maximum number of classifications to perform in the iterative algorithm.
+     @param[in]      neof          Number of EOFs.
+     @param[in]      ncluster      Number of clusters.
+     @param[in]      ndays         Number of days in the pc_eof_days vector.
+  */
 
-  unsigned long int *random_num = NULL;
-  int eof;
-  int clust;
-  int day;
-  int classif;
-  int ndays_cluster;
+  unsigned long int *random_num = NULL; /* Vector of random numbers for random choice of initial points. */
+  int eof; /* Loop counter for EOF. */
+  int clust; /* Loop counter for clusters. */
+  int day; /* Loop counter for days. */
+  int classif; /* Loop counter for classifications. */
+  int ndays_cluster; /* Number of days in the current cluster. */
 
-  const gsl_rng_type *T;
-  gsl_rng *rng;
+  const gsl_rng_type *T; /* For random number generation type. */
+  gsl_rng *rng; /* For random number generation. */
 
-  double cluster_bary;
-  double ndiff_cluster_bary;
-  double mean_days;
-  double *eof_days_cluster = NULL;
-  int *days_class_cluster = NULL;
+  double cluster_bary; /* Cluster barycentre. */
+  double ndiff_cluster_bary; /* Distance between current cluster barycenter and previous value in the iteration. */
+  double mean_days; /* Mean of the days (PC-space) for a cluster. */
+  double *eof_days_cluster = NULL; /* Vector of clusters' barycenter positions (PC-space). */
+  int *days_class_cluster = NULL; /* Vector of classification of days into each cluster. */
   
   (void) fprintf(stdout, "%s:: BEGIN: Find clusters among data points.\n", __FILE__);
 

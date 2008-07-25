@@ -10,21 +10,29 @@
 
 #include <filter.h>
 
-/** Filter subroutine. Uses wrap edges. */
+/** Filter master subroutine. Uses wrap edges. */
 void filter(double *bufferf, double *buffer, char *type, int width, int nx) {
+  /**
+     @param[out]     bufferf     Filtered version of buffer vector.
+     @param[in]      buffer      Input vector data.
+     @param[in]      type        Type of filter. Possible values: hanning.
+     @param[in]      width       Width of filter.
+     @param[in]      nx          Dimension of buffer input vector.
+  */
 
-  double *filter = NULL;
-  double *tmpvec = NULL;
+  double *filter = NULL; /* Filter window vector */
+  double *tmpvec = NULL; /* Temporary vector */
 
-  int half_width;
-  int i;
-  int ii;
+  int half_width; /* Half-width of filter window. */
+  int i; /* Loop counter. */
+  int ii; /* Loop counter. */
 
-  double sum;
+  double sum; /* To sum values over filter window width. */
 
   (void) fprintf(stdout, "%s: Filtering data with a %s filter.\n", __FILE__, type);
 
   if ( !strcmp(type, "hanning") ) {
+    /* Hanning filter implementation */
 
     /* Compute filter window vector */
     (void) filter_window(&filter, type, width);
@@ -54,10 +62,12 @@ void filter(double *bufferf, double *buffer, char *type, int width, int nx) {
       bufferf[i] = sum;
     }
 
+    /* Free memory */
     (void) free(filter);
     (void) free(tmpvec);
   }
   else {
+    /* Unknown filter type */
     (void) fprintf(stderr, "%s: ABORT: Unknown filtering type: %s\n", __FILE__, type);
     (void) abort();
   }

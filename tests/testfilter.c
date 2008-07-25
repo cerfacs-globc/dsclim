@@ -12,6 +12,7 @@
 #include <config.h>
 #endif
 
+/** GNU extensions */
 #define _GNU_SOURCE
 
 /* C standard includes */
@@ -153,7 +154,11 @@ int main(int argc, char **argv)
 
 /** Local Subroutines **/
 
+/** Show usage for program command-line arguments. */
 void show_usage(char *pgm) {
+  /**
+     @param[in]  pgm  Program name.
+  */
 
   (void) fprintf(stderr, "%s: usage:\n", pgm);
   (void) fprintf(stderr, "-i: input file\n");

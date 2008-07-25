@@ -1,18 +1,30 @@
+
 #include <utils.h>
 
+/** Output banner on terminal for BEGIN and END of programs. */
 void banner(char *pgm, char *verstat, char *type)
 {
-  static clock_t clk;
-  time_t tim;
-  char buf[50];
-  char *ctim;
+  /**
+     @param[in]      pgm           Program name.
+     @param[in]      verstat       Program version.
+     @param[in]      type          Type of banner: BEGIN or END.
+  */
 
+  static clock_t clk; /* Store CPU clock time. */
+  time_t tim; /* To compute clock time. */
+  char buf[50]; /* Temporary buffer for reentrant subroutine access. */
+  char *ctim; /* Date/time string. */
+
+  /* Get current time */
   tim = time(NULL);
 
+  /* Create date/time string */
   ctim = ctime_r(&tim, buf);
   ctim[strlen(ctim)-1] = '\0';
 
+  /* Output banner */
   if ( !strcmp(type, "BEGIN") ) {
+    /* Initialize CPU clock time */
     clk = clock();
     (void) printf("1\n");
     (void) printf("   ********************************************************************************************\n");
@@ -30,6 +42,7 @@ void banner(char *pgm, char *verstat, char *type)
 
     float clktime;
 
+    /* Compute elapsed CPU clock time */
     clktime = (float) (clock() - clk) / (float) CLOCKS_PER_SEC;
     (void) printf("1\n");
     (void) printf("   ********************************************************************************************\n");

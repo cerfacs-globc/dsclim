@@ -12,11 +12,16 @@
 
 /** Filter window subroutine. Uses hanning. */
 void filter_window(double **filter_window, char *type, int width) {
+  /**
+     @param[out]     filter_window     Output filter window vector.
+     @param[in]      type              Type of filter. Possible values: hanning.
+     @param[in]      width             Width of filter.
+  */
 
-  double scale_factor;
-  double alpha = 0.5;
-  double sum;
-  int i;
+  double scale_factor; /* Hanning filter scale factor. */
+  double alpha = 0.5; /* alpha value for hanning filter. */
+  double sum; /* Sum for normalizing filter window. */
+  int i; /* Loop counter. */
 
   /* Check if number is odd. If it is, make it even by adding one. */
   if (width % 2 != 0) width++;
@@ -44,6 +49,7 @@ void filter_window(double **filter_window, char *type, int width) {
       (*filter_window)[i] /= sum;
   }
   else {
+    /* Unknown filter type */
     (void) fprintf(stderr, "%s: ABORT: Unknown filtering type: %s\n", __FILE__, type);
     (void) abort();
   }

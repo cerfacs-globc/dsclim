@@ -10,11 +10,22 @@
 
 #include <clim.h>
 
+/** Remove seasonal cycle using a time filter. */
 void remove_seasonal_cycle(double *bufout, double *bufin, tstruct *buftime, double missing_val, int filter_width, char *type, int ntime) {
+  /**
+     @param[out]     bufout        Output data vector with seasonal cycle removed.
+     @param[in]      bufin         Input vector data.
+     @param[in]      buftime       Time vector for input vector data.
+     @param[in]      type          Type of filter. Possible values: hanning.
+     @param[in]      missing_val   Missing value.
+     @param[in]      filter_width  Width of filter.
+     @param[in]      ntime         Dimension of buffer input vector.
+  */
   
-  double *tmpbuf = NULL;
-  int nt;
+  double *tmpbuf = NULL; /* Temporary vector. */
+  int nt; /* Loop counter. */
 
+  /* Allocate temporay buffer memory. */
   tmpbuf = (double *) calloc(ntime, sizeof(double));
   if (tmpbuf == NULL) alloc_error(__FILE__, __LINE__);
 
@@ -30,5 +41,6 @@ void remove_seasonal_cycle(double *bufout, double *bufin, tstruct *buftime, doub
   for (nt=0; nt<ntime; nt++)
     bufout[nt] = bufin[nt] - tmpbuf[nt];
 
+  /* Free memory */
   (void) free(tmpbuf);
 }

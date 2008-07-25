@@ -10,28 +10,39 @@
 
 #include <classif.h>
 
+/** Algorithm to generate best clusters among many tries. */
 void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int npart, int nclassif, int neof, int ncluster, int ndays) {
+  /**
+     @param[out]     best_clusters      Best clusters' positions.
+     @param[in]      pc_eof_days        Principal Components of EOF (daily data).
+     @param[in]      type               Type of distance used. Possible values: euclidian.
+     @param[in]      npart              Number of classification partitions to try.
+     @param[in]      nclassif           Maximum number of classifications to perform in the iterative algorithm.
+     @param[in]      neof               Number of EOFs.
+     @param[in]      ncluster           Number of clusters.
+     @param[in]      ndays              Number of days in the pc_eof_days vector.
+  */
 
-  double min_meandistval;
-  double meandistval;
-  double maxdistval;
-  double minval;
-  double dist_bary;
-  double val;
+  double min_meandistval; /* Minimum distance between a partition and all other partitions */
+  double meandistval; /* Mean distance value between each corresponding clusters for the comparison of two partitions. */
+  double maxdistval; /* Maximum distance over all clusters for the two partitions comparison. */
+  double minval; /* Minimum distance to find a corresponding closest cluster in another partition. */
+  double dist_bary; /* Distance summed over all EOFs between a cluster in one partition and other clusters in other partitions. */
+  double val; /* Difference in positions between a cluster in one partition and other clusters in other partitions for a particular EOF. */
 
-  double *tmpcluster = NULL;
-  double *testclusters = NULL;
+  double *tmpcluster = NULL; /* Temporary vector of clusters for one partition. */
+  double *testclusters = NULL; /* Temporary vector of clusters for all partitions. */
   
-  int min_cluster = -1;
-  int min_partition = -1;
+  int min_cluster = -1; /* Cluster number used to find a corresponding cluster in another partition. */
+  int min_partition = -1; /* Partition number used to find the partition which has the minimum distance to all other partitions. */
 
-  int part;
-  int part1;
-  int part2;
-  int clust;
-  int clust1;
-  int clust2;
-  int eof;
+  int part; /* Loop counter for partitions */
+  int part1; /* Loop counter for partitions inside loop */
+  int part2; /* Loop counter for partitions inside loop */
+  int clust; /* Loop counter for clusters */
+  int clust1; /* Loop counter for clusters inside loop */
+  int clust2; /* Loop counter for clusters inside loop */
+  int eof; /* Loop counter for eofs */
 
   (void) fprintf(stdout, "%s:: BEGIN: Find the best partition of clusters.\n", __FILE__);
 
@@ -41,7 +52,7 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
   testclusters = (double *) calloc(neof*ncluster*npart, sizeof(double));
   if (testclusters == NULL) alloc_error(__FILE__, __LINE__);
 
-  /* Generate npart clusters, in the attempt to find the best clustering. */
+  /* Generate npart clusters (which will be used to find the best clustering). */
   (void) fprintf(stdout, "%s:: Generating %d partitions of clusters.\n", __FILE__, npart);
   for (part=0; part<npart; part++) {
 #if DEBUG >= 1
@@ -124,6 +135,7 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
   }
 
   if (min_partition == -1) {
+    /* Failing algorithm */
     (void) fprintf(stderr, "best_clusters: ABORT: Error in algorithm. Cannot find best partition!\n");
     (void) abort();
   }

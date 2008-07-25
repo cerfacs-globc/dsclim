@@ -8,6 +8,7 @@
 #include <config.h>
 #endif
 
+/** GNU extensions. */
 #define _GNU_SOURCE
 
 #ifdef HAVE_STDIO_H

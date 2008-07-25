@@ -29,13 +29,14 @@
 #include <../utils/utils.h>
 #include <../filter/filter.h>
 
+/** Easy time structure. */
 typedef struct {
-  int year;
-  int month;
-  int day;
-  int hour;
-  int min;
-  float sec;
+  int year;  /**< Year (4-digits). */
+  int month; /**< Month (1-12). */
+  int day;   /**< Day (1-31). */
+  int hour;  /**< Hour (0-24). */
+  int min;   /**< Minute (0-59). */
+  float sec; /**< Second (0-59). */
 } tstruct;
 
 void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime, double missing_val, int ntime);
