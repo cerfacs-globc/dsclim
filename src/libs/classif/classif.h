@@ -29,9 +29,14 @@
 #ifdef HAVE_TIME_H
 #include <time.h>
 #endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
 
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
+
+#include <../utils/utils.h>
 
 void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, double *eof_days_cluster, char *type,
                              int neof, int ncluster, int ndays);

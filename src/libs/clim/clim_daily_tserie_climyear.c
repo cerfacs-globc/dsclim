@@ -23,7 +23,7 @@ void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime,
 
   (void) fprintf(stdout, "%s: Computing climatological months of a daily time serie.\n", __FILE__);
 
-  index = (int *) calloc(ntime, sizeof(short int));
+  index = (short int *) calloc(ntime, sizeof(short int));
   if (index == NULL) alloc_error(__FILE__, __LINE__);
 
   for (month=1; month<=12; month++) {

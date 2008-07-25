@@ -8,11 +8,25 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-#include aminclude.am
+include $(top_srcdir)/doxygen-include.am
 
-#MOSTLYCLEANFILES = $(DX_CLEANFILES)
+ACLOCAL_AMFLAGS = -I m4
 
 #EXTRA_DIST = reconf configure $(DX_CONFIG) doc/html
 EXTRA_DIST = reconf configure
-SUBDIRS = m4 src/libs src doc tests .
+SUBDIRS = src/libs src doc tests .
 
+MOSTLYCLEANFILES = $(DX_CLEANFILES)
+
+CLEANFILES = $(DIST_ARCHIVES)
+
+MAINTAINERCLEANFILES = \
+  Makefile \
+  Makefile.in \
+  aclocal.m4 \
+  autom4te.cache \
+  config.log \
+  config.status \
+  configure \
+  install-sh \
+  missing

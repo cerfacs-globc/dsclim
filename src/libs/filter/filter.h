@@ -22,6 +22,12 @@
 #include <stdio.h>
 #endif
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#include <../utils/utils.h>
+
 void filter(double *bufferf, double *buffer, char *type, int width, int nx);
 void filter_window(double **filter_window, char *type, int width);
 

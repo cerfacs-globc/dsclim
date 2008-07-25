@@ -1,11 +1,12 @@
 /* ***************************************************** */
-/* testbestclassif Test best classification algorithm.   */
-/* testbestclassif.c                                     */
+/* testbestclassif_realdata Test best classification     */
+/* algorithm using real NetCDF data.                     */
+/* testbestclassif_realdata.c                            */
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
-/*! \file testbestclassif.c
-    \brief Test best classification algorithm.
+/*! \file testbestclassif_realdata.c
+    \brief Test best classification algorithm using real NetCDF data.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -46,8 +47,10 @@
 #include <libgen.h>
 #endif
 
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
+#include <zlib.h>
+#include <szlib.h>
+#include <hdf5.h>
+#include <netcdf.h>
 
 #include <classif.h>
 

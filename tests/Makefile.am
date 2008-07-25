@@ -8,7 +8,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-bin_PROGRAMS = testfilter testrandomu testclassif testbestclassif
+bin_PROGRAMS = testfilter testrandomu testclassif testbestclassif testbestclassif_realdata
 
 testfilter_SOURCES = testfilter.c
 testfilter_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/filter
@@ -16,12 +16,16 @@ testfilter_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/li
 
 testrandomu_SOURCES = testrandomu.c
 testrandomu_CPPFLAGS = -I${top_srcdir}/src/libs/utils $(GSL_CFLAGS)
-testrandomu_LDADD = ${top_srcdir}/src/libs/utils/libutils.la $(GSL_LIBS) -lgslcblas
+testrandomu_LDADD = ${top_srcdir}/src/libs/utils/libutils.la $(GSL_LIBS)
 
 testclassif_SOURCES = testclassif.c
 testclassif_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/classif $(GSL_CFLAGS)
-testclassif_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/classif/libclassif.la $(GSL_LIBS) -lgslcblas
+testclassif_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/classif/libclassif.la $(GSL_LIBS)
 
 testbestclassif_SOURCES = testbestclassif.c
 testbestclassif_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/classif $(GSL_CFLAGS)
-testbestclassif_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/classif/libclassif.la $(GSL_LIBS) -lgslcblas
+testbestclassif_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/classif/libclassif.la $(GSL_LIBS)
+
+testbestclassif_realdata_SOURCES = testbestclassif_realdata.c
+testbestclassif_realdata_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/classif $(GSL_CFLAGS)
+testbestclassif_realdata_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/classif/libclassif.la $(GSL_LIBS) $(LIB_NCDF)

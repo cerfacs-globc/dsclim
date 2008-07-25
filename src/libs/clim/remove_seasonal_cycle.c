@@ -22,15 +22,9 @@ void remove_seasonal_cycle(double *bufout, double *bufin, tstruct *buftime, doub
 
   /* Compute daily climatologies for climatological year */
   (void) clim_daily_tserie_climyear(bufout, bufin, buftime, missing_val, ntime);
-  if ( !strcmp(type, "hanning") ) {
-    (void) fprintf(stdout, "%s: Using a hanning filter for climatology (wrap edges).\n", __FILE__);
-    /* Filter climatologies using a Hanning filter (wrap edges) */
-    (void) filter(tmpbuf, bufout, filter_width, ntime);
-  }
-  else {
-    (void) fprintf(stderr, "%s: ABORT: Unknown filtering type for climatology: %s\n", __FILE__, type);
-    (void) abort();
-  }
+  (void) fprintf(stdout, "%s: Using a %s filter for climatology (wrap edges).\n", __FILE__, type);
+  /* Filter climatologies using a filter (wrap edges) */
+  (void) filter(tmpbuf, bufout, type, filter_width, ntime);
 
   /* Remove climatology from time serie */
   for (nt=0; nt<ntime; nt++)

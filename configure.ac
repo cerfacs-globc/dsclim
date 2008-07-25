@@ -20,6 +20,27 @@ AM_CONFIG_HEADER(config.h)
 # check if the source folder is correct
 AC_CONFIG_SRCDIR(src/dsclim.c)
 
+# Checks for programs.
+AC_PROG_CC
+AM_PROG_CC_C_O
+
+#
+AC_CONFIG_MACRO_DIR([m4])
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([stdlib.h math.h libgen.h string.h signal.h sys/types.h stdio.h time.h fcntl.h unistd.h sys/stat.h])
+AC_TYPE_SIGNAL
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+
+# Get the flags
+CFLAGS="${CFLAGS=}"
+CPPFLAGS="${CPPFLAGS=}"
+LDFLAGS="${LDFLAGS=}"
+
 #
 # Utility stuff
 #
@@ -34,30 +55,196 @@ fi
 if test "$withval" != "no"; then 
   echo "$withval"
   AC_DEFINE_UNQUOTED(DEBUG, $withval, [Debugging level to compile in.])
+  CFLAGS="$CFLAGS -g -Wall -Werror"
 else
   echo "no debugging"
   AC_DEFINE_UNQUOTED(DEBUG, 0, [Debugging level to compile in.])
+  CFLAGS="$CFLAGS -O3"
 fi], [echo "0"
 AC_DEFINE_UNQUOTED(DEBUG, 0, [Debugging level to compile in.])
 ])
 
-# get the flags
-CFLAGS="${CFLAGS=}"
-# this macro is used to get the arguments supplied
-# to the configure script (./configure --enable-debug)
-# Check if we have enable debug support.
-AC_MSG_CHECKING(whether to enable debugging)
-debug_default="yes"
-AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes] turn on debugging
-                       [default=$debug_default]],, enable_debug=$debug_default)
-# Yes, shell scripts can be used
-if test "x$enable_debug" = "xyes"; then
-         CFLAGS="$CFLAGS -g $DEBUG"
-AC_MSG_RESULT(yes)
-else
-CFLAGS="$CFLAGS -O3 $DEBUG"
-AC_MSG_RESULT(no)
+# Check for math functions
+AC_MSG_CHECKING(for libm)
+AC_MSG_RESULT($libm_dir)
+AC_CHECK_HEADER(math.h,passed=1,passed=0)
+AC_CHECK_LIB(m,ceil,passed=1,passed=0)
+AC_MSG_CHECKING(if libm library is complete)
+if test $passed -gt 0
+then
+  AC_DEFINE(HAVE_LIBM,1,Define if you have LIBM library)
+  AC_MSG_RESULT(yes)
 fi
+
+# Check zlib library
+AC_ARG_WITH([zlib],
+        [AC_HELP_STRING([--with-zlib=ZLIB],
+        [use specified zlib installation directory])],
+        zlib_dir=$withval, zlib_dir='system')
+
+if test $zlib_dir != 'system'
+then
+  CPPFLAGS="$CPPFLAGS -I${zlib_dir}/include"
+  LDFLAGS="$LDFLAGS -L${zlib_dir}/lib"
+fi
+
+AC_MSG_CHECKING(for zlib)
+AC_MSG_RESULT($zlib_dir)
+AC_CHECK_HEADER(zlib.h,passed=1,passed=0)
+AC_CHECK_LIB(z,deflate,passed=1,passed=0)
+AC_MSG_CHECKING(if zlib support package is complete)
+
+if test $passed -gt 0
+then
+  AC_DEFINE(HAVE_ZLIB,1,Define if you have ZLIB library)
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_NOTICE([
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  CONFIGURATION ERROR: ZLIB required.
+  ZLIB installation is not working or missing.
+
+  To fix this problem you have the following options.
+  1) Check if you have ZLIB installed in a path different from your system path.
+     In this case you can provide your ZLIB installation path to the configure
+     through the option --with-zlib="your_zlib_path"
+  2) With your package manager, install the ZLIB library.
+  3) Source code for ZLIB can be found at http://www.zlib.net/.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ])
+  exit
+fi
+
+# Check szlib library
+AC_ARG_WITH([szlib],
+        [AC_HELP_STRING([--with-szlib=SZLIB],
+        [use specified szlib installation directory])],
+        szlib_dir=$withval, szlib_dir='system')
+
+if test $szlib_dir != 'system'
+then
+  CPPFLAGS="$CPPFLAGS -I${szlib_dir}/include"
+  LDFLAGS="$LDFLAGS -L${szlib_dir}/lib"
+fi
+
+AC_MSG_CHECKING(for szlib)
+AC_MSG_RESULT()
+AC_CHECK_HEADER(szlib.h,passed=1,passed=0)
+AC_CHECK_LIB(sz,SZ_Decompress,passed=1,passed=0)
+AC_MSG_CHECKING(if szlib support package is complete)
+
+if test $passed -gt 0
+then
+  AC_DEFINE(HAVE_SZLIB,1,Define if you have SZLIB library)
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_NOTICE([
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  CONFIGURATION ERROR: SZLIB required.
+  SZLIB installation is not working or missing.
+
+  The HDF5 Library includes a predefined compression filter that 
+  uses the extended-Rice lossless compression algorithm for chunked 
+  datasets. For more information about Szip compression and license 
+  terms, see http://hdfgroup.org/doc_resource/SZIP/.
+
+  To fix this problem you have the following options.
+  1) Check if you have SZLIB installed in a path different from your system path.
+     In this case you can provide your SZLIB installation path to the configure
+     through the option --with-szlib="your_szlib_path"
+  2) Precompiled Szip binaries for each supported platform and a source 
+     tar file can be found at ftp://ftp.hdfgroup.org/lib-external/szip/.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ])
+  exit
+fi
+
+# Check HDF5 library
+AC_ARG_WITH([hdf5],
+        [AC_HELP_STRING([--with-hdf5=HDF5],
+        [use specified hdf5 installation directory])],
+        hdf5_dir=$withval, hdf5_dir='system')
+
+if test $hdf5_dir != 'system'
+then
+  CPPFLAGS="$CPPFLAGS -I${hdf5_dir}/include"
+  LDFLAGS="$LDFLAGS -L${hdf5_dir}/lib"
+fi
+
+AC_MSG_CHECKING(for hdf5)
+AC_MSG_RESULT()
+AC_CHECK_HEADER(hdf5.h,passed=1,passed=0)
+AC_CHECK_LIB(hdf5,H5check_version,passed=1,passed=0,-lhdf5_hl -lsz -lz -lm)
+AC_MSG_CHECKING(if hdf5 support package is complete)
+
+if test $passed -gt 0
+then
+  AC_DEFINE(HAVE_HDF5LIB,1,Define if you have HDF5 library)
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_NOTICE([
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  CONFIGURATION ERROR: HDF5 is required.
+  Hdf5 installation is not working or missing.
+
+  To fix this problem you have the following options.
+  1) Check if you have HDF5 installed in a path different from your system path.
+     In this case you can provide your HDF5 installation path to the configure
+     through the option --with-hdf5="your_hdf5_path"
+  2) Download HDF5 from ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/ and install it.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ])
+  exit
+fi
+
+# Check NetCDF library
+AC_ARG_WITH([netcdf],
+        [AC_HELP_STRING([--with-netcdf=NETCDF],
+        [use specified netcdf installation directory])],
+        netcdf_dir=$withval, netcdf_dir='system')
+
+if test $netcdf_dir != 'system'
+then
+  CPPFLAGS="$CPPFLAGS -I${netcdf_dir}/include"
+  LDFLAGS="$LDFLAGS -L${netcdf_dir}/lib"
+fi
+
+AC_MSG_CHECKING(for netcdf)
+AC_MSG_RESULT()
+AC_CHECK_HEADER(netcdf.h,passed=1,passed=0)
+AC_CHECK_LIB(netcdf,nc_create,passed=1,passed=0,-lhdf5_hl -lhdf5 -lsz -lz -lm)
+AC_MSG_CHECKING(if netcdf support package is complete)
+
+if test $passed -gt 0
+then
+  LIB_NCDF='-lnetcdf -lhdf5_hl -lhdf5 -lsz -lz -lm'
+  AC_DEFINE(HAVE_NETCDFLIB,1,Define if you have NETCDF library)
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_NOTICE([
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  CONFIGURATION ERROR: NetCDF 4.0 or greater required.
+  NetCDF installation is not working or missing.
+
+  To fix this problem you have the following options.
+  1) Check if you have netcdf installed in a path different from your system path.
+     In this case you can provide your netcdf installation path to the configure
+     through the option --with-netcdf="your_netcdf_path"
+  2) Download netcdf from http://www.unidata.ucar.edu/software/netcdf/ and install it.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ])
+  exit
+fi
+
+AX_PATH_GSL(1.0, [], [])
 
 # Example to add --with option
 #AC_ARG_WITH([readline],
@@ -79,30 +266,20 @@ fi
 #
 #              ], -lncurses)])
 
-# Checks for programs.
-AC_PROG_CC
-AM_PROG_CC_C_O
+#AC_ARG_ENABLE([doxygen],
+#  [AS_HELP_STRING([--disable-doxygen],
+#    [disable doc generation])])
+#AM_CONDITIONAL([ENABLE_DOXYGEN], [test "x$enable_doxygen" != xno]) 
 
-# Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h math.h libgen.h string.h signal.h sys/types.h stdio.h time.h fcntl.h unistd.h sys/stat.h])
-AC_TYPE_SIGNAL
-AC_C_CONST
-AC_C_INLINE
-AC_TYPE_SIZE_T
-AC_HEADER_TIME
-
-AX_PATH_GSL(1.0, [], [])
-
-#DX_HTML_FEATURE(ON)
-#DX_CHM_FEATURE(OFF)
-#DX_CHI_FEATURE(OFF)
-#DX_MAN_FEATURE(OFF)
-#DX_RTF_FEATURE(OFF)
-#DX_XML_FEATURE(OFF)
-#DX_PDF_FEATURE(OFF)
-#DX_PS_FEATURE(OFF)
-#DX_INIT_DOXYGEN(dsclim, doxygen.cfg)
+DX_HTML_FEATURE(ON)
+DX_CHM_FEATURE(OFF)
+DX_CHI_FEATURE(OFF)
+DX_MAN_FEATURE(OFF)
+DX_RTF_FEATURE(OFF)
+DX_XML_FEATURE(OFF)
+DX_PDF_FEATURE(OFF)
+DX_PS_FEATURE(OFF)
+DX_INIT_DOXYGEN(dsclim, doxygen.cfg)
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 
