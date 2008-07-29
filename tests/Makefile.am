@@ -27,5 +27,5 @@ testbestclassif_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/li
 testbestclassif_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/classif/libclassif.la $(GSL_LIBS)
 
 testbestclassif_realdata_SOURCES = testbestclassif_realdata.c
-testbestclassif_realdata_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/classif $(GSL_CFLAGS)
-testbestclassif_realdata_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/classif/libclassif.la $(GSL_LIBS) $(LIB_NCDF)
+testbestclassif_realdata_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/classif $(GSL_CFLAGS) $(NCDF_CPPFLAGS)
+testbestclassif_realdata_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/classif/libclassif.la $(GSL_LIBS) $(NCDF_LIBS)

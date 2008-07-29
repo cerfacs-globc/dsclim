@@ -66,7 +66,7 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
 
   /** Try to find best partition (clustering) which is closest to all the other partitions (which corresponds to
       the partition closest to the barycenter of partitions. */
-  min_meandistval = 999999.9;
+  min_meandistval = 9999999999.9;
   min_partition = -1;
   /* Loop over all partition and compute distance between each other partition. */
   (void) fprintf(stdout, "%s:: Computing distance between each partitions of clusters.\n", __FILE__);
@@ -80,12 +80,12 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
       /* Don't compute for the same partition number. */
       if (part1 != part2) {
 
-        maxdistval = -999999.9;
+        maxdistval = -9999999999.9;
         
         for (clust1=0; clust1<ncluster; clust1++) {
           
           /* Find closest cluster to current one (in terms of distance summed over all EOF). */
-          minval = 999999.9;
+          minval = 9999999999.9;
           min_cluster = -1;
           for (clust2=0; clust2<ncluster; clust2++) {
 
@@ -150,5 +150,5 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
   (void) free(tmpcluster);
   (void) free(testclusters);
 
-  (void) fprintf(stdout, "%s:: END: Find the best partition of clusters.\n", __FILE__);
+  (void) fprintf(stdout, "%s:: END: Find the best partition of clusters. Partition %d selected.\n", __FILE__, min_partition);
 }

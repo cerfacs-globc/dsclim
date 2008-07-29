@@ -223,7 +223,12 @@ AC_MSG_CHECKING(if netcdf support package is complete)
 
 if test $passed -gt 0
 then
-  LIB_NCDF='-lnetcdf -lhdf5_hl -lhdf5 -lsz -lz -lm'
+  NCDF_LIBS='-lnetcdf -lhdf5_hl -lhdf5 -lsz -lz -lm'
+  AC_SUBST(NCDF_LIBS)
+  NCDF_CPPFLAGS='-I${netcdf_dir}/include'
+  AC_SUBST(NCDF_CPPFLAGS)
+  NCDF_LDFLAGS='-L${netcdf_dir}/lib'
+  AC_SUBST(NCDF_CPPFLAGS)
   AC_DEFINE(HAVE_NETCDFLIB,1,Define if you have NETCDF library)
   AC_MSG_RESULT(yes)
 else

@@ -86,8 +86,8 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   (void) free(random_num);
 
   /* Iterate by performing up to nclassif classifications. Stop if same cluster center positions in two consecutive iterations. */
-  cluster_bary = -9999.9;
-  ndiff_cluster_bary = -9999.9;
+  cluster_bary = -9999999999.9;
+  ndiff_cluster_bary = -9999999999.9;
   classif = 0;
 
   (void) fprintf(stdout, "%s:: Iterate up to %d classifications or when classification is stable.\n", __FILE__, nclassif);
@@ -103,7 +103,7 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
 
     /* For each cluster, perform a mean of all points falling in that cluster.
        Compare to the current clusters by calculating the 'coordinates' (PC-space) of the 'new' cluster center. */
-    cluster_bary = -9999.9;
+    cluster_bary = -9999999999.9;
 
     for (clust=0; clust<ncluster; clust++) {
       for (eof=0; eof<neof; eof++) {
@@ -162,5 +162,5 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   (void) free(eof_days_cluster);
   (void) free(days_class_cluster);
 
-  (void) fprintf(stdout, "%s:: END: Find clusters among data points.\n", __FILE__);
+  (void) fprintf(stdout, "%s:: END: Find clusters among data points. %d iterations needed.\n", __FILE__, classif);
 }

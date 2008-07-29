@@ -46,11 +46,19 @@ void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, doubl
     for (day=0; day<ndays; day++) {
 
       /* Initialize */
-      dist_min = 9999.0;
-      clust_dist_min = 9999;
+      dist_min = 9999999999.0;
+      clust_dist_min = 999;
+
+#if DEBUG >= 7
+      (void) fprintf(stderr, "day=%d\n", day);
+#endif
 
       /* Parse each cluster */
       for (clust=0; clust<ncluster; clust++) {
+
+#if DEBUG >= 7
+      (void) fprintf(stderr, "clust=%d\n", clust);
+#endif
 
         dist_sum = 0.0;
         /* Sum all distances (over EOF) between the PC of the day and the PC of the cluster centroid for each EOF respectively */
@@ -62,6 +70,10 @@ void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, doubl
         /* Euclidian distance: square root of squares */
         dist_clust = sqrt(dist_sum);
 
+#if DEBUG >= 7
+      (void) fprintf(stderr, "dist_clust=%lf\n", dist_clust);
+#endif
+
         /* Is it a cluster which has less distance as the minimum found yet ? */
         if (dist_clust < dist_min) {
           /* Save cluster number */
@@ -69,7 +81,7 @@ void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, doubl
           dist_min = dist_clust;
         }
       }
-      if (clust_dist_min == 9999) {
+      if (clust_dist_min == 999) {
         /* Failing algorithm */
         (void) fprintf(stderr, "%s: ABORT: Impossible: no cluster was selected!! Problem in algorithm...\n", __FILE__);
         (void) abort();
