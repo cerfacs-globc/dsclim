@@ -8,7 +8,6 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-bin_PROGRAMS = dsclim
-dsclim_SOURCES = dsclim.c
-dsclim_CPPFLAGS = -Ilibs/utils -Ilibs/classif -Ilibs/clim -Ilibs/filter -Ilibs/regress
-dsclim_LDADD = libs/utils/libutils.la libs/classif/libclassif.la libs/clim/libclim.la libs/filter/libfilter.la libs/regress/libregress.la
+noinst_LTLIBRARIES = libregress.la
+libregress_la_SOURCES = regress.h regress.c
+libregress_la_LIBADD = ../utils/libutils.la -lm

@@ -11,13 +11,15 @@
 #include <clim.h>
 
 /** Compute daily climatology for climatological months of a daily time serie. */
-void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime, double missing_val, int ntime) {
+void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime, double missing_val, int ni, int nj, int nt) {
   /**
-     @param[out]     bufout        Output vector of daily climatology for a year.
-     @param[in]      bufin         Input vector data.
+     @param[out]     bufout        Output 3D matrix of daily climatology for a year.
+     @param[in]      bufin         Input 3D matrix.
      @param[in]      buftime       Time vector for input vector data.
      @param[in]      missing_val   Missing value.
-     @param[in]      ntime         Dimension of buffer input vector.
+     @param[in]      ni            Horizontal dimension of buffer input vector.
+     @param[in]      nj            Horizontal dimension of buffer input vector.
+     @param[in]      nt         Temporal dimension of buffer input vector.
   */
 
   short int *index = NULL; /* Index to flag matching a specific day and month in a time serie covering several years. */
@@ -26,48 +28,55 @@ void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime,
   short int ndays = 0; /* Number of days matching days. */
   short int month; /* Climatological month. */
 
-  int nt; /* Loop counter for time. */
+  int t; /* Loop counter for time. */
+  int i; /* Loop counter for ni. */
+  int j; /* Loop counter for nj. */
   int day; /* Loop counter for days. */
 
   (void) fprintf(stdout, "%s: Computing climatological months of a daily time serie.\n", __FILE__);
 
   /* Allocate memory */
-  index = (short int *) calloc(ntime, sizeof(short int));
+  index = (short int *) calloc(nt, sizeof(short int));
   if (index == NULL) alloc_error(__FILE__, __LINE__);
-  
-  /* Loop over the 12 months of the year to generate daily climatological months */
-  for (month=1; month<=12; month++) {
 
-    /* Loop over each day of the month */
-    for (day=1; day<=31; day++) {
-
-      ndays = 0; /* Initialize the number of days */
-
-      /* Loop over all the times */
-      for (nt=0; nt<ntime; nt++) {
-        /* Initialize */
-        sum = 0.0;
-        index[nt] = 0;
-        if (buftime[nt].day == day && buftime[nt].month == month) {
-          /* The climatological day and month match */
-          index[nt] = 1; /* Flag it */
-          if (bufin[nt] != missing_val) {
-            /* Ignore missing values */
-            sum += bufin[nt]; /* Sum all the values for this matching day/month */
-            ndays++;
+  for (j=0; j<nj; j++)
+    for (i=0; i<ni; i++) {
+      
+      /* Loop over the 12 months of the year to generate daily climatological months */
+      for (month=1; month<=12; month++) {
+        
+        /* Loop over each day of the month */
+        for (day=1; day<=31; day++) {
+          
+          ndays = 0; /* Initialize the number of days */
+          
+          /* Loop over all the times */
+          for (t=0; t<nt; t++) {
+            /* Initialize */
+            sum = 0.0;
+            index[t] = 0;
+            if (buftime[t].day == day && buftime[t].month == month) {
+              /* The climatological day and month match */
+              index[t] = 1; /* Flag it */
+              if (bufin[i+j*ni+t*ni*nj] != missing_val) {
+                /* Ignore missing values */
+                sum += bufin[i+j*ni+t*ni*nj]; /* Sum all the values for this matching day/month */
+                ndays++;
+              }
+            }
+          }
+          /* More than one day matching */
+          if (ndays > 0) {
+            /* Compute the mean over all the matching days and apply mean for all these flagged days */
+            mean = sum / (double) ndays;
+            for (t=0; t<nt; t++)
+              /* Assign mean value for all flagged days used in computing this mean */
+              if (index[t] == 1)
+                bufout[i+j*ni+t*ni*nj] = mean;
           }
         }
       }
-      /* More than one day matching */
-      if (ndays > 0) {
-        /* Compute the mean over all the matching days and apply mean for all these days */
-        mean = sum / (double) ndays;
-        for (nt=0; nt<ntime; nt++)
-          if (index[nt] == 1)
-            bufout[nt] = mean;
-      }
     }
-  }
 
   /* Free memory */
   (void) free(index);

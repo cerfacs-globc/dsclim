@@ -10,4 +10,4 @@
 
 noinst_LTLIBRARIES = libclassif.la
 libclassif_la_SOURCES = classif.h class_days_pc_centroids.c generate_clusters.c best_clusters.c
-libclassif_la_LIBADD = ../utils/libutils.la
+libclassif_la_LIBADD = ../utils/libutils.la -lm

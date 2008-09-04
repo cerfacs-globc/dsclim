@@ -28,7 +28,7 @@
 
 #include <../utils/utils.h>
 
-void filter(double *bufferf, double *buffer, char *type, int width, int nx);
+void filter(double *bufferf, double *buffer, char *type, int width, int ni, int nj, int nt);
 void filter_window(double **filter_window, char *type, int width);
 
 #endif

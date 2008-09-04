@@ -55,7 +55,7 @@ fi
 if test "$withval" != "no"; then 
   echo "$withval"
   AC_DEFINE_UNQUOTED(DEBUG, $withval, [Debugging level to compile in.])
-  CFLAGS="$CFLAGS -g -Wall -Werror"
+  CFLAGS="$CFLAGS -g -Wall"
 else
   echo "no debugging"
   AC_DEFINE_UNQUOTED(DEBUG, 0, [Debugging level to compile in.])
@@ -74,6 +74,53 @@ if test $passed -gt 0
 then
   AC_DEFINE(HAVE_LIBM,1,Define if you have LIBM library)
   AC_MSG_RESULT(yes)
+fi
+
+# Check udunits library
+AC_ARG_WITH([udunits],
+        [AC_HELP_STRING([--with-udunits=UDUNITS],
+        [use specified udunits installation directory])],
+        udunits_dir=$withval, udunits_dir='system')
+
+if test $udunits_dir != 'system'
+then
+  CPPFLAGS="$CPPFLAGS -I${udunits_dir}/include"
+  LDFLAGS="$LDFLAGS -L${udunits_dir}/lib"
+fi
+
+AC_MSG_CHECKING(for udunits)
+AC_MSG_RESULT($udunits_dir)
+AC_CHECK_HEADER(udunits.h,passed=1,passed=0)
+AC_CHECK_LIB(udunits,utInit,passed=1,passed=0,-lm)
+AC_MSG_CHECKING(if udunits support package is complete)
+
+if test $passed -gt 0
+then
+  UDUNITS_LIBS='-ludunits -lm'
+  AC_SUBST(UDUNITS_LIBS)
+  UDUNITS_CPPFLAGS='-I${udunits_dir}/include'
+  AC_SUBST(UDUNITS_CPPFLAGS)
+  UDUNITS_LDFLAGS='-L${udunits_dir}/lib'
+  AC_SUBST(UDUNITS_CPPFLAGS)
+  AC_DEFINE(HAVE_UDUNITS,1,Define if you have UDUNITS library)
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_NOTICE([
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  CONFIGURATION ERROR: UDUNITS required.
+  UDUNITS installation is not working or missing.
+
+  To fix this problem you have the following options.
+  1) Check if you have UDUNITS installed in a path different from your system path.
+     In this case you can provide your UDUNITS installation path to the configure
+     through the option --with-udunits="your_udunits_path"
+  2) With your package manager, install the UDUNITS library.
+  3) Source code for UDUNITS can be found at http://www.unidata.ucar.edu/udunits/.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ])
+  exit
 fi
 
 # Check zlib library
@@ -301,6 +348,7 @@ AC_CONFIG_FILES([
    src/libs/filter/Makefile
    src/libs/classif/Makefile
    src/libs/clim/Makefile
+   src/libs/regress/Makefile
    src/Makefile
    tests/Makefile
 ])

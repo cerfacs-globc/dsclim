@@ -11,8 +11,8 @@
 /** GNU extensions */
 #define _GNU_SOURCE
 
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
 #endif
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -33,6 +33,8 @@
 #include <stdio.h>
 #endif
 
+#include "utCalendar_cal.h"
+
 /** TRUE value macro is 1. */
 #define TRUE 1
 /** FALSE value macro is 0. */
@@ -40,6 +42,9 @@
 
 void alloc_error(char *filename, int line);
 void banner(char *pgm, char *verstat, char *type);
+int data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, double *bufin,
+                            double *intimeval, char *tunits_in, char *tunits_out, char *cal_type, int ni, int nj, int ntimein);
+int data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, float *bufin,
+                            double *intimeval, char *tunits_in, char *tunits_out, char *cal_type, int ni, int nj, int ntimein);
 
 #endif
-

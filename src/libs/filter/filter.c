@@ -11,21 +11,25 @@
 #include <filter.h>
 
 /** Filter master subroutine. Uses wrap edges. */
-void filter(double *bufferf, double *buffer, char *type, int width, int nx) {
+void filter(double *bufferf, double *buffer, char *type, int width, int ni, int nj, int nt) {
   /**
-     @param[out]     bufferf     Filtered version of buffer vector.
-     @param[in]      buffer      Input vector data.
+     @param[out]     bufferf     Filtered version of buffer input matrix.
+     @param[in]      buffer      Input matrix.
      @param[in]      type        Type of filter. Possible values: hanning.
      @param[in]      width       Width of filter.
-     @param[in]      nx          Dimension of buffer input vector.
+     @param[in]      ni          Horizontal dimension of buffer input matrix.
+     @param[in]      nj          Horizontal dimension of buffer input matrix.
+     @param[in]      nt          Temporal dimension of buffer input matrix.
   */
 
   double *filter = NULL; /* Filter window vector */
   double *tmpvec = NULL; /* Temporary vector */
 
   int half_width; /* Half-width of filter window. */
-  int i; /* Loop counter. */
-  int ii; /* Loop counter. */
+  int i; /* Loop counter for ni. */
+  int j; /* Loop counter for nj. */
+  int t; /* Loop counter. */
+  int tt; /* Loop counter. */
 
   double sum; /* To sum values over filter window width. */
 
@@ -41,27 +45,31 @@ void filter(double *bufferf, double *buffer, char *type, int width, int nx) {
     half_width = ( width - 1 ) / 2;
     
     /* Expanded version of vector: wrapping edges. */
-    tmpvec = (double *) calloc(nx*2, sizeof(double));
+    tmpvec = (double *) calloc(nt*2, sizeof(double));
     if (tmpvec == NULL) alloc_error(__FILE__, __LINE__);
-    
-    for (i=0; i<half_width; i++) {
-      tmpvec[i] = buffer[nx-half_width+i];
-    }
-    for (i=half_width; i<(half_width+nx); i++) {
-      tmpvec[i] = buffer[i-half_width];
-    }
-    for (i=(half_width+nx); i<(nx*2); i++) {
-      tmpvec[i] = buffer[i-(half_width+nx)];
-    }
-    
-    /* Apply filter. */
-    for (i=0; i<nx; i++) {
-      sum = 0.0;
-      for (ii=i; ii<(i+width-1); ii++)
-        sum += (filter[ii-i] * tmpvec[ii]);
-      bufferf[i] = sum;
-    }
 
+    for (j=0; j<nj; j++)
+      for (i=0; i<ni; i++) {
+        
+        for (t=0; t<half_width; t++) {
+          tmpvec[t] = buffer[i+j*ni+(nt-half_width+t)*ni*nj];
+        }
+        for (t=half_width; t<(half_width+nt); t++) {
+          tmpvec[t] = buffer[i+j*ni+(t-half_width)*ni*nj];
+        }
+        for (t=(half_width+nt); t<(nt*2); t++) {
+          tmpvec[t] = buffer[i+j*ni+(t-(half_width+nt)*ni*nj)];
+        }
+        
+        /* Apply filter. */
+        for (t=0; t<nt; t++) {
+          sum = 0.0;
+          for (tt=t; tt<(t+width-1); tt++)
+            sum += (filter[tt-t] * tmpvec[tt]);
+          bufferf[i+j*ni+t*ni*nj] = sum;
+        }
+      }
+    
     /* Free memory */
     (void) free(filter);
     (void) free(tmpvec);

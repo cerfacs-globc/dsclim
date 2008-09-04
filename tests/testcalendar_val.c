@@ -1,11 +1,11 @@
-/* ***************************************************** */
-/* testrandomu Test random number GSL function.          */
-/* testrandomu.c                                         */
-/* ***************************************************** */
-/* Author: Christian Page, CERFACS, Toulouse, France.    */
-/* ***************************************************** */
-/*! \file testrandomu.c
-    \brief Test random number GSL function.
+/* ********************************************************* */
+/* testcalendar_val Test calendar conversion functions.      */
+/* testcalendar_val.c                                        */
+/* ********************************************************* */
+/* Author: Christian Page, CERFACS, Toulouse, France.        */
+/* ********************************************************* */
+/*! \file testcalendar_val.c
+    \brief Test calendar conversion functions on one value.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -44,11 +44,8 @@
 #include <time.h>
 #endif
 #ifdef HAVE_LIBGEN_H
-#  include <libgen.h>
+#include <libgen.h>
 #endif
-
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
 
 #include <utils.h>
 
@@ -65,10 +62,15 @@ int main(int argc, char **argv)
      \return           Status.
    */
 
-  unsigned long int random_num, i;
+  int i;
 
-  const gsl_rng_type *T;
-  gsl_rng *rng;
+  int istat;
+  double val;
+  int year, month, day, hour, min;
+  float sec;
+  
+  utUnit dataunits;
+  char time_units[1000];
 
   /* Print BEGIN banner */
   (void) banner(basename(argv[0]), "1.0", "BEGIN");
@@ -88,17 +90,17 @@ int main(int argc, char **argv)
     }
   }
 
-  /* Initialize random number generator */
-  T = gsl_rng_default;
-  rng = gsl_rng_alloc(T);
-  (void) gsl_rng_set(rng, time(NULL));
+  val = 146000;
+  (void) strcpy(time_units, "days since 0001-01-01");
   
-  for (i=0; i<1000000; i++) {
-    random_num = gsl_rng_uniform_int(rng, 100);  
-    (void) fprintf(stdout,"%ld\n",random_num);
-  }
+  istat = utInit("/usr/local/etc/udunits.dat");
 
-  (void) gsl_rng_free(rng);
+  istat = utScan(time_units, &dataunits);
+  printf("dataunits.origin=%lf dataunits.factor=%lf dataunits.hasorigin=%d\n",dataunits.origin, dataunits.factor,dataunits.hasorigin);
+
+  // istat = utCalendar(val, &dataunits, &year, &month, &day, &hour, &min, &sec);
+  istat = utCalendar_cal(val, &dataunits, &year, &month, &day, &hour, &min, &sec, "noleap");
+  printf("Value=%.0f YYYYMMDD HHmmss %04d %02d %02d %02d:%02d:%02.0f\n", val, year, month, day, hour, min, sec);
 
   /* Print END banner */
   (void) banner(basename(argv[0]), "OK", "END");
