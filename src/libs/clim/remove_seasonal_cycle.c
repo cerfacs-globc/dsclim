@@ -15,7 +15,7 @@ void remove_seasonal_cycle(double *bufout, double *clim, double *bufin, tstruct 
                            int filter_width, char *type, short int clim_provided, int ni, int nj, int ntime) {
   /**
      @param[out]     bufout        Output data 3D matrix with seasonal cycle removed.
-     @param[out,in]  clim          Climatology vector (on 366 days). Can pe already provided as input or not (clim_provided parameter).
+     @param[out,in]  clim          Climatology vector (on 366 days). Can be already provided as input or not (clim_provided parameter).
      @param[in]      bufin         Input 3D matrix.
      @param[in]      buftime       Time vector for input vector data.
      @param[in]      type          Type of filter. Possible values: hanning.

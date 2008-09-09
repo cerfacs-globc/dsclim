@@ -6,7 +6,8 @@
 
 /** Subroutine to project a 2D-time field on pre-calculated EOFs. */
 void project_field_eof(double *bufout, double *clim, double *bufin, double *bufeof, double *singular_value, tstruct *buftime,
-                       double missing_value, int clim_filter_width, char *clim_filter_type, short int clim_provided,
+                       double missing_value, double missing_value_eof,
+                       int clim_filter_width, char *clim_filter_type, short int clim_provided,
                        int ni, int nj, int ntime, int neof)
 {
   /**
@@ -53,22 +54,40 @@ void project_field_eof(double *bufout, double *clim, double *bufin, double *bufe
   if (true_val == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Compute norm */
+
+  /* DEBUG */
+  /*  sum = 0.0;
+  for (j=0; j<nj; j++)
+    for (i=0; i<ni; i++) {
+      eof = 0;
+      if (bufeof[i+j*ni+eof*ni*nj] != missing_value_eof)
+        printf("%d %d %d %d %lf\n",(int) sum,i,j,eof,bufeof[i+j*ni+eof*ni*nj]);
+      if (bufeof[i+j*ni] != missing_value_eof)
+        sum = sum + 1.0;
+        } */
+  
   for (eof=0; eof<neof; eof++) {
     norm = 0.0;
     sum_verif_norm = 0.0;
     
     for (j=0; j<nj; j++)
       for (i=0; i<ni; i++) {
-        val = bufeof[i+j*ni+eof*ni*nj] / singular_value[eof];
-        norm += (val * val);
+        if (bufeof[i+j*ni+eof*ni*nj] != missing_value_eof) {
+          val = bufeof[i+j*ni+eof*ni*nj] / singular_value[eof];
+          norm += (val * val);
+        }
       }
-
+    
     /* Compute true value */
     sum = 0.0;
     for (j=0; j<nj; j++)
       for (i=0; i<ni; i++) {
-        val = true_val[i+j*ni] = bufeof[i+j*ni+eof*ni*nj] / ( sqrt(norm) * singular_value[eof] );
-        sum_verif_norm += (val * val);
+        if (bufeof[i+j*ni+eof*ni*nj] != missing_value_eof) {
+          val = bufeof[i+j*ni+eof*ni*nj] / ( sqrt(norm) * singular_value[eof] );
+          true_val[i+j*ni] = val;
+          sum += val;
+          sum_verif_norm += (val * val);
+        }
       }
 
     /* Verify that the norm is equal to 1.0 */
@@ -79,7 +98,11 @@ void project_field_eof(double *bufout, double *clim, double *bufin, double *bufe
       sum = 0.0;
       for (j=0; j<nj; j++)
         for (i=0; i<ni; i++)
-          sum += ( bufnoclim[i+j*ni+t*ni*nj] / sqrt(norm) * true_val[i+j*ni] );
+          if (bufeof[i+j*ni+eof*ni*nj] != missing_value_eof) {
+            /*            if (t == 0)
+                          printf("%d %d %lf\n",i,j,bufnoclim[i+j*ni+t*ni*nj]);*/
+            sum += ( bufnoclim[i+j*ni+t*ni*nj] / sqrt(norm) * true_val[i+j*ni] );
+          }
       bufout[t+eof*ntime] = sum;
     }
 

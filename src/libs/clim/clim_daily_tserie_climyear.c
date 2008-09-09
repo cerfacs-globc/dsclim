@@ -49,11 +49,11 @@ void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime,
         for (day=1; day<=31; day++) {
           
           ndays = 0; /* Initialize the number of days */
+          sum = 0.0;
           
           /* Loop over all the times */
           for (t=0; t<nt; t++) {
             /* Initialize */
-            sum = 0.0;
             index[t] = 0;
             if (buftime[t].day == day && buftime[t].month == month) {
               /* The climatological day and month match */

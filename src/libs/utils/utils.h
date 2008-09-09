@@ -40,11 +40,27 @@
 /** FALSE value macro is 0. */
 #define FALSE 0
 
+/** Easy time structure. */
+typedef struct {
+  int year;  /**< Year (4-digits). */
+  int month; /**< Month (1-12). */
+  int day;   /**< Day (1-31). */
+  int hour;  /**< Hour (0-24). */
+  int min;   /**< Minute (0-59). */
+  float sec; /**< Second (0-59). */
+} tstruct;
+
 void alloc_error(char *filename, int line);
 void banner(char *pgm, char *verstat, char *type);
 int data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, double *bufin,
                             double *intimeval, char *tunits_in, char *tunits_out, char *cal_type, int ni, int nj, int ntimein);
 int data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, float *bufin,
                             double *intimeval, char *tunits_in, char *tunits_out, char *cal_type, int ni, int nj, int ntimein);
+int get_calendar(int *year, int *month, int *day, int *hour, int *minutes, float *seconds, char *tunits, double *timein, int ntime);
+int get_calendar_ts(tstruct *timeout, char *tunits, double *timein, int ntime);
+void project_field_eof(double *bufout, double *clim, double *bufin, double *bufeof, double *singular_value, tstruct *buftime,
+                       double missing_value, double missing_value_eof,
+                       int clim_filter_width, char *clim_filter_type, short int clim_provided,
+                       int ni, int nj, int ntime, int neof);
 
 #endif

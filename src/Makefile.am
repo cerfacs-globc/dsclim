@@ -8,6 +8,8 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+SUBDIRS=utils .
+
 bin_PROGRAMS = dsclim
 dsclim_SOURCES = dsclim.c
 dsclim_CPPFLAGS = -Ilibs/utils -Ilibs/classif -Ilibs/clim -Ilibs/filter -Ilibs/regress

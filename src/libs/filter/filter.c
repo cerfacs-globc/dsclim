@@ -33,7 +33,7 @@ void filter(double *bufferf, double *buffer, char *type, int width, int ni, int 
 
   double sum; /* To sum values over filter window width. */
 
-  (void) fprintf(stdout, "%s: Filtering data with a %s filter.\n", __FILE__, type);
+  /*  (void) fprintf(stdout, "%s: Filtering data with a %s filter.\n", __FILE__, type);*/
 
   if ( !strcmp(type, "hanning") ) {
     /* Hanning filter implementation */

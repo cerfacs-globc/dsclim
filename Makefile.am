@@ -14,7 +14,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 #EXTRA_DIST = reconf configure $(DX_CONFIG) doc/html
 EXTRA_DIST = reconf configure $(DX_CONFIG) doc/html
-SUBDIRS = src/libs src doc tests .
+SUBDIRS = src/libs src/utils src doc tests .
 
 MOSTLYCLEANFILES = $(DX_CLEANFILES)
 
