@@ -2,11 +2,11 @@
 /* Classification subroutine: find the closest cluster   */
 /* of the principal components for each given day        */
 /* in EOF space.                                         */
-/* class_days_pc_centroids.c                             */
+/* class_days_pc_clusters.c                             */
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
-/*! \file class_days_pc_centroids.c
+/*! \file class_days_pc_clusters.c
     \brief Classification subroutine find the closest cluster of the principal components for each given day in EOF space.            
 */
 
@@ -17,8 +17,8 @@
     the cluster principal components for each EOF.
     To evaluate the closest one, all the square of the distances for all EOFs are summed for each cluster,
     before the square root is applied. */
-void class_days_pc_centroids(int *days_class_cluster, double *pc_eof_days, double *eof_days_cluster, char *type,
-                             int neof, int ncluster, int ndays) {
+void class_days_pc_clusters(int *days_class_cluster, double *pc_eof_days, double *eof_days_cluster, char *type,
+                            int neof, int ncluster, int ndays) {
   /**
      @param[out]     days_class_cluster      Cluster number associated for each day.
      @param[in]      pc_eof_days             Principal Components of EOF (daily data).

@@ -99,7 +99,7 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
 #endif
 
     /* Classify each day (pc_eof_days) in the current clusters (eof_days_cluster) = days_class_cluster */
-    (void) class_days_pc_centroids(days_class_cluster, pc_eof_days, eof_days_cluster, type, neof, ncluster, ndays);
+    (void) class_days_pc_clusters(days_class_cluster, pc_eof_days, eof_days_cluster, type, neof, ncluster, ndays);
 
     /* For each cluster, perform a mean of all points falling in that cluster.
        Compare to the current clusters by calculating the 'coordinates' (PC-space) of the 'new' cluster center. */
