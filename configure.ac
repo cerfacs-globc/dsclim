@@ -349,7 +349,6 @@ AC_CONFIG_FILES([
    src/libs/classif/Makefile
    src/libs/clim/Makefile
    src/libs/regress/Makefile
-   src/utils/Makefile
    src/Makefile
    tests/Makefile
 ])

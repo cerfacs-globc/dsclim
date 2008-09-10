@@ -62,5 +62,8 @@ void project_field_eof(double *bufout, double *clim, double *bufin, double *bufe
                        double missing_value, double missing_value_eof,
                        int clim_filter_width, char *clim_filter_type, short int clim_provided,
                        int ni, int nj, int ntime, int neof);
+void mean_variance_dist_clusters(double *mean_dist, double *var_dist, double *pc, double *clusters, double *var_pc,
+                                 int neof, int nclust, int ntime);
+void mean_variance_field_spatial(double *buf_smean, double *buf_mean, double *buf_var, double *buf, int ni, int nj, int ntime);
 
 #endif
