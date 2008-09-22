@@ -120,12 +120,12 @@ int main(int argc, char **argv)
       return 0;
     }
     else if ( !strcmp(argv[i], "-i") ) {
-      filein = (char *) malloc(strlen((argv[++i]+1)) * sizeof(char));
+      filein = (char *) malloc((strlen(argv[++i])+1) * sizeof(char));
       if (filein == NULL) alloc_error(__FILE__, __LINE__);
       (void) strcpy(filein, argv[i]);
     }
     else if ( !strcmp(argv[i], "-o") ) {
-      fileout = (char *) malloc(strlen((argv[++i]+1)) * sizeof(char));
+      fileout = (char *) malloc((strlen(argv[++i])+1) * sizeof(char));
       if (fileout == NULL) alloc_error(__FILE__, __LINE__);
       (void) strcpy(fileout, argv[i]);
     }

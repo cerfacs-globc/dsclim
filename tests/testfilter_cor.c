@@ -176,27 +176,27 @@ int main(int argc, char **argv)
       return 0;
     }
     else if ( !strcmp(argv[i], "-i") ) {
-      filein = (char *) malloc(strlen((argv[++i]+1)) * sizeof(char));
+      filein = (char *) malloc((strlen(argv[++i])+1) * sizeof(char));
       if (filein == NULL) alloc_error(__FILE__, __LINE__);
       (void) strcpy(filein, argv[i]);
     }
     else if ( !strcmp(argv[i], "-i2") ) {
-      filein2 = (char *) malloc(strlen((argv[++i]+1)) * sizeof(char));
+      filein2 = (char *) malloc((strlen(argv[++i])+1) * sizeof(char));
       if (filein2 == NULL) alloc_error(__FILE__, __LINE__);
       (void) strcpy(filein2, argv[i]);
     }
     else if ( !strcmp(argv[i], "-o") ) {
-      fileout = (char *) malloc(strlen((argv[++i]+1)) * sizeof(char));
+      fileout = (char *) malloc((strlen(argv[++i])+1) * sizeof(char));
       if (fileout == NULL) alloc_error(__FILE__, __LINE__);
       (void) strcpy(fileout, argv[i]);
     }
     else if ( !strcmp(argv[i], "-v1") ) {
-      varname = (char *) malloc(strlen((argv[++i]+1)) * sizeof(char));
+      varname = (char *) malloc((strlen(argv[++i])+1) * sizeof(char));
       if (varname == NULL) alloc_error(__FILE__, __LINE__);
       (void) strcpy(varname, argv[i]);
     }
     else if ( !strcmp(argv[i], "-v2") ) {
-      varname2 = (char *) malloc(strlen((argv[++i]+1)) * sizeof(char));
+      varname2 = (char *) malloc((strlen(argv[++i])+1) * sizeof(char));
       if (varname2 == NULL) alloc_error(__FILE__, __LINE__);
       (void) strcpy(varname2, argv[i]);
     }

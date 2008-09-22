@@ -8,7 +8,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-bin_PROGRAMS = testfilter testrandomu testclassif testbestclassif testbestclassif_realdata testregress testcalendar testcalendar_val testudunits test_proj_eof testfilter_cor
+bin_PROGRAMS = testfilter testrandomu testclassif testbestclassif testbestclassif_realdata testregress testcalendar testcalendar_val testudunits test_proj_eof testfilter_cor test_mean_variance_dist_clusters test_mean_variance_temperature
 
 testfilter_SOURCES = testfilter.c
 testfilter_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/filter
@@ -53,3 +53,11 @@ testudunits_LDADD = $(UDUNITS_LIBS) $(LIBS)
 test_proj_eof_SOURCES = test_proj_eof.c
 test_proj_eof_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/clim  $(GSL_CFLAGS) $(NCDF_CPPFLAGS) $(UDUNITS_CPPFLAGS)
 test_proj_eof_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/clim/libclim.la $(GSL_LIBS) $(NCDF_LIBS) $(UDUNITS_LIBS)
+
+test_mean_variance_dist_clusters_SOURCES = test_mean_variance_dist_clusters.c
+test_mean_variance_dist_clusters_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/clim  $(GSL_CFLAGS) $(NCDF_CPPFLAGS) $(UDUNITS_CPPFLAGS)
+test_mean_variance_dist_clusters_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/clim/libclim.la $(GSL_LIBS) $(NCDF_LIBS) $(UDUNITS_LIBS)
+
+test_mean_variance_temperature_SOURCES = test_mean_variance_temperature.c
+test_mean_variance_temperature_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/clim  $(GSL_CFLAGS) $(NCDF_CPPFLAGS) $(UDUNITS_CPPFLAGS)
+test_mean_variance_temperature_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/clim/libclim.la $(GSL_LIBS) $(NCDF_LIBS) $(UDUNITS_LIBS)

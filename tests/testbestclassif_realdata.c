@@ -108,12 +108,12 @@ int main(int argc, char **argv)
       return 0;
     }
     else if ( !strcmp(argv[i], "-i") ) {
-      filein = (char *) malloc(strlen((argv[++i]+1)) * sizeof(char));
+      filein = (char *) malloc((strlen(argv[++i])+1) * sizeof(char));
       if (filein == NULL) alloc_error(__FILE__, __LINE__);
       (void) strcpy(filein, argv[i]);
     }
     else if ( !strcmp(argv[i], "-o_clust") ) {
-      fileoutclust = (char *) malloc(strlen((argv[++i]+1)) * sizeof(char));
+      fileoutclust = (char *) malloc((strlen(argv[++i])+1) * sizeof(char));
       if (fileoutclust == NULL) alloc_error(__FILE__, __LINE__);
       (void) strcpy(fileoutclust, argv[i]);
       fileoutclust_ptr = fopen(fileoutclust, "w");
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
       }
     }
     else if ( !strcmp(argv[i], "-o_pc") ) {
-      fileoutpc = (char *) malloc(strlen((argv[++i]+1)) * sizeof(char));
+      fileoutpc = (char *) malloc((strlen(argv[++i])+1) * sizeof(char));
       if (fileoutpc == NULL) alloc_error(__FILE__, __LINE__);
       (void) strcpy(fileoutpc, argv[i]);
       fileoutpc_ptr = fopen(fileoutpc, "w");
