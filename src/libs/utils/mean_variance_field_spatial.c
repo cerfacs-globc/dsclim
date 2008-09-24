@@ -11,8 +11,6 @@
 
 #include <utils.h>
 
-#include <gsl/gsl_statistics.h>
-
 void mean_variance_field_spatial(double *buf_smean, double *buf_mean, double *buf_var, double *buf, int ni, int nj, int ntime) {
 
   double sum;
@@ -30,6 +28,4 @@ void mean_variance_field_spatial(double *buf_smean, double *buf_mean, double *bu
   }
   *buf_mean = gsl_stats_mean(buf_smean, 1, ntime);
   *buf_var = gsl_stats_variance(buf_smean, 1, ntime);
-
-  return 0;
 }

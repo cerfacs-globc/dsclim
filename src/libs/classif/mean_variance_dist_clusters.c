@@ -8,13 +8,10 @@
     \brief Compute mean and variance of distances to clusters.
 */
 
-#include <utils.h>
-
-#include <gsl/gsl_statistics.h>
+#include <classif.h>
 
 void mean_variance_dist_clusters(double *mean_dist, double *var_dist, double *pc, double *clusters, double *var_pc,
                                  double *var_pc_norm_all, int neof, int nclust, int ntime) {
-  double *bufpc = NULL;
   double *dist_pc = NULL;
 
   double sum;

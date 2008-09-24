@@ -55,7 +55,10 @@
 #include <udunits.h>
 
 #include <utils.h>
+#include <filter.h>
 #include <clim.h>
+#include <classif.h>
+#include <pceof.h>
 
 #include <gsl/gsl_statistics.h>
 

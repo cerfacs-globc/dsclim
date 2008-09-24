@@ -26,8 +26,8 @@
 #include <stdlib.h>
 #endif
 
-#include <../utils/utils.h>
-#include <../filter/filter.h>
+#include <utils.h>
+#include <filter.h>
 
 void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime, double missing_val, int ni, int nj, int ntime);
 void remove_seasonal_cycle(double *bufout, double *clim, double *bufin, tstruct *buftime, double missing_val,

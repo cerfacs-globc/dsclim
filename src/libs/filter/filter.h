@@ -26,7 +26,7 @@
 #include <string.h>
 #endif
 
-#include <../utils/utils.h>
+#include <utils.h>
 
 void filter(double *bufferf, double *buffer, char *type, int width, int ni, int nj, int nt);
 void filter_window(double **filter_window, char *type, int width);

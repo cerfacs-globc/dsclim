@@ -8,7 +8,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-noinst_LTLIBRARIES = libclassif.la
-libclassif_la_SOURCES = classif.h class_days_pc_clusters.c generate_clusters.c best_clusters.c mean_variance_dist_clusters.c
-libclassif_la_CPPFLAGS = -I${top_srcdir}/src/libs/utils $(GSL_CFLAGS)
-libclassif_la_LIBADD = ${top_srcdir}/src/libs/utils/libutils.la $(GSL_LIBS) -lm
+noinst_LTLIBRARIES = libpceof.la
+libpceof_la_SOURCES = pceof.h normalize_pc.c project_field_eof.c
+libpceof_la_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/filter -I${top_srcdir}/src/libs/clim $(GSL_CFLAGS)
+libpceof_la_LIBADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/filter/libfilter.la ${top_srcdir}/src/libs/clim/libclim.la $(GSL_LIBS)

@@ -17,6 +17,12 @@
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 #ifdef HAVE_SIGNAL_H
 #include <signal.h>
 #endif
@@ -32,6 +38,11 @@
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
+#ifdef HAVE_SYS_MMAN_H
+#include <sys/mman.h>
+#endif
+
+#include <gsl/gsl_statistics.h>
 
 #include "utCalendar_cal.h"
 
@@ -52,21 +63,18 @@ typedef struct {
 
 void alloc_error(char *filename, int line);
 void banner(char *pgm, char *verstat, char *type);
+void alloc_mmap_shortint(short int **map, int *fd, size_t *byte_size, char *filename, size_t page_size, int size);
+void alloc_mmap_longint(long int **map, int *fd, size_t *byte_size, char *filename, size_t page_size, int size);
+void alloc_mmap_int(int **map, int *fd, size_t *byte_size, char *filename, size_t page_size, int size);
+void alloc_mmap_float(float **map, int *fd, size_t *byte_size, char *filename, size_t page_size, int size);
+void alloc_mmap_double(double **map, int *fd, size_t *byte_size, char *filename, size_t page_size, int size);
 int data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, double *bufin,
                             double *intimeval, char *tunits_in, char *tunits_out, char *cal_type, int ni, int nj, int ntimein);
 int data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, float *bufin,
                             double *intimeval, char *tunits_in, char *tunits_out, char *cal_type, int ni, int nj, int ntimein);
 int get_calendar(int *year, int *month, int *day, int *hour, int *minutes, float *seconds, char *tunits, double *timein, int ntime);
 int get_calendar_ts(tstruct *timeout, char *tunits, double *timein, int ntime);
-void project_field_eof(double *bufout, double *clim, double *bufin, double *bufeof, double *singular_value, tstruct *buftime,
-                       double missing_value, double missing_value_eof,
-                       int clim_filter_width, char *clim_filter_type, short int clim_provided,
-                       int ni, int nj, int ntime, int neof);
-void mean_variance_dist_clusters(double *mean_dist, double *var_dist, double *pc, double *clusters, double *var_pc,
-                                 double *var_pc_norm_all, int neof, int nclust, int ntime);
-void mean_variance_field_spatial(double *buf_smean, double *buf_mean, double *buf_var, double *buf,
-                                 int ni, int nj, int ntime);
-void normalize_pc(double *norm_all, double *buf_renorm, double *bufin, int neof, int ntime);
+void mean_variance_field_spatial(double *buf_smean, double *buf_mean, double *buf_var, double *buf, int ni, int nj, int ntime);
 void sub_period_common(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
                        int *year_learn, int *month_learn, int *day_learn, int ndima, int ndimb, int ntime, int ntime_learn);
 void extract_subdomain(double **buf_sub, int *nlon_sub, int *nlat_sub, double *buf,

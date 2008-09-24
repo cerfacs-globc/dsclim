@@ -56,6 +56,7 @@
 #include <udunits.h>
 
 #include <utils.h>
+#include <filter.h>
 #include <clim.h>
 
 /** C prototypes. */

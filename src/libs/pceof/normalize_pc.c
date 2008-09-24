@@ -10,9 +10,7 @@
     \brief Normalize a 2D variable by the norm of the first column of the first dimension and recompute the new norm.
 */
 
-#include <utils.h>
-
-#include <gsl/gsl_statistics.h>
+#include <pceof.h>
 
 void normalize_pc(double *norm_all, double *buf_renorm, double *bufin, int neof, int ntime) {
 

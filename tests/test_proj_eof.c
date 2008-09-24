@@ -54,6 +54,8 @@
 
 #include <utils.h>
 #include <clim.h>
+#include <filter.h>
+#include <pceof.h>
 
 /** C prototypes. */
 void show_usage(char *pgm);

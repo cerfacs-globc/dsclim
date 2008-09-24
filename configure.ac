@@ -29,7 +29,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h math.h libgen.h string.h signal.h sys/types.h stdio.h time.h fcntl.h unistd.h sys/stat.h])
+AC_CHECK_HEADERS([stdlib.h math.h libgen.h string.h signal.h sys/types.h stdio.h time.h fcntl.h unistd.h sys/stat.h sys/mman.h ])
 AC_TYPE_SIGNAL
 AC_C_CONST
 AC_C_INLINE
@@ -55,7 +55,7 @@ fi
 if test "$withval" != "no"; then 
   echo "$withval"
   AC_DEFINE_UNQUOTED(DEBUG, $withval, [Debugging level to compile in.])
-  CFLAGS="$CFLAGS -g -Wall"
+  CFLAGS="$CFLAGS -g -Wall -Werror"
 else
   echo "no debugging"
   AC_DEFINE_UNQUOTED(DEBUG, 0, [Debugging level to compile in.])
@@ -298,6 +298,11 @@ fi
 
 AX_PATH_GSL(1.0, [], [])
 
+# Checl libxml2 library
+AM_PATH_XML2([], [], [AC_MSG_ERROR([*** cannot find the libxml2 library ])])
+AC_SUBST(XML_CPPFLAGS)
+AC_SUBST(XML_LIBS)
+
 # Example to add --with option
 #AC_ARG_WITH([readline],
 #            [AS_HELP_STRING([--with-readline],
@@ -349,6 +354,9 @@ AC_CONFIG_FILES([
    src/libs/classif/Makefile
    src/libs/clim/Makefile
    src/libs/regress/Makefile
+   src/libs/xml_utils/Makefile
+   src/libs/io/Makefile
+   src/libs/pceof/Makefile
    src/Makefile
    tests/Makefile
 ])

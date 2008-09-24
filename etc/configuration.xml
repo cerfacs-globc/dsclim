@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<configuration>
+    <setting name="debug">On</setting>
+    <setting name="clim_filter_width">60</setting>
+    <setting name="clim_filter_type">hanning</setting>
+    <setting name="clim_provided">0</setting>
+    <setting name="base_time_units">days since 1900-01-01 00:00:00</setting>
+    <setting name="base_calendar_type">gregorian</setting>
+    <setting name="number_of_large_scale_fields">1</setting>
+    <setting name="large_scale_fields">
+      <name id="1">psl</name>
+      <filename id="1">/home/page/codes/src/dsclim/trunk/tests/interpERA40_psl_1d_19500101_19991231_EB2.nc</name>
+    </setting>
+</configuration>

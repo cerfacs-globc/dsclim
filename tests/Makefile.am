@@ -51,13 +51,13 @@ testudunits_CPPFLAGS = $(UDUNITS_CPPFLAGS)
 testudunits_LDADD = $(UDUNITS_LIBS) $(LIBS)
 
 test_proj_eof_SOURCES = test_proj_eof.c
-test_proj_eof_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/clim  $(GSL_CFLAGS) $(NCDF_CPPFLAGS) $(UDUNITS_CPPFLAGS)
-test_proj_eof_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/clim/libclim.la $(GSL_LIBS) $(NCDF_LIBS) $(UDUNITS_LIBS)
+test_proj_eof_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/pceof -I${top_srcdir}/src/libs/filter -I${top_srcdir}/src/libs/clim  $(GSL_CFLAGS) $(NCDF_CPPFLAGS) $(UDUNITS_CPPFLAGS)
+test_proj_eof_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/pceof/libpceof.la ${top_srcdir}/src/libs/filter/libfilter.la ${top_srcdir}/src/libs/clim/libclim.la $(GSL_LIBS) $(NCDF_LIBS) $(UDUNITS_LIBS)
 
 test_mean_variance_dist_clusters_SOURCES = test_mean_variance_dist_clusters.c
-test_mean_variance_dist_clusters_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/clim  $(GSL_CFLAGS) $(NCDF_CPPFLAGS) $(UDUNITS_CPPFLAGS)
-test_mean_variance_dist_clusters_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/clim/libclim.la $(GSL_LIBS) $(NCDF_LIBS) $(UDUNITS_LIBS)
+test_mean_variance_dist_clusters_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/clim -I${top_srcdir}/src/libs/filter -I${top_srcdir}/src/libs/classif -I${top_srcdir}/src/libs/pceof $(GSL_CFLAGS) $(NCDF_CPPFLAGS) $(UDUNITS_CPPFLAGS)
+test_mean_variance_dist_clusters_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/clim/libclim.la ${top_srcdir}/src/libs/filter/libfilter.la ${top_srcdir}/src/libs/classif/libclassif.la ${top_srcdir}/src/libs/pceof/libpceof.la $(GSL_LIBS) $(NCDF_LIBS) $(UDUNITS_LIBS)
 
 test_mean_variance_temperature_SOURCES = test_mean_variance_temperature.c
-test_mean_variance_temperature_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/clim  $(GSL_CFLAGS) $(NCDF_CPPFLAGS) $(UDUNITS_CPPFLAGS)
-test_mean_variance_temperature_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/clim/libclim.la $(GSL_LIBS) $(NCDF_LIBS) $(UDUNITS_LIBS)
+test_mean_variance_temperature_CPPFLAGS = -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/clim -I${top_srcdir}/src/libs/filter $(GSL_CFLAGS) $(NCDF_CPPFLAGS) $(UDUNITS_CPPFLAGS)
+test_mean_variance_temperature_LDADD = ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/clim/libclim.la ${top_srcdir}/src/libs/filter/libfilter.la $(GSL_LIBS) $(NCDF_LIBS) $(UDUNITS_LIBS)

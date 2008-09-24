@@ -10,4 +10,5 @@
 
 noinst_LTLIBRARIES = libfilter.la
 libfilter_la_SOURCES = filter.h filter.c filter_window.c
-libfilter_la_LIBADD = ../utils/libutils.la -lm
+libfilter_la_CPPFLAGS = -I${top_srcdir}/src/libs/utils
+libfilter_la_LIBADD = ${top_srcdir}/src/libs/utils/libutils.la -lm

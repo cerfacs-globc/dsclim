@@ -1,8 +1,14 @@
+/* ***************************************************** */
+/* Project physical 2D field on pre-computed EOF.        */
+/* project_field_eof.c                                   */
+/* ***************************************************** */
+/* Author: Christian Page, CERFACS, Toulouse, France.    */
+/* ***************************************************** */
+/*! \file project_field_eof.c
+    \brief Project physical field on pre-computed EOF.
+*/
 
-#include <../clim/clim.h>
-#include <utils.h>
-
-#include <gsl/gsl_statistics.h>
+#include <pceof.h>
 
 /** Subroutine to project a 2D-time field on pre-calculated EOFs. */
 void project_field_eof(double *bufout, double *clim, double *bufin, double *bufeof, double *singular_value, tstruct *buftime,

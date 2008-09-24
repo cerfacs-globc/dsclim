@@ -8,7 +8,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-noinst_LTLIBRARIES = libclassif.la
-libclassif_la_SOURCES = classif.h class_days_pc_clusters.c generate_clusters.c best_clusters.c mean_variance_dist_clusters.c
-libclassif_la_CPPFLAGS = -I${top_srcdir}/src/libs/utils $(GSL_CFLAGS)
-libclassif_la_LIBADD = ${top_srcdir}/src/libs/utils/libutils.la $(GSL_LIBS) -lm
+noinst_LTLIBRARIES = libxml_utils.la
+libxml_utils_la_SOURCES = xml_utils.h xml_free_config.c xml_get_node_by_xpath.c xml_get_setting.c xml_load_config.c xml_print_setting.c
+libxml_utils_la_CPPFLAGS = -I${top_srcdir}/src/libs/utils $(XML_CPPFLAGS)
+libxml_utils_la_LIBADD = ${top_srcdir}/src/libs/utils/libutils.la $(XML_LIBS) -ludunits -lm

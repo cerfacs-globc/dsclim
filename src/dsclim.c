@@ -4,53 +4,19 @@
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
+/* Date of creation: sep 2008                            */
+/* Last date of modification: sep 2008                   */
+/* ***************************************************** */
+/* Original version: 1.0                                 */
+/* Current revision:                                     */
+/* ***************************************************** */
+/* Revisions                                             */
+/* ***************************************************** */
 /*! \file dsclim.c
     \brief Downscaling climate scenarios program.
 */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-/** GNU extensions. */
-#define _GNU_SOURCE
-
-/* C standard includes */
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_MATH_H
-#include <math.h>
-#endif
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-#ifdef HAVE_LIBGEN_H
-#include <libgen.h>
-#endif
-
-/* Local C includes */
-#include <utils.h>
-#include <clim.h>
-#include <classif.h>
+#include <dsclim.h>
 
 /** C prototypes. */
 void show_usage(char *pgm);
@@ -66,12 +32,18 @@ int main(int argc, char **argv)
    */
 
   int i;
+  short int istat = 0;
+  data_struct *data = NULL;
 
   /* Command-line arguments variables */
-  char filein[500]; /* Input filename */
+  char fileconf[500]; /* Configuration filename */
 
   /* Print BEGIN banner */
-  (void) banner(basename(argv[0]), "0.1", "BEGIN");
+  (void) banner(basename(argv[0]), "1.0", "BEGIN");
+
+  /* Allocate memory */
+  data = (data_struct *) malloc(sizeof(data_struct));
+  if (data == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Get command-line arguments and set appropriate variables */
   if (argc <= 1) {
@@ -81,8 +53,8 @@ int main(int argc, char **argv)
   }
   else
     for (i=1; i<argc; i++) {
-      if ( !strcmp(argv[i], "-i") )
-        (void) strcpy(filein, argv[++i]);
+      if ( !strcmp(argv[i], "-conf") )
+        (void) strcpy(fileconf, argv[++i]);
       else {
         (void) fprintf(stderr, "%s:: Wrong arg %s.\n\n", basename(argv[0]), argv[i]);
         (void) show_usage(basename(argv[0]));
@@ -90,7 +62,19 @@ int main(int argc, char **argv)
         (void) abort();
       }
     }
+
+  /* Read and store configuration file in memory */
+  istat = load_conf(data, fileconf);
+
+  /* If wanted, generate learning data */
+  /** Later. Waiting for STATPACK **/
+
+  /* Perform downscaling */
+  istat = wt_downscaling(data);
   
+  /* Free memory */
+  (void) free(data);
+
   /* Print END banner */
   (void) banner(basename(argv[0]), "OK", "END");
 
@@ -107,6 +91,6 @@ void show_usage(char *pgm) {
   */
 
   (void) fprintf(stderr, "%s:: usage:\n", pgm);
-  (void) fprintf(stderr, "-i: input file\n");
+  (void) fprintf(stderr, "-conf: configuration file\n");
 
 }
