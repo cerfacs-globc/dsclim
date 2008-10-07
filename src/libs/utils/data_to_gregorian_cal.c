@@ -189,6 +189,7 @@ int data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout,
       (void) free(hour);
       (void) free(minutes);
       (void) free(seconds);
+      (void) utTerm();
       return -1;
     }
 
@@ -198,6 +199,7 @@ int data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout,
     (void) free(hour);
     (void) free(minutes);
     (void) free(seconds);
+    (void) utTerm();  
   }
 
   return 0;
@@ -381,6 +383,7 @@ int data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, 
       (void) free(hour);
       (void) free(minutes);
       (void) free(seconds);
+      (void) utTerm();
       return -1;
     }
 
@@ -390,6 +393,7 @@ int data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, 
     (void) free(hour);
     (void) free(minutes);
     (void) free(seconds);
+    (void) utTerm();
   }
 
   return 0;

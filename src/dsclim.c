@@ -49,7 +49,7 @@ int main(int argc, char **argv)
   if (argc <= 1) {
     (void) show_usage(basename(argv[0]));
     (void) banner(basename(argv[0]), "ABORT", "END");
-    (void) abort();
+    (void) exit(1);
   }
   else
     for (i=1; i<argc; i++) {
@@ -59,18 +59,29 @@ int main(int argc, char **argv)
         (void) fprintf(stderr, "%s:: Wrong arg %s.\n\n", basename(argv[0]), argv[i]);
         (void) show_usage(basename(argv[0]));
         (void) banner(basename(argv[0]), "ABORT", "END");
-        (void) abort();
+        (void) exit(1);
       }
     }
 
   /* Read and store configuration file in memory */
+  /* Allocate memory for main data structures */
   istat = load_conf(data, fileconf);
+  if (istat != 0) {
+    (void) fprintf(stderr, "%s: Error in loading configuration file. Aborting.\n", __FILE__);
+    (void) banner(basename(argv[0]), "ABORT", "END");
+    (void) abort();
+  }
 
   /* If wanted, generate learning data */
   /** Later. Waiting for STATPACK **/
 
   /* Perform downscaling */
   istat = wt_downscaling(data);
+  if (istat != 0) {
+    (void) fprintf(stderr, "%s: Error in performing downscaling. Aborting.\n", __FILE__);
+    (void) banner(basename(argv[0]), "ABORT", "END");
+    (void) abort();
+  }
   
   /* Free memory */
   (void) free(data);

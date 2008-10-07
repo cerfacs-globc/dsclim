@@ -24,5 +24,7 @@ int get_calendar_ts(tstruct *timeout, char *tunits, double *timein, int ntime) {
   for (t=0; t<ntime; t++)
     istat = utCalendar(timein[t], &dataunit, &(timeout[t].year), &(timeout[t].month), &(timeout[t].day), &(timeout[t].hour), &(timeout[t].min), &(timeout[t].sec));
   
+  (void) utTerm();
+
   return 0;
 }

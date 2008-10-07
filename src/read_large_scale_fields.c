@@ -54,36 +54,56 @@ short int read_large_scale_fields(data_struct *data) {
 
   for (i=0; i<data->field->n_ls; i++) {
 
-    if (data->field->time_ls == NULL)
+    if (data->field->time_ls == NULL) {
       istat = read_netcdf_dims_3d(&(data->field->lon_ls), &(data->field->lat_ls), &time_ls,
                                   &cal_type, &time_units,
                                   &(data->field->nlon_ls), &(data->field->nlat_ls), &ntime,
+                                  data->info, data->field->proj[i].coords, data->field->proj[i].name,
                                   data->conf->lonname, data->conf->latname, data->conf->timename,
                                   data->field->filename_ls[i]);
+      if (istat != 0) {
+        (void) free(time_units);
+        (void) free(cal_type);
+        return istat;
+      }
+    }
 
     if ( !strcmp(cal_type, "gregorian") || !strcmp(cal_type, "standard") ) {
 
       /* Read data */
-      istat = read_netcdf_var_3d(&(data->field->field_ls[i]), &(data->field->field_ls_fillvalue[i]), data->field->filename_ls[i],
-                                 data->field->fname_ls[i], data->conf->lonname, data->conf->latname, data->conf->timename,
+      istat = read_netcdf_var_3d(&(data->field->field_ls[i]), &(data->field->info_field[i]), &(data->field->proj[i]),
+                                 data->field->filename_ls[i],
+                                 data->field->nomvar_ls[i], data->conf->lonname, data->conf->latname, data->conf->timename,
                                  data->field->nlon_ls, data->field->nlat_ls, ntime);
-
+      if (istat != 0) {
+        (void) free(time_units);
+        (void) free(cal_type);
+        return istat;
+      }
       data->field->ntime_ls = ntime;
 
       if (data->field->time_ls == NULL) {
         data->field->time_ls = (double *) malloc(data->field->ntime_ls * sizeof(double));
         if (data->field->time_ls == NULL) alloc_error(__FILE__, __LINE__);
-        for (t=0; t<data->field->ntime_ls; t++)
-          data->field->time_ls[t] = time_ls[t];
+        if ( strcmp(time_units, data->conf->time_units) )
+          (void) change_date_origin(data->field->time_ls, data->conf->time_units, time_ls, time_units, ntime);
+        else
+          for (t=0; t<data->field->ntime_ls; t++)
+            data->field->time_ls[t] = time_ls[t];
       }
     }
     else {
       double *dummy = NULL;
 
       /* Read data and fix calendar */
-      istat = read_netcdf_var_3d(&buf, &(data->field->field_ls_fillvalue[i]), data->field->filename_ls[i],
-                                 data->field->fname_ls[i], data->conf->lonname, data->conf->latname, data->conf->timename,
+      istat = read_netcdf_var_3d(&buf, &(data->field->info_field[i]), &(data->field->proj[i]), data->field->filename_ls[i],
+                                 data->field->nomvar_ls[i], data->conf->lonname, data->conf->latname, data->conf->timename,
                                  data->field->nlon_ls, data->field->nlat_ls, ntime);
+      if (istat != 0) {
+        (void) free(time_units);
+        (void) free(cal_type);
+        return istat;
+      }
 
       (void) data_to_gregorian_cal_d(&(data->field->field_ls[i]), &dummy, &(data->field->ntime_ls),
                                      buf, time_ls, time_units, data->conf->time_units,

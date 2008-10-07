@@ -24,5 +24,7 @@ int get_calendar(int *year, int *month, int *day, int *hour, int *minutes, float
   for (t=0; t<ntime; t++)
     istat = utCalendar(timein[t], &dataunit, &(year[t]), &(month[t]), &(day[t]), &(hour[t]), &(minutes[t]), &(seconds[t]));
   
+  (void) utTerm();
+
   return 0;
 }

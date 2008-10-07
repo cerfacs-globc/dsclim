@@ -31,5 +31,8 @@ int main(int argc, char *argv[])
 	}
 	
 	printf("month: %d, %s-%04d\n", month,months[month-1], year );
+        
+        (void) utTerm();
+
 	return 0;
 }

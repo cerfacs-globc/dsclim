@@ -105,6 +105,8 @@ int main(int argc, char **argv)
   /* Print END banner */
   (void) banner(basename(argv[0]), "OK", "END");
 
+  (void) utTerm();
+
   return 0;
 }
 

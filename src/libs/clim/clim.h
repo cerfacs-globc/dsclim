@@ -32,6 +32,7 @@
 void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime, double missing_val, int ni, int nj, int ntime);
 void remove_seasonal_cycle(double *bufout, double *clim, double *bufin, tstruct *buftime, double missing_val,
                            int filter_width, char *type, short int clim_provided, int ni, int nj, int ntime);
+short int dayofclimyear(short int day, short int month);
 
 #endif
 

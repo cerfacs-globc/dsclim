@@ -517,6 +517,8 @@ int main(int argc, char **argv)
   istat = ncclose(ncinid_learn);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
 
+  (void) utTerm();
+
   (void) free(time_learn_dimid);
   (void) free(time_learn_varid);
   (void) free(ntime_learn);

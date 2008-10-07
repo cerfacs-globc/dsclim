@@ -18,11 +18,14 @@ xmlNodePtr xml_get_node_by_xpath(xmlConfig_t *conf, char *path) {
   /* Evaluate XPath expression */
   xpathRes = xmlXPathEvalExpression(path, conf->ctxt);
 
-  if (xpathRes && xpathRes->type == XPATH_NODESET && xpathRes->nodesetval->nodeNr == 1) {
-    nodeptr = xpathRes->nodesetval->nodeTab[0];
-  }
+  if (xpathRes)
+    if (xpathRes->nodesetval) {
 
-  (void) xmlXPathFreeObject(xpathRes);
+      if (xpathRes->type == XPATH_NODESET && xpathRes->nodesetval->nodeNr == 1)
+        nodeptr = xpathRes->nodesetval->nodeTab[0];      
+      (void) xmlXPathFreeObject(xpathRes);
+
+    }
   
   return nodeptr;
 }

@@ -24,8 +24,8 @@ void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime,
 
   short int *index = NULL; /* Index to flag matching a specific day and month in a time serie covering several years. */
   double mean = 0.0; /* Mean value over all matching days. */
-  double sum = 0.0; /* Sum over all matching days. */
-  short int ndays = 0; /* Number of days matching days. */
+  double *sum; /* Sum over all matching days. */
+  short int *ndays = NULL; /* Number of days matching days. */
   short int month; /* Climatological month. */
 
   int t; /* Loop counter for time. */
@@ -38,46 +38,52 @@ void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime,
   /* Allocate memory */
   index = (short int *) calloc(nt, sizeof(short int));
   if (index == NULL) alloc_error(__FILE__, __LINE__);
+  sum = (double *) malloc(ni*nj * sizeof(double));
+  if (sum == NULL) alloc_error(__FILE__, __LINE__);
+  ndays = (short int *) malloc(ni*nj * sizeof(short int));
+  if (ndays == NULL) alloc_error(__FILE__, __LINE__);
 
-  for (j=0; j<nj; j++)
-    for (i=0; i<ni; i++) {
+  /* Loop over the 12 months of the year to generate daily climatological months */
+  for (month=1; month<=12; month++) {
+    
+    /* Loop over each day of the month */
+    for (day=1; day<=31; day++) {
       
-      /* Loop over the 12 months of the year to generate daily climatological months */
-      for (month=1; month<=12; month++) {
-        
-        /* Loop over each day of the month */
-        for (day=1; day<=31; day++) {
-          
-          ndays = 0; /* Initialize the number of days */
-          sum = 0.0;
-          
-          /* Loop over all the times */
-          for (t=0; t<nt; t++) {
-            /* Initialize */
-            index[t] = 0;
-            if (buftime[t].day == day && buftime[t].month == month) {
-              /* The climatological day and month match */
-              index[t] = 1; /* Flag it */
+      for (j=0; j<nj; j++)
+        for (i=0; i<ni; i++) {
+          sum[i+j*ni] = 0.0;
+          ndays[i+j*ni] = 0; /* Initialize the number of days */
+        }
+      
+      /* Loop over all the times */
+      for (t=0; t<nt; t++) {
+        /* Initialize */
+        index[t] = 0;
+        if (buftime[t].day == day && buftime[t].month == month) {
+          /* The climatological day and month match */
+          index[t] = 1; /* Flag it */
+          for (j=0; j<nj; j++)
+            for (i=0; i<ni; i++)
               if (bufin[i+j*ni+t*ni*nj] != missing_val) {
                 /* Ignore missing values */
-                sum += bufin[i+j*ni+t*ni*nj]; /* Sum all the values for this matching day/month */
-                ndays++;
+                sum[i+j*ni] += bufin[i+j*ni+t*ni*nj]; /* Sum all the values for this matching day/month */
+                ndays[i+j*ni]++;
               }
-            }
-          }
-          /* More than one day matching */
-          if (ndays > 0) {
-            /* Compute the mean over all the matching days and apply mean for all these flagged days */
-            mean = sum / (double) ndays;
-            for (t=0; t<nt; t++)
-              /* Assign mean value for all flagged days used in computing this mean */
-              if (index[t] == 1)
-                bufout[i+j*ni+t*ni*nj] = mean;
-          }
         }
       }
+      for (t=0; t<nt; t++)
+        /* Compute the mean over all the matching days and apply mean for all these flagged days */
+        /* Assign mean value for all flagged days used in computing this mean */
+        if (index[t] == 1)
+          for (j=0; j<nj; j++)
+            for (i=0; i<ni; i++)
+              if (ndays[i+j*ni] > 0)
+                bufout[i+j*ni+t*ni*nj] = sum[i+j*ni] / (double) ndays[i+j*ni];
     }
+  }
 
   /* Free memory */
   (void) free(index);
+  (void) free(sum);
+  (void) free(ndays);
 }

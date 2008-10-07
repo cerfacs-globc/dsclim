@@ -58,7 +58,7 @@ void filter(double *bufferf, double *buffer, char *type, int width, int ni, int 
           tmpvec[t] = buffer[i+j*ni+(t-half_width)*ni*nj];
         }
         for (t=(half_width+nt); t<(nt*2); t++) {
-          tmpvec[t] = buffer[i+j*ni+(t-(half_width+nt)*ni*nj)];
+          tmpvec[t] = buffer[i+j*ni+(t-(half_width+nt))*ni*nj];
         }
         
         /* Apply filter. */

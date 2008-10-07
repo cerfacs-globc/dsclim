@@ -19,15 +19,16 @@
 #include <io.h>
 
 /* Handle NetCDF error */
-void handle_netcdf_error(int status, int lineno)
+void handle_netcdf_error(int status, char *srcfilename, int lineno)
 {
   /**
-     @param[in]  status  Return status error code.
-     @param[in]  lineno  Line number of the error.
+     @param[in]  status      Return status error code.
+     @param[in]  srcfilename Source filename.
+     @param[in]  lineno      Line number of the error.
   */
 
   if (status != NC_NOERR) {
-    fprintf(stderr, "Line: %d Error %d: %s\n", lineno, status, nc_strerror(status));
+    fprintf(stderr, "Source file: %s  Line: %d  Error %d: %s\n", srcfilename, lineno, status, nc_strerror(status));
     exit(-1);
   }
 }

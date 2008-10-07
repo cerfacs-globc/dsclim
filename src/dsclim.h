@@ -45,13 +45,19 @@
 typedef struct {
   short int n_ls; /* Number of large scale fields */
   double **field_ls; /* Large scale fields */
-  double *field_ls_fillvalue; /* Large scale fields fillvalue (missing value) */
-  char **fname_ls; /* Name of large scale field */
+  char **nomvar_ls; /* Name of large scale field */
   char **filename_ls; /* Large scale field filename*/
-  char **clim_filename_ls; /* Climatology of large-scale fields filename */
+  short int *clim_provided; /* If climatology is already computed for all large scale fields and available in a file */
+  short int *clim_save; /* If we want to save the climatology in a file */
+  char **clim_nomvar_ls; /* Name of climatology of large scale field */
+  char **clim_filein_ls; /* Climatology of large-scale fields input filename */
+  char **clim_fileout_ls; /* Climatology of large-scale fields input filename */
   double *lon_ls; /* Longitude of gridpoints of large scale fields */
   double *lat_ls; /* Latitude of gridpoints of large scale fields */
   double *time_ls; /* Time vector of large scale fields */
+  proj_struct *proj; /* Projection information of large scale fields */
+  info_struct *info; /* Information (global attributes) about large scale fields */
+  info_field_struct *info_field; /* Information (field attributes) about large scale fields */
   int nlon_ls; /* X dimension of large scale fields */
   int nlat_ls; /* Y dimension of large scale fields */
   int ntime_ls; /* Time dimension of large scale fields */
@@ -62,16 +68,17 @@ typedef struct {
   short int debug; /* Debugging flag */
   int clim_filter_width; /* Climatology filter width */
   char *clim_filter_type; /* Climatology filter type */
-  short int clim_provided; /* If climatology is already computed for all large scale fields and available in a file */
-  char *cal_type; /* Calendar-type */
-  char *time_units; /* Base time units */
-  char *lonname; /* Longitude dimension name */
-  char *latname; /* Latitude dimension name */
-  char *timename; /* Time dimension name */
+  char *cal_type; /* Calendar-type for downscaling */
+  char *time_units; /* Base time units for downscaling */
+  char *lonname; /* Longitude dimension name for downscaling */
+  char *latname; /* Latitude dimension name for downscaling */
+  char *timename; /* Time dimension name for downscaling */
+  proj_struct *proj; /* Projection information for downscaling */
 } conf_struct;
 
 /** MASTER data structure data_struct. */
 typedef struct {
+  info_struct *info;
   conf_struct *conf;
   field_struct *field;
 } data_struct;

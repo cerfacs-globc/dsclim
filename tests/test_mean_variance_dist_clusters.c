@@ -986,6 +986,8 @@ int main(int argc, char **argv)
   istat = ncclose(ncinid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
 
+  (void) utTerm();
+
   (void) free(psl_pc);
 
   (void) free(timein);

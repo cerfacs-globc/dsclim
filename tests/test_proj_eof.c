@@ -433,7 +433,7 @@ int main(int argc, char **argv)
 
 
 
-  /** Create and open output file **/
+  /** Open output file **/
   istat = nc_create(fileout, NC_CLOBBER, &ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
 

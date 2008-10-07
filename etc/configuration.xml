@@ -4,12 +4,18 @@
     <setting name="debug">On</setting>
     <setting name="clim_filter_width">60</setting>
     <setting name="clim_filter_type">hanning</setting>
-    <setting name="clim_provided">0</setting>
-    <setting name="base_time_units">days since 1900-01-01 00:00:00</setting>
+    <setting name="base_time_units">days since 1900-01-01 12:00:00</setting>
     <setting name="base_calendar_type">gregorian</setting>
     <setting name="number_of_large_scale_fields">1</setting>
     <setting name="large_scale_fields">
       <name id="1">psl</name>
-      <filename id="1">/home/page/codes/src/dsclim/trunk/tests/interpERA40_psl_1d_19500101_19991231_EB2.nc</name>
+      <filename id="1">/home/page/codes/src/dsclim/trunk/tests/interpERA40_psl_1d_19500101_19991231_EB2_test.nc</filename>
+      <projection id="1">Latitude_Longitude</projection>
+      <coordinates id="1">2D</coordinates>
+      <clim_provided id="1">0</clim_provided>
+      <clim_name id="1">psl</clim_name>
+      <clim_save id="1">1</clim_save>
+      <clim_savefilename id="1">/home/page/codes/src/dsclim/trunk/tests/CLIM_psl_1d_19500101_19991231_EB2_test.nc</clim_savefilename>
+      <clim_openfilename id="1">/home/page/codes/src/dsclim/trunk/tests/CLIM_psl_1d_19500101_19991231_EB2_test.nc</clim_openfilename>
     </setting>
 </configuration>
