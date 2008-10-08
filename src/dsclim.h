@@ -39,6 +39,7 @@
 #include <utils.h>
 #include <clim.h>
 #include <classif.h>
+#include <pceof.h>
 #include <io.h>
 
 /** Data structure field_struct. */
@@ -52,15 +53,29 @@ typedef struct {
   char **clim_nomvar_ls; /* Name of climatology of large scale field */
   char **clim_filein_ls; /* Climatology of large-scale fields input filename */
   char **clim_fileout_ls; /* Climatology of large-scale fields input filename */
+  short int *eof_provided; /* If EOF is already computed for all large scale fields and available in a file */
+  short int *eof_save; /* If we want to save the EOF and singular values in a file */
+  double **eof_ls; /* Large scale fields EOF */
+  double **field_eof_ls; /* Large scale fields projected on EOF */
+  double **sing_ls; /* Large scale fields singular values for EOF */
+  char **eof_nomvar_ls; /* Name of EOF of large scale field */
+  char **sing_nomvar_ls; /* Name of singular values for EOF of large scale field */
+  char **eof_filein_ls; /* EOF and singular values of large-scale fields input filename */
+  char **eof_fileout_ls; /* EOF and singular values of large-scale fields input filename */
   double *lon_ls; /* Longitude of gridpoints of large scale fields */
   double *lat_ls; /* Latitude of gridpoints of large scale fields */
   double *time_ls; /* Time vector of large scale fields */
+  double *lon_eof_ls; /* Longitude of gridpoints of large scale fields EOF */
+  double *lat_eof_ls; /* Latitude of gridpoints of large scale fields EOF */
   proj_struct *proj; /* Projection information of large scale fields */
   info_struct *info; /* Information (global attributes) about large scale fields */
   info_field_struct *info_field; /* Information (field attributes) about large scale fields */
   int nlon_ls; /* X dimension of large scale fields */
   int nlat_ls; /* Y dimension of large scale fields */
   int ntime_ls; /* Time dimension of large scale fields */
+  int nlon_eof_ls; /* X dimension of large scale fields EOF */
+  int nlat_eof_ls; /* Y dimension of large scale fields EOF */
+  int neof_ls; /* EOF dimension of large scale fields EOF */
 } field_struct;
 
 /** Configuration data structure conf_struct. */
@@ -73,7 +88,14 @@ typedef struct {
   char *lonname; /* Longitude dimension name for downscaling */
   char *latname; /* Latitude dimension name for downscaling */
   char *timename; /* Time dimension name for downscaling */
+  char *lonname_eof; /* Longitude dimension name (EOF file) for downscaling */
+  char *latname_eof; /* Latitude dimension name (EOF file) for downscaling */
+  char *eofname; /* EOF dimension name for downscaling */
   proj_struct *proj; /* Projection information for downscaling */
+  double longitude_min;
+  double longitude_max;
+  double latitude_min;
+  double latitude_max;
 } conf_struct;
 
 /** MASTER data structure data_struct. */
@@ -86,3 +108,5 @@ typedef struct {
 short int load_conf(data_struct *data, char *fileconf);
 short int wt_downscaling(data_struct *data);
 short int read_large_scale_fields(data_struct *data);
+short int read_large_scale_eof(data_struct *data);
+short int remove_clim(data_struct *data);

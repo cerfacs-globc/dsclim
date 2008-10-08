@@ -54,9 +54,7 @@
 #include <clim.h>
 
 void normalize_pc(double *norm_all, double *buf_renorm, double *bufin, int neof, int ntime);
-void project_field_eof(double *bufout, double *clim, double *bufin, double *bufeof, double *singular_value, tstruct *buftime,
-                       double missing_value, double missing_value_eof,
-                       int clim_filter_width, char *clim_filter_type, short int clim_provided,
-                       int ni, int nj, int ntime, int neof);
+short int project_field_eof(double *bufout, double *bufin, double *bufeof, double *singular_value,
+                            double missing_value_eof, int ni, int nj, int ntime, int neof);
 
 #endif

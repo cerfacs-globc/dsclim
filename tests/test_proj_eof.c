@@ -122,6 +122,7 @@ int main(int argc, char **argv)
 
   double *psl_proj = NULL;
   double *psl_clim = NULL;
+  double *psl_noclim = NULL;
 
   int clim_filter_width;
   char clim_filter_type[500];
@@ -552,8 +553,10 @@ int main(int argc, char **argv)
   if (psl_sub == NULL) alloc_error(__FILE__, __LINE__);
   psl_eof_sub = (double *) malloc(nlon_sub*nlat_sub*neof * sizeof(double));
   if (psl_eof_sub == NULL) alloc_error(__FILE__, __LINE__);
-  psl_clim = (double *) calloc(nlat_sub*nlon_sub*31*12 * neof, sizeof(double));
+  psl_clim = (double *) calloc(nlat_sub*nlon_sub*31*12, sizeof(double));
   if (psl_clim == NULL) alloc_error(__FILE__, __LINE__);
+  psl_noclim = (double *) calloc(nlat_sub*nlon_sub*ntime, sizeof(double));
+  if (psl_noclim == NULL) alloc_error(__FILE__, __LINE__);
 
   ii = 0;
   jj = 0;
@@ -577,8 +580,9 @@ int main(int argc, char **argv)
     }
   }
 
-  (void) project_field_eof(psl_proj, psl_clim, psl_sub, psl_eof_sub, psl_sing, timein_ts, fillvalue, fillvalue_eof,
-                           clim_filter_width, clim_filter_type, clim_provided, nlon_sub, nlat_sub, ntime, neof);
+  (void) remove_seasonal_cycle(psl_noclim, psl_clim, psl_sub, timein_ts, fillvalue, clim_filter_width, clim_filter_type,
+                               clim_provided, nlon_sub, nlat_sub, ntime);
+  (void) project_field_eof(psl_proj, psl_noclim, psl_eof_sub, psl_sing, fillvalue_eof, nlon_sub, nlat_sub, ntime, neof);
 
   (void) fprintf(stderr, "Input/output time units: %s\n", time_units);
 
@@ -615,6 +619,7 @@ int main(int argc, char **argv)
   (void) free(psl_sing);
   (void) free(psl_eof);
   (void) free(psl_clim);
+  (void) free(psl_noclim);
   (void) free(psl_sub);
   (void) free(psl_eof_sub);
   (void) free(lon);

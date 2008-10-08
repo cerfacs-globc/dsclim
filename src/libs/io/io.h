@@ -87,6 +87,7 @@ typedef struct {
 /** Data structure proj_struct. */
 typedef struct {
   char *coords;
+  char *eof_coords;
   char *name;
   char *grid_mapping_name;
   double latin1;
@@ -109,8 +110,12 @@ typedef struct {
 short int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_type, char **time_units,
                               int *nlon, int *nlat, int *ntime, info_struct *info, char *coords, char *gridname,
                               char *lonname, char *latname, char *timename, char *filename);
+short int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *neof, char *coords,
+                               char *lonname, char *latname, char *eofname, char *filename);
 short int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
                              char *lonname, char *latname, char *timename, int nlon, int nlat, int ntime);
+short int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filename, char *varname,
+                             char *dimname, int ndim);
 short int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
                               char *varname, char *gridname, char *lonname, char *latname, char *timename,
                               int nlon, int nlat, int ntime);

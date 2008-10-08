@@ -78,7 +78,7 @@ void change_date_origin(double *timeout, char *tunits_out, double *timein, char 
 void mean_variance_field_spatial(double *buf_smean, double *buf_mean, double *buf_var, double *buf, int ni, int nj, int ntime);
 void sub_period_common(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
                        int *year_learn, int *month_learn, int *day_learn, int ndima, int ndimb, int ntime, int ntime_learn);
-void extract_subdomain(double **buf_sub, int *nlon_sub, int *nlat_sub, double *buf,
+void extract_subdomain(double **buf_sub, double **lon_sub, double **lat_sub, int *nlon_sub, int *nlat_sub, double *buf,
                        double *lon, double *lat, double minlon, double maxlon, double minlat, double maxlat,
                        int nlon, int nlat, int ndim);
 void extract_subperiod(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,

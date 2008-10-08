@@ -79,6 +79,8 @@ void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime,
             for (i=0; i<ni; i++)
               if (ndays[i+j*ni] > 0)
                 bufout[i+j*ni+t*ni*nj] = sum[i+j*ni] / (double) ndays[i+j*ni];
+              else
+                bufout[i+j*ni+t*ni*nj] = missing_val;
     }
   }
 

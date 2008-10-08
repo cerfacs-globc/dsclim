@@ -88,7 +88,7 @@ short int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_s
 
   if (varndims != 3 || ( (ntime_file*nlat_file*nlon_file) != (ntime*nlat*nlon) ) || (ntime_file != ntime) ||
       (nlat_file != nlat) || (nlon_file != nlon) ) {
-    (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions.\n", __FILE__);
+    (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions nlon %d %d nlat %d %d.\n", __FILE__, nlon_file, nlon, nlat_file, nlat);
     (void) free(tmpstr);
     istat = ncclose(ncinid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -169,7 +169,7 @@ short int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_s
     info_field->long_name = strdup(varname);
 
   /* Get projection variable ID */
-  if ( !strcmp(info_field->grid_mapping, "Lambert_Conformal") || !strcmp(info_field->grid_mapping, "Latitude_Longitude") ) {
+  if ( !strcmp(info_field->grid_mapping, "Lambert_Conformal") ) {
     istat = nc_inq_varid(ncinid, info_field->grid_mapping, &projinid); /* get projection variable ID */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
@@ -208,11 +208,8 @@ short int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_s
   else if ( !strcmp(info_field->grid_mapping, "Latitude_Longitude") )
     proj->name = strdup(info_field->grid_mapping);      
   else {
-    fprintf(stderr, "%s: Projection %s not supported! Cannot read projection parameters.\n", __FILE__, info_field->grid_mapping);
-    (void) free(tmpstr);
-    istat = ncclose(ncinid);
-    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-    return -1;
+    fprintf(stderr, "%s: WARNING: No projection parameter available.\n", __FILE__, info_field->grid_mapping);
+    proj->name = strdup("Latitude_Longitude");      
   }
 
   /* Allocate memory and set start and count */

@@ -128,6 +128,8 @@ int main(int argc, char **argv)
   double *timein = NULL;
   double *lat = NULL;
   double *lon = NULL;
+  double *lat_sub = NULL;
+  double *lon_sub = NULL;
   double **time_learn = NULL;
   double *buftmp = NULL;
   int **year_learn = NULL;
@@ -486,7 +488,7 @@ int main(int argc, char **argv)
   (void) free(cal_type);
 
   /* Extract subdomain */
-  (void) extract_subdomain(&tas_sub, &nlon_sub, &nlat_sub, tas, lon, lat, minlon, maxlon, minlat, maxlat,
+  (void) extract_subdomain(&tas_sub, &lon_sub, &lat_sub, &nlon_sub, &nlat_sub, tas, lon, lat, minlon, maxlon, minlat, maxlat,
                            nlon, nlat, ntime);
 
   for (season=0; season<nseason_learn; season++) {
@@ -543,6 +545,8 @@ int main(int argc, char **argv)
   (void) free(tas_sub);
   (void) free(lon);
   (void) free(lat);
+  (void) free(lon_sub);
+  (void) free(lat_sub);
   (void) free(timein);
   (void) free(filein);
   (void) free(filein_learn);

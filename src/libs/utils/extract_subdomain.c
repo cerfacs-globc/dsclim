@@ -11,7 +11,7 @@
 
 #include <utils.h>
 
-void extract_subdomain(double **buf_sub, int *nlon_sub, int *nlat_sub, double *buf,
+void extract_subdomain(double **buf_sub, double **lon_sub, double **lat_sub, int *nlon_sub, int *nlat_sub, double *buf,
                        double *lon, double *lat, double minlon, double maxlon, double minlat, double maxlat,
                        int nlon, int nlat, int ndim) {
   
@@ -28,7 +28,7 @@ void extract_subdomain(double **buf_sub, int *nlon_sub, int *nlat_sub, double *b
   *nlon_sub = *nlat_sub = 0;
 
   for (i=0; i<nlat; i++)
-    if (lat[i] >= minlat && lat[i] <= maxlat)
+    if (lat[i*nlon] >= minlat && lat[i*nlon] <= maxlat)
       (*nlat_sub)++;
   for (i=0; i<nlon; i++) {
     if (lon[i] > 180.0)
@@ -41,6 +41,10 @@ void extract_subdomain(double **buf_sub, int *nlon_sub, int *nlat_sub, double *b
 
   (*buf_sub) = (double *) malloc((*nlon_sub)*(*nlat_sub)*ndim * sizeof(double));
   if ((*buf_sub) == NULL) alloc_error(__FILE__, __LINE__);
+  (*lon_sub) = (double *) malloc((*nlon_sub)*(*nlat_sub) * sizeof(double));
+  if ((*lon_sub) == NULL) alloc_error(__FILE__, __LINE__);
+  (*lat_sub) = (double *) malloc((*nlon_sub)*(*nlat_sub) * sizeof(double));
+  if ((*lat_sub) == NULL) alloc_error(__FILE__, __LINE__);
 
   ii = 0;
   jj = 0;
@@ -57,6 +61,8 @@ void extract_subdomain(double **buf_sub, int *nlon_sub, int *nlat_sub, double *b
       if (curlon >= minlon && curlon <= maxlon && curlat >= minlat && curlat <= maxlat) {
         for (t=0; t<ndim; t++)
           (*buf_sub)[ii+jj*(*nlon_sub)+t*(*nlon_sub)*(*nlat_sub)] = buf[i+j*nlon+t*nlon*nlat];
+        (*lon_sub)[ii+jj*(*nlon_sub)] = lon[i+j*nlon];
+        (*lat_sub)[ii+jj*(*nlon_sub)] = lat[i+j*nlon];
         ii++;
       }
     }

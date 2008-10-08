@@ -11,21 +11,14 @@
 #include <pceof.h>
 
 /** Subroutine to project a 2D-time field on pre-calculated EOFs. */
-void project_field_eof(double *bufout, double *clim, double *bufin, double *bufeof, double *singular_value, tstruct *buftime,
-                       double missing_value, double missing_value_eof,
-                       int clim_filter_width, char *clim_filter_type, short int clim_provided,
-                       int ni, int nj, int ntime, int neof)
+short int project_field_eof(double *bufout, double *bufin, double *bufeof, double *singular_value,
+                            double missing_value_eof, int ni, int nj, int ntime, int neof)
 {
   /**
      @param[out]     bufout            Output 2D (neof x ntime) projected bufin field using input eof and singular_value
-     @param[in]      clim              Climatology 3D (ni x nj x 366 days) of input field bufin
      @param[in]      bufin             Input field 3D (ni x nj x ntime)
      @param[in]      eof               EOF of input field 3D (ni x nj x neof)
      @param[in]      singular_value    Singular value for EOF
-     @param[in]      buftime           1D time vector
-     @param[in]      missing_value     Missing value for bufin
-     @param[in]      clim_filter_width Width of filter for climatology
-     @param[in]      clim_filter_type  Type of filtering for climatology
      @param[in]      ni                Horizontal dimension
      @param[in]      nj                Horizontal dimension
      @param[in]      ntime             Temporal dimension
@@ -38,21 +31,12 @@ void project_field_eof(double *bufout, double *clim, double *bufin, double *bufe
   double sum; /* Temporary sum */
 
   double *true_val = NULL; /* 2D matrix of normalized value */
-  double *bufnoclim = NULL; /* 3D temporary matrix for field with climatology removed */
 
   int eof; /* Loop counter */
   int i; /* Loop counter */
   int j; /* Loop counter */
   int t; /* Loop counter */
 
-  /* Allocate memory */
-  bufnoclim = (double *) malloc(ni*nj*ntime * sizeof(double));
-  if (bufnoclim == NULL) alloc_error(__FILE__, __LINE__);
-
-  /* Substract seasonal cycle */
-  (void) remove_seasonal_cycle(bufnoclim, clim, bufin, buftime, missing_value, clim_filter_width, clim_filter_type, clim_provided,
-                               ni, nj, ntime);
-  
   /*** Project field on EOFs ***/
 
   /* Allocate memory */
@@ -106,8 +90,8 @@ void project_field_eof(double *bufout, double *clim, double *bufin, double *bufe
         for (i=0; i<ni; i++)
           if (bufeof[i+j*ni+eof*ni*nj] != missing_value_eof) {
             /*            if (t == 0)
-                          printf("%d %d %lf\n",i,j,bufnoclim[i+j*ni+t*ni*nj]);*/
-            sum += ( bufnoclim[i+j*ni+t*ni*nj] / sqrt(norm) * true_val[i+j*ni] );
+                          printf("%d %d %lf\n",i,j,bufin[i+j*ni+t*ni*nj]);*/
+            sum += ( bufin[i+j*ni+t*ni*nj] / sqrt(norm) * true_val[i+j*ni] );
           }
       bufout[t+eof*ntime] = sum;
     }
@@ -121,5 +105,6 @@ void project_field_eof(double *bufout, double *clim, double *bufin, double *bufe
   }
   
   (void) free(true_val);
-  (void) free(bufnoclim);
+
+  return 0;
 }
