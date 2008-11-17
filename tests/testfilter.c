@@ -69,7 +69,7 @@ int main(int argc, char **argv)
   FILE *inptr;
   FILE *outptr;
 
-  short int end;
+  int end;
   int numval;
   int istat;
   

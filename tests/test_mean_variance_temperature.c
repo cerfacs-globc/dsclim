@@ -498,13 +498,14 @@ int main(int argc, char **argv)
     /* Select sub period of field analyzed */
     /* Assuming season=0 is autumn and the rest in order, that is winter, spring, summer */
     (void) sub_period_common(&tas_subt, &ntime_sub, tas_sub, year, month, day, year_learn[season], month_learn[season], day_learn[season],
-                             nlon_sub, nlat_sub, ntime, ntime_learn[season]);
+                             3, nlon_sub, nlat_sub, ntime, ntime_learn[season]);
 
     tas_smean = (double *) malloc(ntime * sizeof(double));
     if (tas_smean == NULL) alloc_error(__FILE__, __LINE__);
-
+    (void) mean_field_spatial(tas_smean, tas_sub, nlon_sub, nlat_sub, ntime);
+    
     /* Compute mean and variance of spatially-averaged temperature */
-    (void) mean_variance_field_spatial(tas_smean, &mean, &var, tas_subt, nlon_sub, nlat_sub, ntime_sub);
+    (void) mean_variance_field_spatial(&mean, &var, tas_subt, nlon_sub, nlat_sub, ntime_sub);
 
     (void) printf("Season: %d  TAS mean=%lf variance=%lf\n", season, mean, var);
 

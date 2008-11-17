@@ -29,7 +29,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h math.h libgen.h string.h signal.h sys/types.h stdio.h time.h fcntl.h unistd.h sys/stat.h sys/mman.h ])
+AC_CHECK_HEADERS([stdlib.h math.h libgen.h string.h signal.h sys/types.h stdio.h time.h fcntl.h unistd.h sys/stat.h sys/mman.h errno.h])
 AC_TYPE_SIGNAL
 AC_C_CONST
 AC_C_INLINE
@@ -59,7 +59,7 @@ if test "$withval" != "no"; then
 else
   echo "no debugging"
   AC_DEFINE_UNQUOTED(DEBUG, 0, [Debugging level to compile in.])
-  CFLAGS="$CFLAGS -O3"
+  CFLAGS="$CFLAGS -O3 -Wall -Werror"
 fi], [echo "0"
 AC_DEFINE_UNQUOTED(DEBUG, 0, [Debugging level to compile in.])
 ])

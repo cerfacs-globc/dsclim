@@ -9,6 +9,6 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 noinst_LTLIBRARIES = libregress.la
-libregress_la_SOURCES = regress.h regress.c
+libregress_la_SOURCES = regress.h regress.c apply_regression.c
 libregress_la_CPPFLAGS = -I${top_srcdir}/src/libs/utils
 libregress_la_LIBADD = ${top_srcdir}/src/libs/utils/libutils.la $(GSL_LIBS) -lm

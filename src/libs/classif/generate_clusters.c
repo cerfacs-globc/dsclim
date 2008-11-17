@@ -11,7 +11,8 @@
 #include <classif.h>
 
 /** Algorithm to generate clusters based on the Michelangeli et al (1995) methodology. */
-void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nclassif, int neof, int ncluster, int ndays) {
+void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nclassif,
+                       int neof, int ncluster, int ndays) {
   /**
      @param[out]     clusters      Clusters' positions.
      @param[in]      pc_eof_days   Principal Components of EOF (daily data).

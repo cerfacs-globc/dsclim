@@ -46,5 +46,8 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
 void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int npart, int nclassif, int neof, int ncluster, int ndays);
 void mean_variance_dist_clusters(double *mean_dist, double *var_dist, double *pc, double *clusters, double *var_pc,
                                  double *var_pc_norm_all, int neof, int nclust, int ntime);
+void dist_clusters_normctrl(double *dist_pc, double *pc, double *clusters, double *var_pc,
+                            double *var_pc_norm_all, double *mean_ctrl, double *var_ctrl,
+                            int neof, int nclust, int ntime);
 #endif
 

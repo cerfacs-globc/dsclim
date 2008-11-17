@@ -11,13 +11,17 @@
 
 #include <utils.h>
 
-void mean_variance_field_spatial(double *buf_smean, double *buf_mean, double *buf_var, double *buf, int ni, int nj, int ntime) {
+void mean_variance_field_spatial(double *buf_mean, double *buf_var, double *buf, int ni, int nj, int ntime) {
 
   double sum;
+  double *buf_smean = NULL;
   
   int t;
   int i;
   int j;
+
+  buf_smean = (double *) malloc(ntime * sizeof(double));
+  if (buf_smean == NULL) alloc_error(__FILE__, __LINE__);
 
   for (t=0; t<ntime; t++) {
     sum = 0.0;
@@ -28,4 +32,6 @@ void mean_variance_field_spatial(double *buf_smean, double *buf_mean, double *bu
   }
   *buf_mean = gsl_stats_mean(buf_smean, 1, ntime);
   *buf_var = gsl_stats_variance(buf_smean, 1, ntime);
+
+  (void) free(buf_smean);
 }

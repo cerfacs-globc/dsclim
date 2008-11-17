@@ -1,25 +1,25 @@
 /* ***************************************************** */
-/* read_netcdf_var_3d Read a 3D NetCDF variable.         */
-/* read_netcdf_var_3d.c                                  */
+/* read_netcdf_var_2d Read a 2D NetCDF variable.         */
+/* read_netcdf_var_2d.c                                  */
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
-/* Date of creation: sep 2008                            */
-/* Last date of modification: sep 2008                   */
+/* Date of creation: oct 2008                            */
+/* Last date of modification: oct 2008                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
 /* Current revision:                                     */
 /* ***************************************************** */
 /* Revisions                                             */
 /* ***************************************************** */
-/*! \file read_netcdf_var_3d.c
+/*! \file read_netcdf_var_2d.c
     \brief Read a NetCDF variable.
 */
 
 #include <io.h>
 
-int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
-                       char *lonname, char *latname, char *timename, int nlon, int nlat, int ntime) {
+int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
+                       char *lonname, char *latname, int *nlon, int *nlat) {
 
   /**
      @param[in]  data  MASTER data structure.
@@ -36,10 +36,6 @@ int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct 
   nc_type vartype_main;
   int varndims;
   int vardimids[NC_MAX_VAR_DIMS];    /* dimension ids */
-
-  int ntime_file;
-  int nlat_file;
-  int nlon_file;
 
   size_t start[3];
   size_t count[3];
@@ -61,23 +57,17 @@ int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct 
 
   printf("%s: READ %s %s.\n", __FILE__, varname, filename);
 
-  istat = nc_inq_dimid(ncinid, timename, &timediminid);  /* get ID for time dimension */
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  istat = nc_inq_dimlen(ncinid, timediminid, &dimval); /* get time length */
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  ntime_file = (int) dimval;
-
   istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  nlat_file = (int) dimval;
+  *nlat = (int) dimval;
 
   istat = nc_inq_dimid(ncinid, lonname, &londiminid);  /* get ID for lon dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncinid, londiminid, &dimval); /* get lon length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  nlon_file = (int) dimval;
+  *nlon = (int) dimval;
   
   istat = nc_inq_varid(ncinid, varname, &varinid); /* get main variable ID */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -88,9 +78,8 @@ int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct 
   istat = nc_inq_var(ncinid, varinid, (char *) NULL, &vartype_main, &varndims, vardimids, (int *) NULL);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  if (varndims != 3 || ( (ntime_file*nlat_file*nlon_file) != (ntime*nlat*nlon) ) || (ntime_file != ntime) ||
-      (nlat_file != nlat) || (nlon_file != nlon) ) {
-    (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions nlon %d %d nlat %d %d.\n", __FILE__, nlon_file, nlon, nlat_file, nlat);
+  if (varndims != 2) {
+    (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions nlon %d nlat %d.\n", __FILE__, *nlon, *nlat);
     (void) free(tmpstr);
     istat = ncclose(ncinid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -111,7 +100,7 @@ int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct 
       if (istat != NC_NOERR)
         info_field->fillvalue = -9999.0;
     }
-
+    
     istat = nc_inq_attlen(ncinid, varinid, "coordinates", &t_len);
     if (istat == NC_NOERR) {
       istat = nc_get_att_text(ncinid, varinid, "coordinates", tmpstr);
@@ -125,7 +114,7 @@ int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct 
     }
     else
       info_field->coordinates = strdup("lon lat");
-
+    
     istat = nc_inq_attlen(ncinid, varinid, "grid_mapping", &t_len);
     if (istat == NC_NOERR) {
       handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -140,7 +129,7 @@ int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct 
     }
     else
       info_field->grid_mapping = strdup("unknown");
-
+    
     istat = nc_inq_attlen(ncinid, varinid, "units", &t_len);
     if (istat == NC_NOERR) {
       handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -155,7 +144,7 @@ int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct 
     }
     else
       info_field->units = strdup("unknown");
-
+    
     istat = nc_inq_attlen(ncinid, varinid, "long_name", &t_len);
     if (istat == NC_NOERR) {
       handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -196,19 +185,19 @@ int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct 
       if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
       proj->name = strdup(info_field->grid_mapping);
       istat = get_attribute_str(&(proj->grid_mapping_name), ncinid, projinid, "grid_mapping_name");
-    
+      
       proj_latin = (float *) malloc(2 * sizeof(float));
       if (proj_latin == NULL) alloc_error(__FILE__, __LINE__);
       istat = nc_get_att_float(ncinid, projinid, "standard_parallel", proj_latin);
       proj->latin1 = (double) proj_latin[0];
       proj->latin2 = (double) proj_latin[1];
       (void) free(proj_latin);
-    
+      
       istat = nc_get_att_double(ncinid, projinid, "longitude_of_central_meridian", &(proj->lonc));
       istat = nc_get_att_double(ncinid, projinid, "latitude_of_projection_origin", &(proj->lat0));
       istat = nc_get_att_double(ncinid, projinid, "false_easting", &(proj->false_easting));
       istat = nc_get_att_double(ncinid, projinid, "false_northing", &(proj->false_northing));
-    
+      
     }
     else if ( !strcmp(info_field->grid_mapping, "Latitude_Longitude") )
       proj->name = strdup(info_field->grid_mapping);      
@@ -222,11 +211,11 @@ int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct 
   start[0] = 0;
   start[1] = 0;
   start[2] = 0;
-  count[0] = (size_t) ntime_file;
-  count[1] = (size_t) nlat_file;
-  count[2] = (size_t) nlon_file;
+  count[0] = (size_t) *nlat;
+  count[1] = (size_t) *nlon;
+  count[2] = 0;
   /* Allocate memory */
-  (*buf) = (double *) malloc(nlat_file*nlon_file*ntime_file * sizeof(double));
+  (*buf) = (double *) malloc((*nlat)*(*nlon) * sizeof(double));
   if ((*buf) == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Read values from netCDF variable */

@@ -9,6 +9,6 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 noinst_LTLIBRARIES = libclassif.la
-libclassif_la_SOURCES = classif.h class_days_pc_clusters.c generate_clusters.c best_clusters.c mean_variance_dist_clusters.c
+libclassif_la_SOURCES = classif.h class_days_pc_clusters.c generate_clusters.c best_clusters.c mean_variance_dist_clusters.c dist_clusters_normctrl.c
 libclassif_la_CPPFLAGS = -I${top_srcdir}/src/libs/utils $(GSL_CFLAGS)
 libclassif_la_LIBADD = ${top_srcdir}/src/libs/utils/libutils.la $(GSL_LIBS) -lm

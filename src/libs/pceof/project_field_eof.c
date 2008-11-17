@@ -11,14 +11,15 @@
 #include <pceof.h>
 
 /** Subroutine to project a 2D-time field on pre-calculated EOFs. */
-short int project_field_eof(double *bufout, double *bufin, double *bufeof, double *singular_value,
-                            double missing_value_eof, int ni, int nj, int ntime, int neof)
+int project_field_eof(double *bufout, double *bufin, double *bufeof, double *singular_value,
+                            double missing_value_eof, double scale, int ni, int nj, int ntime, int neof)
 {
   /**
      @param[out]     bufout            Output 2D (neof x ntime) projected bufin field using input eof and singular_value
      @param[in]      bufin             Input field 3D (ni x nj x ntime)
      @param[in]      eof               EOF of input field 3D (ni x nj x neof)
      @param[in]      singular_value    Singular value for EOF
+     @param[in]      scale             Scaling for units to apply before projecting onto EOF
      @param[in]      ni                Horizontal dimension
      @param[in]      nj                Horizontal dimension
      @param[in]      ntime             Temporal dimension
@@ -81,18 +82,16 @@ short int project_field_eof(double *bufout, double *bufin, double *bufeof, doubl
       }
 
     /* Verify that the norm is equal to 1.0 */
-    (void) fprintf(stdout, "%s: Verifying the norm (should be equal to 1) for EOF #%d: %lf\n", __FILE__, eof, sum_verif_norm);
+    (void) fprintf(stdout, "%s: Verifying the sqrt(norm)=%lf (should be equal to 1) for EOF #%d: %lf\n", __FILE__, sqrt(norm),
+                   eof, sum_verif_norm);
 
     /* Project on EOF */
     for (t=0; t<ntime; t++) {
       sum = 0.0;
       for (j=0; j<nj; j++)
         for (i=0; i<ni; i++)
-          if (bufeof[i+j*ni+eof*ni*nj] != missing_value_eof) {
-            /*            if (t == 0)
-                          printf("%d %d %lf\n",i,j,bufin[i+j*ni+t*ni*nj]);*/
-            sum += ( bufin[i+j*ni+t*ni*nj] / sqrt(norm) * true_val[i+j*ni] );
-          }
+          if (bufeof[i+j*ni+eof*ni*nj] != missing_value_eof)
+            sum += ( bufin[i+j*ni+t*ni*nj] * scale / sqrt(norm) * true_val[i+j*ni] );
       bufout[t+eof*ntime] = sum;
     }
 

@@ -18,9 +18,9 @@
 
 #include <io.h>
 
-short int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
-                              char *varname, char *gridname, char *lonname, char *latname, char *timename,
-                              int nlon, int nlat, int ntime) {
+int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
+                        char *varname, char *gridname, char *lonname, char *latname, char *timename,
+                        int nlon, int nlat, int ntime) {
 
   /**
      @param[in]  data  MASTER data structure.

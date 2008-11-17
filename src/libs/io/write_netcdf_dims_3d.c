@@ -18,12 +18,12 @@
 
 #include <io.h>
 
-short int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_type, char *time_units,
-                               int nlon, int nlat, int ntime, char *timestep, char *gridname, char *coords,
-                               char *grid_mapping_name, double latin1, double latin2,
-                               double lonc, double lat0, double false_easting, double false_northing,
-                               char *lonname, char *latname, char *timename,
-                               char *filename) {
+int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_type, char *time_units,
+                         int nlon, int nlat, int ntime, char *timestep, char *gridname, char *coords,
+                         char *grid_mapping_name, double latin1, double latin2,
+                         double lonc, double lat0, double false_easting, double false_northing,
+                         char *lonname, char *latname, char *timename,
+                         char *filename) {
 
   /**
      @param[in]  data  MASTER data structure.
@@ -220,9 +220,9 @@ short int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *c
     (void) free(proj_latin);
     
     istat = nc_put_att_double(ncoutid, projoutid, "longitude_of_central_meridian", NC_FLOAT, 1, &lonc);
-      istat = nc_put_att_double(ncoutid, projoutid, "latitude_of_projection_origin", NC_FLOAT, 1, &lat0);
-      istat = nc_put_att_double(ncoutid, projoutid, "false_easting", NC_FLOAT, 1, &false_easting);
-      istat = nc_put_att_double(ncoutid, projoutid, "false_northing", NC_FLOAT, 1, &false_northing);
+    istat = nc_put_att_double(ncoutid, projoutid, "latitude_of_projection_origin", NC_FLOAT, 1, &lat0);
+    istat = nc_put_att_double(ncoutid, projoutid, "false_easting", NC_FLOAT, 1, &false_easting);
+    istat = nc_put_att_double(ncoutid, projoutid, "false_northing", NC_FLOAT, 1, &false_northing);
   }
 
   (void) strcpy(tmpstr, "Grid");

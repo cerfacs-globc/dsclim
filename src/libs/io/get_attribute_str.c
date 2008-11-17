@@ -19,7 +19,7 @@
 #include <io.h>
 
 /* Get NetCDF string attribute */
-short int get_attribute_str(char **var, int ncinid, int varid, char *attrname)
+int get_attribute_str(char **var, int ncinid, int varid, char *attrname)
 {
   /**
      @param[in]  
@@ -49,5 +49,5 @@ short int get_attribute_str(char **var, int ncinid, int varid, char *attrname)
     (*var)[0] = '\0';
   }
 
-  return ((short int) istat);
+  return ((int) istat);
 }

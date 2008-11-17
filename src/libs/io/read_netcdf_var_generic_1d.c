@@ -18,8 +18,8 @@
 
 #include <io.h>
 
-int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filename, char *varname,
-                       char *dimname, int ndim) {
+int read_netcdf_var_generic_1d(double **buf, info_field_struct *info_field, char *filename, char *varname,
+                               char *dimname, int *ndim) {
 
   /**
      @param[in]  data  MASTER data structure.
@@ -36,8 +36,6 @@ int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filena
   nc_type vartype_main;
   int varndims;
   int vardimids[NC_MAX_VAR_DIMS];    /* dimension ids */
-
-  int ndim_file;
 
   size_t start[3];
   size_t count[3];
@@ -61,7 +59,7 @@ int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filena
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncinid, diminid, &dimval); /* get dimension length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  ndim_file = (int) dimval;
+  *ndim = (int) dimval;
 
   istat = nc_inq_varid(ncinid, varname, &varinid); /* get main variable ID */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -72,7 +70,7 @@ int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filena
   istat = nc_inq_var(ncinid, varinid, (char *) NULL, &vartype_main, &varndims, vardimids, (int *) NULL);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  if (varndims != 1 || ndim_file != ndim ) {
+  if (varndims != 1) {
     (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions.\n", __FILE__);
     (void) free(tmpstr);
     istat = ncclose(ncinid);
@@ -130,11 +128,11 @@ int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filena
   start[0] = 0;
   start[1] = 0;
   start[2] = 0;
-  count[0] = (size_t) ndim_file;
+  count[0] = (size_t) *ndim;
   count[1] = 0;
   count[2] = 0;
   /* Allocate memory */
-  (*buf) = (double *) malloc(ndim_file * sizeof(double));
+  (*buf) = (double *) malloc((*ndim) * sizeof(double));
   if ((*buf) == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Read values from netCDF variable */

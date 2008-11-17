@@ -170,6 +170,8 @@ int main(int argc, char **argv)
   double fillvalue_reg;
   double fillvalue_rrd;
   double fillvalue_ta;
+
+  double first_variance = -9999.9999;
   
   char varname[500];
 
@@ -959,11 +961,12 @@ int main(int argc, char **argv)
     buftmp = (double *) malloc(ntime*neof * sizeof(double));
     if (buftmp == NULL) alloc_error(__FILE__, __LINE__);
 
-    (void) normalize_pc(var_pc_norm_all, buftmp, psl_pc, neof, ntime);
+    first_variance = -9999.9999;
+    (void) normalize_pc(var_pc_norm_all, &first_variance, buftmp, psl_pc, neof, ntime);
 
     /* Select sub period of field analyzed */
     /* Assuming season=0 is autumn and the rest in order, that is winter, spring, summer */
-    (void) sub_period_common(&buf_sub, &ntime_sub, buftmp, year, month, day, year_learn[i], month_learn[i], day_learn[i],
+    (void) sub_period_common(&buf_sub, &ntime_sub, buftmp, year, month, day, year_learn[i], month_learn[i], day_learn[i], 1,
                              neof, 1, ntime, ntime_learn[i]);
     (void) free(buftmp);
     

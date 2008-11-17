@@ -12,33 +12,34 @@
 
 #include <pceof.h>
 
-void normalize_pc(double *norm_all, double *buf_renorm, double *bufin, int neof, int ntime) {
-
-  double *buftmpt = NULL;
-  double first_variance = 1.0;
+void normalize_pc(double *norm_all, double *first_variance, double *buf_renorm, double *bufin, int neof, int ntime) {
 
   int eof;
   int nt;
 
-  buftmpt = (double *) malloc(ntime * sizeof(double));
-  if (buftmpt == NULL) alloc_error(__FILE__, __LINE__);
-
+  eof = 0;
+  if (*first_variance == -9999.9999) {
+    *first_variance = gsl_stats_variance(&(bufin[eof*ntime]), 1, ntime);
+    printf("first variance set=%lf %lf!\n",*first_variance,sqrt(*first_variance));
+  }
+  else
+    printf("first variance=%lf %lf!\n",*first_variance,sqrt(*first_variance));
+  
   for (eof=0; eof<neof; eof++) {
 
-    for (nt=0; nt<ntime; nt++)
-      buftmpt[nt] = bufin[eof+nt*neof];
-
-    norm_all[eof] = sqrt(gsl_stats_variance(buftmpt, 1, ntime));
-
-    if (eof == 0)
-      first_variance = norm_all[0];
+    //    for (nt=0; nt<ntime; nt++) {
+    //      printf("norm_1 %d %d %lf\n",eof,nt,bufin[eof+nt*neof]);
+    //    }
 
     for (nt=0; nt<ntime; nt++)
-      buf_renorm[nt+eof*ntime] = bufin[eof+nt*neof] / first_variance;
+      buf_renorm[nt+eof*ntime] = bufin[nt+eof*ntime] / sqrt(*first_variance);
+    //    for (nt=(ntime-5); nt<ntime; nt++)
+    //      printf("bufin %d eof %d %lf\n",nt,eof,bufin[nt+eof*ntime]);
 
-    norm_all[eof] = sqrt(gsl_stats_variance(&(buf_renorm[eof*ntime]), 1, ntime));
+    //    printf("before renorm %d %d %lf %lf %lf ",eof,ntime,bufin[ntime-5+eof*ntime], sqrt(gsl_stats_variance(&(bufin[eof*ntime]), 1, ntime)));
+    //    printf("renorm %lf\n",buf_renorm[ntime-5+eof*ntime]);
+    norm_all[eof] = gsl_stats_variance(&(buf_renorm[eof*ntime]), 1, ntime);
+    //    printf("norm_all %d %lf\n",eof,norm_all[eof]);
 
   }
-
-  (void) free(buftmpt);
 }

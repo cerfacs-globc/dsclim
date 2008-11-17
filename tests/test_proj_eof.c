@@ -106,6 +106,7 @@ int main(int argc, char **argv)
   int natts;
   double fillvalue;
   double fillvalue_eof;
+  double scale = 1.0;
   float valf;
 
   double *psl = NULL;
@@ -167,6 +168,8 @@ int main(int argc, char **argv)
       if (fileout == NULL) alloc_error(__FILE__, __LINE__);
       (void) strcpy(fileout, argv[i]);
     }
+    else if ( !strcmp(argv[i], "-scale") )
+      (void) sscanf(argv[++i], "%lf", &scale);
     else {
       (void) fprintf(stderr, "%s:: Wrong arg %s.\n\n", basename(argv[0]), argv[i]);
       (void) show_usage(basename(argv[0]));
@@ -532,10 +535,10 @@ int main(int argc, char **argv)
   /* Compute subdomain and apply to arrays */
   /*  blon=where(lone ge 345 or lone le 20)
       blat=where(late ge 35 and late le 60) */
-  minlon = -15.0;
-  maxlon = 20.0;
+  minlon = -10.0;
+  maxlon = 17.5;
   minlat = 35.0;
-  maxlat = 60.0;
+  maxlat = 57.5;
   nlon_sub = nlat_sub = 0;
   for (i=0; i<nlat_eof; i++)
     if (lat_eof[i] >= minlat && lat_eof[i] <= maxlat)
@@ -582,7 +585,7 @@ int main(int argc, char **argv)
 
   (void) remove_seasonal_cycle(psl_noclim, psl_clim, psl_sub, timein_ts, fillvalue, clim_filter_width, clim_filter_type,
                                clim_provided, nlon_sub, nlat_sub, ntime);
-  (void) project_field_eof(psl_proj, psl_noclim, psl_eof_sub, psl_sing, fillvalue_eof, nlon_sub, nlat_sub, ntime, neof);
+  (void) project_field_eof(psl_proj, psl_noclim, psl_eof_sub, psl_sing, fillvalue_eof, scale, nlon_sub, nlat_sub, ntime, neof);
 
   (void) fprintf(stderr, "Input/output time units: %s\n", time_units);
 

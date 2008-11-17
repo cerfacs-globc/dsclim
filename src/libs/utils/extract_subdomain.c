@@ -56,8 +56,8 @@ void extract_subdomain(double **buf_sub, double **lon_sub, double **lat_sub, int
       if (lon[i] > 180.0)
         curlon = lon[i] - 360.0;
       else
-        curlon = lon[i];
-      curlat = lat[j];
+        curlon = lon[i+j*nlon];
+      curlat = lat[i+j*nlon];
       if (curlon >= minlon && curlon <= maxlon && curlat >= minlat && curlat <= maxlat) {
         for (t=0; t<ndim; t++)
           (*buf_sub)[ii+jj*(*nlon_sub)+t*(*nlon_sub)*(*nlat_sub)] = buf[i+j*nlon+t*nlon*nlat];

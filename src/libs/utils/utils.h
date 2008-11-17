@@ -41,6 +41,9 @@
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
 
 #include <gsl/gsl_statistics.h>
 
@@ -75,13 +78,16 @@ int data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, 
 int get_calendar(int *year, int *month, int *day, int *hour, int *minutes, float *seconds, char *tunits, double *timein, int ntime);
 int get_calendar_ts(tstruct *timeout, char *tunits, double *timein, int ntime);
 void change_date_origin(double *timeout, char *tunits_out, double *timein, char *tunits_in, int ntime);
-void mean_variance_field_spatial(double *buf_smean, double *buf_mean, double *buf_var, double *buf, int ni, int nj, int ntime);
+void mean_variance_field_spatial(double *buf_mean, double *buf_var, double *buf, int ni, int nj, int ntime);
+void mean_field_spatial(double *buf_mean, double *buf, int ni, int nj, int ntime);
 void sub_period_common(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
-                       int *year_learn, int *month_learn, int *day_learn, int ndima, int ndimb, int ntime, int ntime_learn);
+                       int *year_learn, int *month_learn, int *day_learn, int timedim, int ndima, int ndimb, int ntime, int ntime_learn);
 void extract_subdomain(double **buf_sub, double **lon_sub, double **lat_sub, int *nlon_sub, int *nlat_sub, double *buf,
                        double *lon, double *lat, double minlon, double maxlon, double minlat, double maxlat,
                        int nlon, int nlat, int ndim);
-void extract_subperiod(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
-                       int *smonths, int ndima, int ndimb, int ntime, int nmonths);
+void extract_subperiod_months(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
+                              int *smonths, int timedim, int ndima, int ndimb, int ntime, int nmonths);
+void normalize_field(double *nbuf, double *buf, double mean, double var, int ndima, int ndimb, int ntime);
+int comparf(const void *a, const void *b);
 
 #endif

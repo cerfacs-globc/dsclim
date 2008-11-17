@@ -18,8 +18,8 @@
 
 #include <io.h>
 
-short int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *neof, char *coords,
-                               char *lonname, char *latname, char *eofname, char *filename) {
+int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *neof, char *coords,
+                         char *lonname, char *latname, char *eofname, char *filename) {
 
   /**
      @param[in]  data  MASTER data structure.

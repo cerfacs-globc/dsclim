@@ -22,11 +22,11 @@ void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime,
      @param[in]      nt         Temporal dimension of buffer input vector.
   */
 
-  short int *index = NULL; /* Index to flag matching a specific day and month in a time serie covering several years. */
+  int *index = NULL; /* Index to flag matching a specific day and month in a time serie covering several years. */
   double mean = 0.0; /* Mean value over all matching days. */
   double *sum; /* Sum over all matching days. */
-  short int *ndays = NULL; /* Number of days matching days. */
-  short int month; /* Climatological month. */
+  int *ndays = NULL; /* Number of days matching days. */
+  int month; /* Climatological month. */
 
   int t; /* Loop counter for time. */
   int i; /* Loop counter for ni. */
@@ -36,11 +36,11 @@ void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime,
   (void) fprintf(stdout, "%s: Computing climatological months of a daily time serie.\n", __FILE__);
 
   /* Allocate memory */
-  index = (short int *) calloc(nt, sizeof(short int));
+  index = (int *) calloc(nt, sizeof(int));
   if (index == NULL) alloc_error(__FILE__, __LINE__);
   sum = (double *) malloc(ni*nj * sizeof(double));
   if (sum == NULL) alloc_error(__FILE__, __LINE__);
-  ndays = (short int *) malloc(ni*nj * sizeof(short int));
+  ndays = (int *) malloc(ni*nj * sizeof(int));
   if (ndays == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Loop over the 12 months of the year to generate daily climatological months */

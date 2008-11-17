@@ -57,13 +57,16 @@ void class_days_pc_clusters(int *days_class_cluster, double *pc_eof_days, double
       for (clust=0; clust<ncluster; clust++) {
 
 #if DEBUG >= 7
-      (void) fprintf(stderr, "clust=%d\n", clust);
+        (void) fprintf(stderr, "clust=%d\n", clust);
 #endif
 
         dist_sum = 0.0;
         /* Sum all distances (over EOF) between the PC of the day and the PC of the cluster centroid for each EOF respectively */
         for (eof=0; eof<neof; eof++) {
-          val = pc_eof_days[eof+day*neof] - eof_days_cluster[eof+clust*neof];
+          val = pc_eof_days[day+eof*ndays] - eof_days_cluster[eof+clust*neof];
+#if DEBUG >= 9
+          printf("%d %d %lf %lf\n",clust,eof,pc_eof_days[day+eof*ndays],eof_days_cluster[eof+clust*neof]);
+#endif
           /* Euclidian distance: square */
           dist_sum += (val * val);
         }
@@ -71,7 +74,7 @@ void class_days_pc_clusters(int *days_class_cluster, double *pc_eof_days, double
         dist_clust = sqrt(dist_sum);
 
 #if DEBUG >= 7
-      (void) fprintf(stderr, "dist_clust=%lf\n", dist_clust);
+        (void) fprintf(stderr, "dist_clust=%lf\n", dist_clust);
 #endif
 
         /* Is it a cluster which has less distance as the minimum found yet ? */

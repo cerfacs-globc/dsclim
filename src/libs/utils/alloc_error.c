@@ -10,8 +10,8 @@ void alloc_error(char *filename, int line)
   */
 
   /** Print error on standard error along with source code filename and line number. */
-  (void) fprintf(stderr,"alloc_error: Memory allocation error (malloc)\n\nExiting and dumping core... File=%s Line=%d\n\n",
-                 filename, line);
+  (void) fprintf(stderr,"alloc_error: Memory allocation error (malloc)\n\nExiting and dumping core... File=%s Line=%d errno=%d\n\n",
+                 filename, line, errno);
 
   /** Kill process and dump core for debugging purposes. */
   (void) kill(getpid(), 5);

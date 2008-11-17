@@ -12,14 +12,14 @@
 #include <clim.h>
 
 /** Compute day of year of 366-day climatological year given a day and a month. */
-short int dayofclimyear(short int day, short int month) {
+int dayofclimyear(int day, int month) {
   /**
      @param[in]      day           Day of the month.
      @param[in]      month         Month of the year.
   */
-  short int daysinmonth[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-  short int m;
-  short int dayofclimy = 0;
+  int daysinmonth[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  int m;
+  int dayofclimy = 0;
   
   for (m=0; m<=(month-2); m++)
     dayofclimy += daysinmonth[m];

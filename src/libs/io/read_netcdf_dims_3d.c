@@ -18,9 +18,9 @@
 
 #include <io.h>
 
-short int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_type, char **time_units,
-                              int *nlon, int *nlat, int *ntime, info_struct *info, char *coords, char *gridname,
-                              char *lonname, char *latname, char *timename, char *filename) {
+int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_type, char **time_units,
+                        int *nlon, int *nlat, int *ntime, info_struct *info, char *coords, char *gridname,
+                        char *lonname, char *latname, char *timename, char *filename) {
 
   /**
      @param[in]  data  MASTER data structure.

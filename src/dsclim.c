@@ -32,7 +32,7 @@ int main(int argc, char **argv)
    */
 
   int i;
-  short int istat = 0;
+  int istat = 0;
   data_struct *data = NULL;
 
   /* Command-line arguments variables */
@@ -72,8 +72,21 @@ int main(int argc, char **argv)
     (void) abort();
   }
 
+  /* Read regression points positions */
+  istat = read_regression_points(data->reg);
+  if (istat != 0) {
+    (void) fprintf(stderr, "%s: Error in reading regression points positions. Aborting.\n", __FILE__);
+    (void) banner(basename(argv[0]), "ABORT", "END");
+    (void) abort();
+  }
+
   /* If wanted, generate learning data */
-  /** Later. Waiting for STATPACK **/
+  istat = wt_learning(data);
+  if (istat != 0) {
+    (void) fprintf(stderr, "%s: Error in computing or reading learning data needed for downscaling. Aborting.\n", __FILE__);
+    (void) banner(basename(argv[0]), "ABORT", "END");
+    (void) abort();
+  }
 
   /* Perform downscaling */
   istat = wt_downscaling(data);

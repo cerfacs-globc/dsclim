@@ -1,25 +1,24 @@
 /* ***************************************************** */
-/* read_netcdf_var_1d Read a 1D NetCDF variable.         */
-/* read_netcdf_var_1d.c                                  */
+/* read_netcdf_var_generic_1d Read a 1D NetCDF variable. */
+/* read_netcdf_var_generic_1d.c                          */
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
-/* Date of creation: sep 2008                            */
-/* Last date of modification: sep 2008                   */
+/* Date of creation: oct 2008                            */
+/* Last date of modification: oct 2008                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
 /* Current revision:                                     */
 /* ***************************************************** */
 /* Revisions                                             */
 /* ***************************************************** */
-/*! \file read_netcdf_var_1d.c
+/*! \file read_netcdf_var_generic_1d.c
     \brief Read a NetCDF variable.
 */
 
 #include <io.h>
 
-int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filename, char *varname,
-                       char *dimname, int ndim) {
+int read_netcdf_var_generic_val(double *buf, info_field_struct *info_field, char *filename, char *varname, int index) {
 
   /**
      @param[in]  data  MASTER data structure.
@@ -29,23 +28,20 @@ int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filena
 
   int istat;
 
-  size_t dimval;
-
   int ncinid;
   int varinid, diminid;
   nc_type vartype_main;
   int varndims;
   int vardimids[NC_MAX_VAR_DIMS];    /* dimension ids */
 
-  int ndim_file;
-
-  size_t start[3];
-  size_t count[3];
-
   float valf;
-  int vali;
   char *tmpstr = NULL;
   size_t t_len;
+  size_t *idx;
+
+  idx = (size_t *) malloc(sizeof(size_t));
+  if (idx == NULL) alloc_error(__FILE__, __LINE__);
+  idx[0] = (size_t) index;
 
   tmpstr = (char *) malloc(5000 * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
@@ -57,28 +53,12 @@ int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filena
 
   printf("%s: READ %s %s.\n", __FILE__, varname, filename);
 
-  istat = nc_inq_dimid(ncinid, dimname, &diminid);  /* get ID for dimension */
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  istat = nc_inq_dimlen(ncinid, diminid, &dimval); /* get dimension length */
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  ndim_file = (int) dimval;
-
   istat = nc_inq_varid(ncinid, varname, &varinid); /* get main variable ID */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  /** Read data variable **/
-  
   /* Get variable information */
   istat = nc_inq_var(ncinid, varinid, (char *) NULL, &vartype_main, &varndims, vardimids, (int *) NULL);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-
-  if (varndims != 1 || ndim_file != ndim ) {
-    (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions.\n", __FILE__);
-    (void) free(tmpstr);
-    istat = ncclose(ncinid);
-    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-    return -1;
-  }
 
   if (info_field != NULL) {
     /* Get fillvalue */
@@ -126,19 +106,8 @@ int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filena
       info_field->long_name = strdup(varname);
   }
 
-  /* Allocate memory and set start and count */
-  start[0] = 0;
-  start[1] = 0;
-  start[2] = 0;
-  count[0] = (size_t) ndim_file;
-  count[1] = 0;
-  count[2] = 0;
-  /* Allocate memory */
-  (*buf) = (double *) malloc(ndim_file * sizeof(double));
-  if ((*buf) == NULL) alloc_error(__FILE__, __LINE__);
-
   /* Read values from netCDF variable */
-  istat = nc_get_vara_double(ncinid, varinid, start, count, *buf);
+  istat = nc_get_var1_double(ncinid, varinid, idx, buf);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Close the input netCDF file. */
@@ -146,6 +115,7 @@ int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filena
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   (void) free(tmpstr);
+  (void) free(idx);
 
   return 0;
 }

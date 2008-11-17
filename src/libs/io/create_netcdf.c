@@ -19,7 +19,7 @@
 
 #include <io.h>
 
-short int create_netcdf(char *title, char *title_french, char *summary, char *summary_french,
+int create_netcdf(char *title, char *title_french, char *summary, char *summary_french,
                         char *keywords, char *processor, char *description, char *institution,
                         char *creator_email, char *creator_url, char *creator_name,
                         char *version, char *scenario, char *scenario_co2, char *model,

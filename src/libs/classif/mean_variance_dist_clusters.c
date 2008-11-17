@@ -28,13 +28,15 @@ void mean_variance_dist_clusters(double *mean_dist, double *var_dist, double *pc
     for (nt=0; nt<ntime; nt++) {
       sum = 0.0;
       for (eof=0; eof<neof; eof++) {
-        val = (pc[nt+eof*ntime] / var_pc_norm_all[eof]) - (clusters[eof+clust*neof] / var_pc[eof]);
+        val = (pc[nt+eof*ntime] / sqrt(var_pc_norm_all[eof])) - (clusters[eof+clust*neof] / var_pc[eof]);
         sum += (val * val);
       }
       dist_pc[nt] = sqrt(sum);
     }
     mean_dist[clust] = gsl_stats_mean(dist_pc, 1, ntime);
     var_dist[clust] = gsl_stats_variance(dist_pc, 1, ntime);
+    //    printf("ctrl dist pre... %d %lf %lf %lf %lf %lf\n",clust,sqrt(sum),pc[ntime-1+clust*ntime],sqrt(var_pc_norm_all[clust]),clusters[clust+clust*neof],var_pc[clust]);
+    //    printf("ctrl dist.... %d %lf %lf %lf %lf\n",clust,dist_pc[ntime-1],sum,mean_dist[clust],var_dist[clust]);
   }
 
   (void) free(dist_pc);

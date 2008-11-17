@@ -10,8 +10,8 @@
 
 #include <utils.h>
 
-void extract_subperiod(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
-                       int *smonths, int ndima, int ndimb, int ntime, int nmonths) {
+void extract_subperiod_months(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
+                              int *smonths, int timedim, int ndima, int ndimb, int ntime, int nmonths) {
   
   int *buf_sub_i = NULL;
 
@@ -32,10 +32,16 @@ void extract_subperiod(double **buf_sub, int *ntime_sub, double *bufin, int *yea
   
   (*buf_sub) = (double *) malloc((*ntime_sub)*ndima*ndimb * sizeof(double));
   if ((*buf_sub) == NULL) alloc_error(__FILE__, __LINE__);
-  for (t=0; t<(*ntime_sub); t++)
-    for (j=0; j<ndimb; j++)
-      for (i=0; i<ndima; i++)
-        (*buf_sub)[i+j*ndima+t*ndima*ndimb] = bufin[i+j*ndima+buf_sub_i[t]*ndima*ndimb];
+  if (timedim == 3)
+    for (t=0; t<(*ntime_sub); t++)
+      for (j=0; j<ndimb; j++)
+        for (i=0; i<ndima; i++)
+          (*buf_sub)[i+j*ndima+t*ndima*ndimb] = bufin[i+j*ndima+buf_sub_i[t]*ndima*ndimb];
+  else
+    for (t=0; t<(*ntime_sub); t++)
+      for (j=0; j<ndimb; j++)
+        for (i=0; i<ndima; i++)
+          (*buf_sub)[t+i*(*ntime_sub)+j*(*ntime_sub)*ndima] = bufin[buf_sub_i[t]+i*ntime+j*ntime*ndima];
   
   (void) free(buf_sub_i);
 }

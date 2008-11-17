@@ -12,7 +12,7 @@
 
 /** Remove seasonal cycle using a time filter. */
 void remove_seasonal_cycle(double *bufout, double *clim, double *bufin, tstruct *buftime, double missing_val,
-                           int filter_width, char *type, short int clim_provided, int ni, int nj, int ntime) {
+                           int filter_width, char *type, int clim_provided, int ni, int nj, int ntime) {
   /**
      @param[out]     bufout        Output data 3D matrix with seasonal cycle removed.
      @param[out,in]  clim          Climatology vector (on 366 days). Can be already provided as input or not (clim_provided parameter).
@@ -32,9 +32,9 @@ void remove_seasonal_cycle(double *bufout, double *clim, double *bufin, tstruct 
   int j; /* Loop counter for nj. */
   int t; /* Loop counter. */
   int ndays_m = 31; /* Maximum number of days in a month. */
-  short int month; /* Climatological month. */
-  short int day; /* Climatological day. */
-  short int dayofclimy; /* Day of year in a 366-day climatological year */
+  int month; /* Climatological month. */
+  int day; /* Climatological day. */
+  int dayofclimy; /* Day of year in a 366-day climatological year */
 
   /* Allocate temporay buffer memory. */
   tmpbuf = (double *) calloc(ni*nj*ntime, sizeof(double));
@@ -63,10 +63,10 @@ void remove_seasonal_cycle(double *bufout, double *clim, double *bufin, tstruct 
         /* Loop over all the times */
         for (t=0; t<ntime; t++) {
           if (buftime[t].day == (day+1) && buftime[t].month == (month+1)) {
-            dayofclimy = dayofclimyear(day, month);
+            dayofclimy = dayofclimyear(day+1, month+1);
             for (j=0; j<nj; j++)
               for (i=0; i<ni; i++)
-                clim[i+j*ni+dayofclimy*ni*nj] = tmpbuf[i+j*ni+t*ni*nj];
+                clim[i+j*ni+(dayofclimy-1)*ni*nj] = tmpbuf[i+j*ni+t*ni*nj];
             /* Exit loop: matched month and day */
             t = ntime;
           }
@@ -79,7 +79,7 @@ void remove_seasonal_cycle(double *bufout, double *clim, double *bufin, tstruct 
       dayofclimy = dayofclimyear(buftime[t].day, buftime[t].month);
       for (j=0; j<nj; j++)
         for (i=0; i<ni; i++)
-          bufout[i+j*ni+t*ni*nj] = bufin[i+j*ni+t*ni*nj] - clim[i+j*ni+dayofclimy*ni*nj];
+          bufout[i+j*ni+t*ni*nj] = bufin[i+j*ni+t*ni*nj] - clim[i+j*ni+(dayofclimy-1)*ni*nj];
     }
   }
   
