@@ -12,11 +12,7 @@
 
 #include <classif.h>
 
-/** Output a vector (dimension days) containing the closer (Euclidian distance) cluster number.
-    The distance is computed as the distance between a day's principal components for each EOF and
-    the cluster principal components for each EOF.
-    To evaluate the closest one, all the square of the distances for all EOFs are summed for each cluster,
-    before the square root is applied. */
+/** Output a vector (dimension days) containing the closer (Euclidian distance) cluster number. The distance is computed as the distance between a day's principal components for each EOF and the cluster principal components for each EOF. To evaluate the closest one, all the square of the distances for all EOFs are summed for each cluster, before the square root is applied. */
 void class_days_pc_clusters(int *days_class_cluster, double *pc_eof_days, double *eof_days_cluster, char *type,
                             int neof, int ncluster, int ndays) {
   /**

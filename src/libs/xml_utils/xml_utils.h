@@ -1,5 +1,5 @@
-/*! \file xml_util.h
-    \brief Include file for XMl utilities library.
+/*! \file xml_utils.h
+    \brief Include file for XML utilities library.
 */
 #ifndef XML_UTIL_H
 #define XML_UTIL_H
@@ -52,18 +52,19 @@
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 
+/** XML structure to deal with DOM using XPath. */
 typedef struct {
-  char *file;
-  xmlDocPtr doc;
-  xmlNodePtr root;
-  xmlXPathContextPtr ctxt;
+  char *file; /**< XML filename. */
+  xmlDocPtr doc; /**< Pointer to XML document. */
+  xmlNodePtr root; /**< Pointer to first node of DOM. */
+  xmlXPathContextPtr ctxt; /**< Pointer to XPath context. */
 } xmlConfig_t;
 
 
 void xml_free_config(xmlConfig_t *conf);
 xmlConfig_t *xml_load_config(char *filename);
 xmlNodePtr xml_get_node_by_xpath(xmlConfig_t *conf, char *path);
-char *xml_get_setting(xmlConfig_t *conf, char *path);
+xmlChar *xml_get_setting(xmlConfig_t *conf, char *path);
 void xml_print_setting(xmlConfig_t *conf, char *path);
 
 #endif

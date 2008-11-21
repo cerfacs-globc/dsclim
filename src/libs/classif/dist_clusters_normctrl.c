@@ -14,6 +14,19 @@
 void dist_clusters_normctrl(double *dist_pc, double *pc, double *clusters, double *var_pc,
                             double *var_pc_norm_all, double *mean_ctrl, double *var_ctrl,
                             int neof, int nclust, int ntime) {
+  /**
+     @param[out]  dist_pc         Distances (normalized by control run mean and variance) of normalized EOF-projected large-scale field to clusters
+     @param[in]   pc              EOF-projected large-scale field
+     @param[in]   clusters        Cluster centroids for each EOF in EOF-projected space of the large-scale field
+     @param[in]   var_pc          Variance of EOF-projected large-scale field of the learning period, for each EOF separately.
+     @param[in]   var_pc_norm_all Norm of the variance of the first EOF of the EOF-projected large-scale field of the control run.
+     @param[in]   mean_ctrl       Mean of the distances to clusters for the control run, for each cluster separately.
+     @param[in]   var_ctrl        Variance of the distances to clusters for the control run, for each cluster separately.
+     @param[in]   neof            EOF dimension
+     @param[in]   nclust          Clusters dimension
+     @param[in]   ntime           Time dimension
+  */
+
   double sum;
   double val;
   

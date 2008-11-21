@@ -26,8 +26,10 @@
 #include <string.h>
 #endif
 
+/* Local dependent includes */
 #include <utils.h>
 
+/* Prototypes */
 void filter(double *bufferf, double *buffer, char *type, int width, int ni, int nj, int nt);
 void filter_window(double **filter_window, char *type, int width);
 

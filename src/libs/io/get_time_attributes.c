@@ -18,35 +18,44 @@
 
 #include <io.h>
 
+/** Get main time attributes in a NetCDF file. */
 int get_time_attributes(char **time_units, char **cal_type, char *filename, char *varname) {
 
   /**
-     @param[in]  data  MASTER data structure.
+     @param[out]  time_units     Time units (udunits)
+     @param[out]  cal_type       Calendar type (udunits)
+     @param[in]   filename       NetCDF input filename
+     @param[in]   varname        NetCDF time variable name
      
      \return           Status.
   */
 
-  int istat;
+  int istat; /* Diagnostic status */
 
-  int ncinid;
-  int timeinid;
+  int ncinid; /* NetCDF input file handle ID */
+  int timeinid; /* NetCDF time variable ID */
 
-  size_t t_len;
+  size_t t_len; /* Length of time units string */
 
   /* Read data in NetCDF file */
+
+  /* Open NetCDF file for reading */
   printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  istat = nc_inq_varid(ncinid, varname, &timeinid);  /* get ID for time variable */
+  /* Get ID for time variable */
+  istat = nc_inq_varid(ncinid, varname, &timeinid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Get time units attribute length */
   istat = nc_inq_attlen(ncinid, timeinid, "units", &t_len);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
   /* Allocate required space before retrieving values */
   (*time_units) = (char *) malloc((t_len+1) * sizeof(char));
   if ((*time_units) == NULL) alloc_error(__FILE__, __LINE__);
+
   /* Get time units attribute value */
   istat = nc_get_att_text(ncinid, timeinid, "units", *time_units);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -60,18 +69,20 @@ int get_time_attributes(char **time_units, char **cal_type, char *filename, char
   /* Get calendar type attribute length */
   istat = nc_inq_attlen(ncinid, timeinid, "calendar", &t_len);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
   /* Allocate required space before retrieving values */
   (*cal_type) = (char *) malloc(t_len + 1);
   if ((*cal_type) == NULL) alloc_error(__FILE__, __LINE__);
+
   /* Get calendar type attribute value */
   istat = nc_get_att_text(ncinid, timeinid, "calendar", *cal_type);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   (*cal_type)[t_len] = '\0'; /* null terminate */
 
-  /** Close NetCDF files **/
   /* Close the intput netCDF file. */
   istat = ncclose(ncinid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+  /* Success status */
   return 0;
 }

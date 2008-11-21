@@ -10,7 +10,11 @@
 
 #include <xml_utils.h>
 
+/** Free memory for an xmlConfig_t structure. */
 void xml_free_config(xmlConfig_t *conf) {
+  /**
+     @param[in]  conf    XML information for DOM and XPath
+   */
 
   (void) xmlXPathFreeContext(conf->ctxt);
   (void) xmlFreeDoc(conf->doc);

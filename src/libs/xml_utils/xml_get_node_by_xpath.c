@@ -10,13 +10,20 @@
 
 #include <xml_utils.h>
 
+/** Get XML setting element node. */
 xmlNodePtr xml_get_node_by_xpath(xmlConfig_t *conf, char *path) {
+  /**
+     @param[in]  conf    XML information for DOM and XPath
+     @param[in]  path    path for XPath
+
+     \return     DOM Node pointer
+   */
   
   xmlXPathObjectPtr xpathRes;
   xmlNodePtr nodeptr = NULL;
  
   /* Evaluate XPath expression */
-  xpathRes = xmlXPathEvalExpression(path, conf->ctxt);
+  xpathRes = xmlXPathEvalExpression((unsigned char *) path, conf->ctxt);
 
   if (xpathRes)
     if (xpathRes->nodesetval) {

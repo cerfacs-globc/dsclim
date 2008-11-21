@@ -14,11 +14,12 @@
 /* Revisions                                             */
 /* ***************************************************** */
 /*! \file wt_learning.c
-    \brief Compute learning data needed for downscaling climate scenarios using weather typing.
+    \brief Compute or read learning data needed for downscaling climate scenarios using weather typing.
 */
 
 #include <dsclim.h>
 
+/** Compute or read learning data needed for downscaling climate scenarios using weather typing. */
 int wt_learning(data_struct *data) {
   /**
      @param[in]  data  MASTER data structure.
@@ -26,7 +27,7 @@ int wt_learning(data_struct *data) {
      \return           Status.
   */
 
-  int istat;
+  int istat; /** Return status. */
 
   if (data->learning->learning_provided == 1) {
     /** Read learning data **/
@@ -37,5 +38,6 @@ int wt_learning(data_struct *data) {
     /** Compute learning data **/
   //  }
   
+  /* Success status */
   return 0;
 }

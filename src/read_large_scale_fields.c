@@ -18,6 +18,7 @@
 
 #include <dsclim.h>
 
+/** Read Learning data from input files. Currently only NetCDF is implemented. */
 int read_large_scale_fields(data_struct *data) {
   /**
      @param[in]  data  MASTER data structure.
@@ -25,29 +26,27 @@ int read_large_scale_fields(data_struct *data) {
      \return           Status.
   */
 
-  int istat;
-  int i;
-  int t;
-  int ntime;
-  double *buf = NULL;
-  double *time_ls = NULL;
-  double *lat = NULL;
-  double *lon = NULL;
-  double *lat_sup_ls = NULL;
-  double *lon_sup_ls = NULL;
-  char *cal_type = NULL;
-  char *time_units = NULL;
-  int nlon;
-  int nlat;
-  int nlon_sup_ls;
-  int nlat_sup_ls;
-  int cat;
+  int istat; /* Diagnostic status */
+  int i; /* Loop counter */
+  int t; /* Time loop counter */
+  int cat; /* Field category loop counter */
+  double *buf = NULL; /* Temporary data buffer */
+  double *time_ls = NULL; /* Temporary time information buffer */
+  double *lat = NULL; /* Temporary latitude buffer for main large-scale fields */
+  double *lon = NULL; /* Temporary longitude buffer for main large-scale fields */
+  char *cal_type = NULL; /* Calendar type (udunits) */
+  char *time_units = NULL; /* Time units (udunits) */
+  int ntime; /* Number of times dimension */
+  int nlon; /* Longitude dimension for main large-scale fields */
+  int nlat; /* Latitude dimension for main large-scale fields */
+  int ntime_file; /* Number of times dimension in input file */
+  int nlon_file; /* Longitude dimension for main large-scale fields in input file */
+  int nlat_file; /* Latitude dimension for main large-scale fields in input file */
 
-  time_units = (char *) malloc(5000 * sizeof(char));
-  if (time_units == NULL) alloc_error(__FILE__, __LINE__);
-
+  /* Loop over all large-scale field categories */
   for (cat=0; cat<NCAT; cat++) {
-    
+
+    /* Free memory for loop and set pointers to NULL for realloc */
     if (data->field[cat].time_ls != NULL) {
       (void) free(data->field[cat].time_ls);
       data->field[cat].time_ls = NULL;
@@ -61,13 +60,17 @@ int read_large_scale_fields(data_struct *data) {
       data->field[cat].lon_ls = NULL;
     }
 
+    /* Loop over large-scale fields */
     for (i=0; i<data->field[cat].n_ls; i++) {
+      /* Retrieve dimensions if time buffer is not already set for this field category */
+      /* (assume same dimensions for all field in the same category) */
       if (data->field[cat].time_ls == NULL) {
         istat = read_netcdf_dims_3d(&lon, &lat, &time_ls, &cal_type, &time_units, &nlon, &nlat, &ntime,
                                     data->info, data->field[cat].proj[i].coords, data->field[cat].proj[i].name,
                                     data->conf->lonname, data->conf->latname, data->conf->timename,
                                     data->field[cat].data[i].filename_ls);
         if (istat != 0) {
+          /* In case of failure */
           (void) free(lon);
           (void) free(lat);
           (void) free(time_ls);
@@ -77,14 +80,21 @@ int read_large_scale_fields(data_struct *data) {
         }
       }
       
+      /* For standard calendar data */
       if ( !strcmp(cal_type, "gregorian") || !strcmp(cal_type, "standard") ) {
         
         /* Read data */
         istat = read_netcdf_var_3d(&buf, data->field[cat].data[i].info, data->field[cat].proj,
                                    data->field[cat].data[i].filename_ls,
                                    data->field[cat].data[i].nomvar_ls, data->conf->lonname, data->conf->latname, data->conf->timename,
-                                   nlon, nlat, ntime);
+                                   &nlon_file, &nlat_file, &ntime_file);
+        if (nlon != nlon_file || nlat != nlat_file || ntime != ntime_file) {
+          (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d ntime=%d ntime_file=%d\n",
+                         __FILE__, nlat, nlat_file, nlon, nlon_file, ntime, ntime_file);
+          istat = -1;
+        }
         if (istat != 0) {
+          /* In case of failure */
           (void) free(buf);
           (void) free(lon);
           (void) free(lat);
@@ -93,6 +103,7 @@ int read_large_scale_fields(data_struct *data) {
           (void) free(cal_type);
           return istat;
         }
+        /* Save number of times dimension */
         data->field[cat].ntime_ls = ntime;
         
         /* Extract subdomain of spatial fields */
@@ -108,12 +119,14 @@ int read_large_scale_fields(data_struct *data) {
           (void) free(data->field[cat].data[i].field_ls);
           data->field[cat].data[i].field_ls = NULL;
         }
+        /* Extraction */
         (void) extract_subdomain(&(data->field[cat].data[i].field_ls), &(data->field[cat].lat_ls), &(data->field[cat].lon_ls),
                                  &(data->field[cat].nlon_ls), &(data->field[cat].nlat_ls), buf, lon, lat,
                                  data->conf->longitude_min, data->conf->longitude_max, data->conf->latitude_min, data->conf->latitude_max,
                                  nlon, nlat, ntime);
         (void) free(buf);
 
+        /* If time info not already retrieved for this category, get time information and generate time structure */
         if (data->field[cat].time_ls == NULL) {
           data->field[cat].time_ls = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
           if (data->field[cat].time_ls == NULL) alloc_error(__FILE__, __LINE__);
@@ -127,14 +140,22 @@ int read_large_scale_fields(data_struct *data) {
         }
       }
       else {
+        /* Non-standard calendar type */
+
         double *dummy = NULL;
 
         /* Read data and fix calendar */
         istat = read_netcdf_var_3d(&(data->field[cat].data[i].field_ls), data->field[cat].data[i].info,
                                    data->field[cat].proj, data->field[cat].data[i].filename_ls,
                                    data->field[cat].data[i].nomvar_ls, data->conf->lonname, data->conf->latname, data->conf->timename,
-                                   nlon, nlat, ntime);
+                                   &nlon_file, &nlat_file, &ntime_file);
+        if (nlon != nlon_file || nlat != nlat_file || ntime != ntime_file) {
+          (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d ntime=%d ntime_file=%d\n",
+                         __FILE__, nlat, nlat_file, nlon, nlon_file, ntime, ntime_file);
+          istat = -1;
+        }
         if (istat != 0) {
+          /* In case of failure */
           (void) free(lon);
           (void) free(lat);
           (void) free(time_ls);
@@ -156,13 +177,14 @@ int read_large_scale_fields(data_struct *data) {
           (void) free(data->field[cat].data[i].field_ls);
           data->field[cat].data[i].field_ls = NULL;
         }
+        /* Extraction */
         (void) extract_subdomain(&buf, &(data->field[cat].lon_ls), &(data->field[cat].lat_ls),
                                  &(data->field[cat].nlon_ls), &(data->field[cat].nlat_ls), data->field[cat].data[i].field_ls, lon, lat,
                                  data->conf->longitude_min, data->conf->longitude_max, data->conf->latitude_min, data->conf->latitude_max,
                                  nlon, nlat, ntime);
         (void) free(data->field[cat].data[i].field_ls);
 
-        /* Adjust calendar */
+        /* Adjust calendar to standard calendar */
         (void) data_to_gregorian_cal_d(&(data->field[cat].data[i].field_ls), &dummy, &(data->field[cat].ntime_ls),
                                        buf, time_ls, time_units, data->conf->time_units,
                                        cal_type, data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime);
@@ -179,6 +201,8 @@ int read_large_scale_fields(data_struct *data) {
       }
     }
   }
+  
+  /* Free memory */
   (void) free(lat);
   (void) free(lon);
   
@@ -186,5 +210,6 @@ int read_large_scale_fields(data_struct *data) {
   (void) free(time_units);
   (void) free(cal_type);
 
+  /* Diagnostic status */
   return 0;
 }

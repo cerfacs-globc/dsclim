@@ -18,37 +18,49 @@
 
 #include <io.h>
 
-int get_time_info(time_struct *time_s, double **timeval, char **time_units, char **cal_type, int *ntime, char *filename, char *varname) {
-
+/** Get time information in a NetCDF file. */
+int get_time_info(time_struct *time_s, double **timeval, char **time_units, char **cal_type, int *ntime, char *filename,
+                  char *varname) {
   /**
-     @param[in]  data  MASTER data structure.
+     @param[out]  time_s        Time information in a time structure
+     @param[out]  timeval       Time field
+     @param[out]  time_units    Time units (udunits)
+     @param[out]  cal_type      Calendar-type (udunits)
+     @param[out]  ntime         Time dimension
+     @param[in]   filename      NetCDF input filename
+     @param[in]   varname       Variable name
      
      \return           Status.
   */
 
-  int istat;
+  int istat; /* Diagnostic status */
 
-  int ncinid;
-  int timeinid, timediminid;
-  nc_type vartype_time;
+  size_t dimval; /* Variable used to retrieve dimension length */
 
-  int varndims;
-  int vardimids[NC_MAX_VAR_DIMS];    /* dimension ids */
-  size_t dimval;
+  int ncinid; /* NetCDF input file handle ID */
+  int timediminid; /* Time dimension ID */
+  int timeinid; /* Time variable ID */
+  nc_type vartype_time; /* Type of the time variable (NC_FLOAT, NC_DOUBLE, etc.) */
 
-  size_t start[3];
-  size_t count[3];
+  int varndims; /* Number of dimensions of variable */
+  int vardimids[NC_MAX_VAR_DIMS]; /* Variable dimension ids */
 
-  size_t t_len;
-  utUnit dataunits;
+  size_t start[3]; /* Start position to read */
+  size_t count[3]; /* Number of elements to read */
 
-  int t;
+  size_t t_len; /* Length of time units attribute string */
+  utUnit dataunits; /* Time data units (udunits) */
+
+  int t; /* Time loop counter */
 
   /* Read data in NetCDF file */
+
+  /* Open NetCDF file for reading */
   printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+  /* Get dimensions length and ID */
   istat = nc_inq_dimid(ncinid, varname, &timediminid);  /* get ID for time dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncinid, timediminid, &dimval); /* get time length */
@@ -96,6 +108,7 @@ int get_time_info(time_struct *time_s, double **timeval, char **time_units, char
   /* Get time units attribute value */
   istat = nc_get_att_text(ncinid, timeinid, "units", *time_units);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  /* Correct if time units ends incorrectly with Z */
   if ((*time_units)[t_len-2] == 'Z')
     (*time_units)[t_len-2] = '\0'; /* null terminate */
   else if ((*time_units)[t_len-1] == 'Z')
@@ -114,8 +127,7 @@ int get_time_info(time_struct *time_s, double **timeval, char **time_units, char
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   (*cal_type)[t_len] = '\0'; /* null terminate */
 
-  /* Compute time info */
-
+  /* Compute time info and store into easy time structure */
   time_s->year = (int *) malloc((*ntime) * sizeof(int));
   if (time_s->year == NULL) alloc_error(__FILE__, __LINE__);
   time_s->month = (int *) malloc((*ntime) * sizeof(int));
@@ -138,10 +150,10 @@ int get_time_info(time_struct *time_s, double **timeval, char **time_units, char
 
   (void) utTerm();
 
-  /** Close NetCDF files **/
-  /* Close the intput netCDF file. */
+  /** Close NetCDF file **/
   istat = ncclose(ncinid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+  /* Success status */
   return 0;
 }

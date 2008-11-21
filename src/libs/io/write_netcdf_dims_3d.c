@@ -18,17 +18,33 @@
 
 #include <io.h>
 
+/** Write NetCDF dimensions and create output file. */
 int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_type, char *time_units,
                          int nlon, int nlat, int ntime, char *timestep, char *gridname, char *coords,
                          char *grid_mapping_name, double latin1, double latin2,
                          double lonc, double lat0, double false_easting, double false_northing,
                          char *lonname, char *latname, char *timename,
                          char *filename) {
-
   /**
-     @param[in]  data  MASTER data structure.
+     @param[in]  lon         Lontitude field
+     @param[in]  lat         Latitude field
+     @param[in]  timein      Time field
+     @param[in]  cal_type    Calendar-type (udunits)
+     @param[in]  time_units  Time units (udunits)
+     @param[in]  nlon        Longitude dimension
+     @param[in]  nlat        Latitude dimension
+     @param[in]  ntime       Time dimension
+     @param[in]  timestep    Timestep string (NetCDF attribute)
+     @param[in]  gridname    Grid type name in the NetCDF file (NetCDF attribute)
+     @param[in]  coords      Coordinates type (NetCDF attribute)
+     @param[in]  latin1      Latin1 projection parameter
+     @param[in]  filename    Output NetCDF filename
+     @param[in]  varname     Variable name in the NetCDF file
+     @param[in]  lonname     Longitude name dimension in the NetCDF file
+     @param[in]  latname     Latitude name dimension in the NetCDF file
+     @param[in]  timename    Time name dimension in the NetCDF file
      
-     \return           Status.
+     \return                 Status.
   */
 
   int istat;

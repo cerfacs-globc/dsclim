@@ -23,7 +23,6 @@ void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime,
   */
 
   int *index = NULL; /* Index to flag matching a specific day and month in a time serie covering several years. */
-  double mean = 0.0; /* Mean value over all matching days. */
   double *sum; /* Sum over all matching days. */
   int *ndays = NULL; /* Number of days matching days. */
   int month; /* Climatological month. */
@@ -74,13 +73,16 @@ void clim_daily_tserie_climyear(double *bufout, double *bufin, tstruct *buftime,
       for (t=0; t<nt; t++)
         /* Compute the mean over all the matching days and apply mean for all these flagged days */
         /* Assign mean value for all flagged days used in computing this mean */
-        if (index[t] == 1)
+        if (index[t] == 1) {
           for (j=0; j<nj; j++)
             for (i=0; i<ni; i++)
-              if (ndays[i+j*ni] > 0)
+              if (ndays[i+j*ni] > 0) {
                 bufout[i+j*ni+t*ni*nj] = sum[i+j*ni] / (double) ndays[i+j*ni];
-              else
+              }
+              else {
                 bufout[i+j*ni+t*ni*nj] = missing_val;
+              }
+        }
     }
   }
 

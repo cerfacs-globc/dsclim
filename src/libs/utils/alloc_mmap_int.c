@@ -1,3 +1,13 @@
+/* ***************************************************** */
+/* Allocate memory using mmap for an integer array.      */
+/* alloc_mmap_int.c                                      */
+/* ***************************************************** */
+/* Author: Christian Page, CERFACS, Toulouse, France.    */
+/* ***************************************************** */
+/*! \file alloc_mmap_int.c
+    \brief Allocate memory using mmap for an integer array.
+*/
+
 #include <utils.h>
 
 /** Allocate memory using mmap for an integer array. */

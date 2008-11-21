@@ -19,31 +19,56 @@
 
 #include <io.h>
 
+/** Create a new NetCDF file with global CF-1.0 attributes. */
 int create_netcdf(char *title, char *title_french, char *summary, char *summary_french,
-                        char *keywords, char *processor, char *description, char *institution,
-                        char *creator_email, char *creator_url, char *creator_name,
-                        char *version, char *scenario, char *scenario_co2, char *model,
-                        char *institution_model, char *country, char *member, char *downscaling_forcing,
-                        char *contact_email, char *contact_name, char *other_contact_email, char *other_contact_name,
-                        char *filename) {
-
+                  char *keywords, char *processor, char *description, char *institution,
+                  char *creator_email, char *creator_url, char *creator_name,
+                  char *version, char *scenario, char *scenario_co2, char *model,
+                  char *institution_model, char *country, char *member, char *downscaling_forcing,
+                  char *contact_email, char *contact_name, char *other_contact_email, char *other_contact_name,
+                  char *filename) {
   /**
-     @param[in]  data  MASTER data structure.
+     @param[in]  title                Title (english)
+     @param[in]  title_french         Title (french)
+     @param[in]  summary              Summary (english)
+     @param[in]  summary_french       Summary *french)
+     @param[in]  keywords             Keyword
+     @param[in]  processor            Program, processor which have generated the data
+     @param[in]  description          Main description of the data
+     @param[in]  institution          Institution which generated the data
+     @param[in]  creator_email        Contact email of the creator of the data
+     @param[in]  creator_url          Website creator of the data
+     @param[in]  creator_name         Name of the creator of the data
+     @param[in]  version              Version of the data
+     @param[in]  scenario             Climate scenario
+     @param[in]  scenario_co2         CO2 scenario
+     @param[in]  model                Numerical model used
+     @param[in]  institution_model    Institution who developed the numerical model used
+     @param[in]  country              Country of the institution who developed the numerical model used
+     @param[in]  member               Member in the case of multi-member model configurations
+     @param[in]  downscaling_forcing  Observations database used when downscaling
+     @param[in]  timestep             timestep used in the file
+     @param[in]  contact_email        Contact email
+     @param[in]  contact_name         Contact name
+     @param[in]  other_contact_email  Other contact email
+     @param[in]  other_contact_name   Other contact name
+     @param[in]  filename             NetCDF output filename
      
      \return           Status.
   */
 
-  int istat;
-  int ncoutid;
-  char *tmpstr = NULL;
+  int istat; /* Diagnostic status */
+  int ncoutid; /* NetCDF output file handle ID */
+  char *tmpstr = NULL; /* Temporary string */
 
   (void) fprintf(stdout, "%s: Creating NetCDF file %s.\n", __FILE__, filename);
 
+  /* Allocate memory */
   tmpstr = (char *) malloc(5000 * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
-  /* Open NetCDF file */
-  istat = nc_create(filename, NC_CLOBBER, &ncoutid);  /* open NetCDF file */
+  /* Open NetCDF file for writing, overwrite and truncate existing file if any */
+  istat = nc_create(filename, NC_CLOBBER, &ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Set global attributes */
@@ -114,11 +139,13 @@ int create_netcdf(char *title, char *title_french, char *summary, char *summary_
   istat = nc_enddef(ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  /* Close the output netCDF file. */
+  /* Close the output netCDF file */
   istat = ncclose(ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+  /* Free memory */
   (void) free(tmpstr);
 
+  /* Success status */
   return 0;
 }

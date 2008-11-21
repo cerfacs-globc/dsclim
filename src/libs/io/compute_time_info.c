@@ -18,17 +18,22 @@
 
 #include <io.h>
 
+/** Compute time info from NetCDF time. */
 int compute_time_info(time_struct *time_s, double *timeval, char *time_units, char *cal_type, int ntime) {
 
   /**
-     @param[in]  data  MASTER data structure.
+     @param[out]  time_s      Time field in time structure
+     @param[in]   timeval     Time field
+     @param[in]   time_units  Time units (udunits)
+     @param[in]   cal_type    Calendar type (udunits)
+     @param[in]   ntime       Time dimension
      
      \return           Status.
   */
 
-  int istat;
-  utUnit dataunits;
-  int t;
+  int istat; /* Diagnostic status */
+  utUnit dataunits; /* Time units (udunits) */
+  int t; /* Time loop counter */
 
   /* Check values of time variable because many times they are all zero. In that case assume a 1 increment and a start at zero. */
   for (t=0; t<ntime; t++)
@@ -59,9 +64,10 @@ int compute_time_info(time_struct *time_s, double *timeval, char *time_units, ch
   istat = utScan(time_units, &dataunits);
   for (t=0; t<ntime; t++)
     istat = utCalendar_cal(timeval[t], &dataunits, &(time_s->year[t]), &(time_s->month[t]), &(time_s->day[t]),
-                           &(time_s->hour[t]), &(time_s->minutes[t]), &(time_s->seconds), cal_type);
+                           &(time_s->hour[t]), &(time_s->minutes[t]), &(time_s->seconds[t]), cal_type);
 
   (void) utTerm();
 
+  /* Success status */
   return 0;
 }

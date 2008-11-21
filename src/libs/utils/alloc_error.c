@@ -1,3 +1,13 @@
+/* ***************************************************** */
+/* Dump the core of the program (to debug) in the event  */
+/* of a memory allocation error.                         */
+/* alloc_error.c                                         */
+/* ***************************************************** */
+/* Author: Christian Page, CERFACS, Toulouse, France.    */
+/* ***************************************************** */
+/*! \file alloc_error.c
+    \brief Dump the core of the program (to debug) in the event of a memory allocation error.
+*/
 
 #include <utils.h>
 

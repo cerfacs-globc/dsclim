@@ -18,37 +18,50 @@
 
 #include <io.h>
 
+/** Read dimensions in a NetCDF file for EOF data. */
 int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *neof, char *coords,
                          char *lonname, char *latname, char *eofname, char *filename) {
-
   /**
-     @param[in]  data  MASTER data structure.
+     @param[out]  lon      Longitude field
+     @param[out]  lat      Latitude field
+     @param[out]  nlon     Longitude dimension
+     @param[out]  nlat     Latitude dimension
+     @param[out]  neof     EOF dimension
+     @param[in]   coords   Coordinates arrangement of latitude and longitude data: either 1D or 2D
+     @param[in]   lonname  Longitude dimension name
+     @param[in]   latname  Latitude dimension name
+     @param[in]   eofname  EOF dimension name
+     @param[in]   filename Input NetCDF filename
      
      \return           Status.
   */
 
-  int istat;
-  int t;
+  int istat; /* Diagnostic status */
 
-  size_t dimval;
+  size_t dimval; /* Variable used to retrieve dimension length */
 
-  int ncinid;
-  int eofdiminid, londiminid, latdiminid;
-  int latinid, loninid;
-  nc_type vartype;
-  int varndims;
-  int vardimids[NC_MAX_VAR_DIMS];    /* dimension ids */
+  int ncinid; /* NetCDF input file handle ID */
+  int latinid; /* Latitude variable ID */
+  int loninid; /* Longitude variable ID */
+  nc_type vartype; /* Type of the variable (NC_FLOAT, NC_DOUBLE, etc.) */
+  int varndims; /* Number of dimensions of variable */
+  int vardimids[NC_MAX_VAR_DIMS]; /* Variable dimension ids */
+  int eofdiminid; /* EOF dimension ID */
+  int londiminid; /* Longitude dimension ID */
+  int latdiminid; /* Latitude dimension ID */
 
-  size_t start[3];
-  size_t count[3];
+  size_t start[3]; /* Start position to read */
+  size_t count[3]; /* Number of elements to read */
 
-  double *tmpd = NULL;
+  double *tmpd = NULL; /* Temporary buffer to read variable from NetCDF file */
 
-  int i;
-  int j;
-  int ndims;
+  int i; /* Loop counter */
+  int j; /* Loop counter */
+  int ndims; /* Number of dimensions of latitude and longitude variables, 1 or 2 for 1D and 2D respectively */
 
   /* Read data in NetCDF file */
+
+  /* Open NetCDF file for reading */
   printf("%s: Reading info from NetCDF input file %s.\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -57,6 +70,7 @@ int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *
     /** 1D dimensions lat & lon **/
     ndims = 1;
 
+    /* Get dimensions length */
     istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
@@ -73,6 +87,7 @@ int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *
     /** 2D lat & lon variables **/
     ndims = 2;
 
+    /* Get dimensions length */
     istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
@@ -86,12 +101,14 @@ int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *
     *nlon = (int) dimval;
   }
   
+  /* Get dimensions length */
   istat = nc_inq_dimid(ncinid, eofname, &eofdiminid);  /* get ID for eof dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncinid, eofdiminid, &dimval); /* get eof length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   *neof = (int) dimval;
 
+  /* Get variables IDs */
   istat = nc_inq_varid(ncinid, latname, &latinid);  /* get ID for lat variable */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   /* Get lat dimensions and type */
@@ -184,5 +201,6 @@ int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
 
+  /* Success status */
   return 0;
 }

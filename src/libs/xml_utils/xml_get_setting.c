@@ -10,10 +10,18 @@
 
 #include <xml_utils.h>
 
-char *xml_get_setting(xmlConfig_t *conf, char *path) {
+/** Get XML setting element value. */
+xmlChar *xml_get_setting(xmlConfig_t *conf, char *path) {
+  /**
+     @param[in]  conf    XML information for DOM and XPath
+     @param[in]  path    path for XPath
+
+     \return     XML string value
+   */
 
   xmlNodePtr nodeptr;
 
+  /* Get DOM node pointer using XPath */
   nodeptr = xml_get_node_by_xpath(conf, path);
   
   if (nodeptr != NULL) {

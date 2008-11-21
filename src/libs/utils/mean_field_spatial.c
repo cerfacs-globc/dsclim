@@ -10,14 +10,24 @@
 
 #include <utils.h>
 
+/** Compute the spatial mean of a field. */
 void mean_field_spatial(double *buf_mean, double *buf, int ni, int nj, int ntime) {
 
-  double sum;
-  
-  int t;
-  int i;
-  int j;
+  /** 
+      @param[out]  buf_mean      Vector (over time) of spatially averaged data
+      @param[in]   buf           Input 3D buffer
+      @param[in]   ni            First dimension
+      @param[in]   nj            Second dimension
+      @param[in]   ntime         Time dimension
+   */
 
+  double sum; /* Sum used to calculate the mean */
+  
+  int t; /* Time loop counter */
+  int i; /* Loop counter */
+  int j; /* Loop counter */
+
+  /* Loop over all time and average spatially */
   for (t=0; t<ntime; t++) {
     sum = 0.0;
     for (j=0; j<nj; j++)

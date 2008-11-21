@@ -10,7 +10,13 @@
 
 #include <xml_utils.h>
 
+/** Read an XML file into memory. */
 xmlConfig_t *xml_load_config(char *filename) {
+  /**
+     @param[in]  filename    Input XML filename
+     
+     \return     XML information about DOM and XPath
+  */
 
   xmlConfig_t *conf = NULL;
 
@@ -31,7 +37,7 @@ xmlConfig_t *xml_load_config(char *filename) {
 
   /* Get root */
   conf->root = xmlDocGetRootElement(conf->doc);
-  if (conf->root != NULL && xmlStrcasecmp(conf->root->name, "configuration")) {
+  if (conf->root != NULL && xmlStrcasecmp(conf->root->name, (unsigned const char *) "configuration")) {
     (void) xml_free_config(conf);
     return NULL;
   }

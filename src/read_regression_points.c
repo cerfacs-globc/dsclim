@@ -19,6 +19,7 @@
 
 #include <dsclim.h>
 
+/** Read regression point positions. */
 int read_regression_points(reg_struct *reg) {
   /**
      @param[in]  data  MASTER regression structure.
@@ -29,13 +30,15 @@ int read_regression_points(reg_struct *reg) {
   int npts;
   int istat;
 
-  istat = read_netcdf_var_generic_1d(&(reg->lat), (info_field_struct *) NULL, reg->filename, reg->latname, reg->ptsname, &npts);
+  /* Read latitudes of points where regressions are calculated */
+  istat = read_netcdf_var_1d(&(reg->lat), (info_field_struct *) NULL, reg->filename, reg->latname, reg->ptsname, &npts);
   if (istat != 0) {
     (void) free(reg->lat);
     return istat;
   }
 
-  istat = read_netcdf_var_generic_1d(&(reg->lon), (info_field_struct *) NULL, reg->filename, reg->lonname, reg->ptsname, &(reg->npts));
+  /* Read longitudes of points where regressions are calculated */
+  istat = read_netcdf_var_1d(&(reg->lon), (info_field_struct *) NULL, reg->filename, reg->lonname, reg->ptsname, &(reg->npts));
   if (istat != 0 || npts != reg->npts) {
     (void) free(reg->lat);
     (void) free(reg->lon);
@@ -44,5 +47,6 @@ int read_regression_points(reg_struct *reg) {
 
   (void) fprintf(stdout, "%s: %d regression point positions read successfully.\n", __FILE__, reg->npts);
 
+  /* Return status */
   return 0;
 }

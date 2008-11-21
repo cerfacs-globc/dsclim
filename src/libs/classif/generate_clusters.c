@@ -73,7 +73,7 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   days_class_cluster = (int *) calloc(ndays, sizeof(int));
   if (days_class_cluster == NULL) alloc_error(__FILE__, __LINE__);
   
-  /* Initialize cluster PC array */
+  /* Initialize cluster PC array randomly */
   (void) fprintf(stdout, "%s:: Initializing cluster array.\n", __FILE__);
   for (clust=0; clust<ncluster; clust++)
     for (eof=0; eof<neof; eof++) {
@@ -106,6 +106,7 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
        Compare to the current clusters by calculating the 'coordinates' (PC-space) of the 'new' cluster center. */
     cluster_bary = -9999999999.9;
 
+    /* Loop over clusters and EOFs */
     for (clust=0; clust<ncluster; clust++) {
       for (eof=0; eof<neof; eof++) {
         mean_days = 0.0;

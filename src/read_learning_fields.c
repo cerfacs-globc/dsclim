@@ -18,6 +18,7 @@
 
 #include <dsclim.h>
 
+/** Read Learning data from input files. Currently only NetCDF is implemented. */
 int read_learning_fields(data_struct *data) {
   /**
      @param[in]  data  MASTER data structure.
@@ -25,26 +26,26 @@ int read_learning_fields(data_struct *data) {
      \return           Status.
   */
 
-  int istat;
-  int i;
-  int t;
-  int ii;
-  char *nomvar = NULL;
-  char *nomvar_time = NULL;
-  char *nomvar_season = NULL;
-  char *name = NULL;
-  char *cal_type = NULL;
-  char *time_units = NULL;
-  double *bufd = NULL;
-  double *time_sort = NULL;
-  size_t *time_index = NULL;
-  int total_t;
-  int neof;
-  int nseasons;
-  int npts;
-  int nclusters;
-  int neof_file;
+  int istat; /* Diagnostic status */
+  int i; /* Loop counter */
+  int t; /* Loop counter */
+  int ii; /* Loop counter */
+  char *nomvar = NULL; /* Variable name in NetCDF file */
+  char *nomvar_time = NULL; /* Time variable name in NetCDF file */
+  char *nomvar_season = NULL; /* Season variable name in NetCDF file */
+  char *name = NULL; /* Dimension name in NetCDF file */
+  char *cal_type = NULL; /* Calendar type (udunits) */
+  char *time_units = NULL; /* Time units (udunits) */
+  double *bufd = NULL; /* Temporary buffer */
+  double *time_sort = NULL; /* Temporary time info used for time merging */
+  size_t *time_index = NULL; /* Temporary time index used for time merging */
+  int total_t; /* Total number of times used for time merging */
+  int neof; /* EOF dimension */
+  int npts; /* Points dimension */
+  int nclusters; /* Clusters dimension */
+  int neof_file; /* EOF dimension in input file */
 
+  /* Allocate memory for temporary strings */
   nomvar = (char *) malloc(500 * sizeof(char));
   if (nomvar == NULL) alloc_error(__FILE__, __LINE__);
   nomvar_time = (char *) malloc(500 * sizeof(char));
@@ -54,8 +55,10 @@ int read_learning_fields(data_struct *data) {
   name = (char *) malloc(500 * sizeof(char));
   if (name == NULL) alloc_error(__FILE__, __LINE__);
 
+  /* Initialize season string */
   (void) strcpy(nomvar_season, "season");
 
+  /* Loop over all the seasons */
   for (i=0; i<data->conf->nseasons; i++) {
 
     /* Read time data and info */
@@ -67,6 +70,7 @@ int read_learning_fields(data_struct *data) {
     (void) free(cal_type);
     (void) free(time_units);
     if (istat != 0) {
+      /* In case of failure */
       (void) free(nomvar);
       (void) free(nomvar_time);
       (void) free(nomvar_season);
@@ -80,14 +84,17 @@ int read_learning_fields(data_struct *data) {
     istat = read_netcdf_var_2d(&(data->learning->data[i].weight), (info_field_struct *) NULL, (proj_struct *) NULL,
                                data->learning->filename_weight, nomvar, data->conf->eofname, name,
                                &neof_file, &nclusters);
+    /* Save EOF dimension for control and model large-scale fields */
     if (data->field[0].n_ls > 0)
       data->field[0].data[0].eof_info->neof_ls = neof_file;
     if (data->field[1].n_ls > 0)
       data->field[1].data[0].eof_info->neof_ls = neof_file;
 
+    /* If clusters dimension is not initialized, use retrieved info from input file */
     if (data->conf->season[i].nclusters == -1)
       data->conf->season[i].nclusters = nclusters;
-    if (data->conf->season[i].nclusters != nclusters) {
+    /* Else verify that they match */
+    else if (data->conf->season[i].nclusters != nclusters) {
       (void) fprintf(stderr, "%s: ERROR: Incorrect number of clusters in NetCDF file. Season %d, nclusters=%d vs configuration file %d.\n",
                      __FILE__, i, nclusters, data->conf->season[i].nclusters);
       (void) free(nomvar);
@@ -97,6 +104,7 @@ int read_learning_fields(data_struct *data) {
       return -1;
     }
     if (istat != 0) {
+      /* In case of failure */
       (void) free(nomvar);
       (void) free(nomvar_time);
       (void) free(nomvar_season);
@@ -104,13 +112,14 @@ int read_learning_fields(data_struct *data) {
       return istat;
     }
 
-    /* Read precip_reg data */
+    /* Read precip_reg data (precipitation regression coefficients) */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg, i+1);
     (void) sprintf(name, "%s_%d", data->conf->clustname, i+1);
     istat = read_netcdf_var_2d(&(data->learning->data[i].precip_reg), (info_field_struct *) NULL, (proj_struct *) NULL,
                                data->learning->filename_learn,
                                nomvar, data->conf->ptsname, name,
                                &npts, &(data->conf->season[i].nreg));
+    /* Verify that points dimension match configuration value */
     if (npts != data->reg->npts) {
       (void) fprintf(stderr, "%s: ERROR: Incorrect number of points in NetCDF file %d vs configuration file %d.\n",
                      __FILE__, npts, data->reg->npts);
@@ -121,6 +130,7 @@ int read_learning_fields(data_struct *data) {
       return -1;
     }
     if (istat != 0) {
+      /* In case of failure */
       (void) free(nomvar);
       (void) free(nomvar_time);
       (void) free(nomvar_season);
@@ -128,10 +138,11 @@ int read_learning_fields(data_struct *data) {
       return istat;
     }
 
-    /* Read precip_reg_cst data */
+    /* Read precip_reg_cst data (precipitation regression constant) */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_cst, i+1);
-    istat = read_netcdf_var_generic_1d(&(data->learning->data[i].precip_reg_cst), (info_field_struct *) NULL,
-                                       data->learning->filename_learn, nomvar, data->conf->ptsname, &npts);
+    istat = read_netcdf_var_1d(&(data->learning->data[i].precip_reg_cst), (info_field_struct *) NULL,
+                               data->learning->filename_learn, nomvar, data->conf->ptsname, &npts);
+    /* Verify that points dimension match configuration value */
     if (npts != data->reg->npts) {
       (void) fprintf(stderr, "%s: ERROR: Incorrect number of points in NetCDF file %d vs configuration file %d.\n",
                      __FILE__, npts, data->reg->npts);
@@ -142,6 +153,7 @@ int read_learning_fields(data_struct *data) {
       return -1;
     }
     if (istat != 0) {
+      /* In case of failure */
       (void) free(nomvar);
       (void) free(nomvar_time);
       (void) free(nomvar_season);
@@ -149,12 +161,13 @@ int read_learning_fields(data_struct *data) {
       return istat;
     }
 
-    /* Read precip_index data */
+    /* Read precip_index data (precipitation index for learning period over all regression points) */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_index, i+1);
     istat = read_netcdf_var_2d(&(data->learning->data[i].precip_index), (info_field_struct *) NULL, (proj_struct *) NULL,
                                data->learning->filename_learn,
                                nomvar, data->conf->ptsname, nomvar_time,
                                &npts, &(data->learning->data[i].ntime));
+    /* Verify that points dimension match configuration value */
     if (npts != data->reg->npts) {
       (void) fprintf(stderr, "%s: ERROR: Incorrect number of points in NetCDF file %d vs configuration file %d.\n",
                      __FILE__, npts, data->reg->npts);
@@ -165,6 +178,7 @@ int read_learning_fields(data_struct *data) {
       return -1;
     }
     if (istat != 0) {
+      /* In case of failure */
       (void) free(nomvar);
       (void) free(nomvar_time);
       (void) free(nomvar_season);
@@ -175,28 +189,31 @@ int read_learning_fields(data_struct *data) {
     /* Read cluster distances data */
     bufd = NULL;
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_class_clusters, i+1);
-    istat = read_netcdf_var_generic_1d(&bufd, (info_field_struct *) NULL,
-                                       data->learning->filename_clust_learn, nomvar, nomvar_time,
-                                       &(data->learning->data[i].ntime));
+    istat = read_netcdf_var_1d(&bufd, (info_field_struct *) NULL,
+                               data->learning->filename_clust_learn, nomvar, nomvar_time,
+                               &(data->learning->data[i].ntime));
     if (istat != 0) {
+      /* In case of failure */
       (void) free(nomvar);
       (void) free(nomvar_time);
       (void) free(nomvar_season);
       (void) free(name);
       return istat;
     }
+    /* Transfer data into proper data structure */
     data->learning->data[i].class_clusters = malloc(data->learning->data[i].ntime * sizeof(int));
     if (data->learning->data[i].class_clusters == NULL) alloc_error(__FILE__, __LINE__);
     for (ii=0; ii<data->learning->data[i].ntime; ii++)
       data->learning->data[i].class_clusters[ii] = bufd[ii];
     (void) free(bufd);
 
-    /* Read sup_index data */
+    /* Read sup_index data (secondary large-scale field index for learning period) */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_sup_index, i+1);
-    istat = read_netcdf_var_generic_1d(&(data->learning->data[i].sup_index), (info_field_struct *) NULL,
-                                       data->learning->filename_learn, nomvar, nomvar_time,
-                                       &(data->learning->data[i].ntime));
+    istat = read_netcdf_var_1d(&(data->learning->data[i].sup_index), (info_field_struct *) NULL,
+                               data->learning->filename_learn, nomvar, nomvar_time,
+                               &(data->learning->data[i].ntime));
     if (istat != 0) {
+      /* In case of failure */
       (void) free(nomvar);
       (void) free(nomvar_time);
       (void) free(nomvar_season);
@@ -204,10 +221,11 @@ int read_learning_fields(data_struct *data) {
       return istat;
     }
 
-    /* Read sup_index_mean data */
+    /* Read sup_index_mean data (secondary large-scale field index spatial mean for learning period) */
     istat = read_netcdf_var_generic_val(&(data->learning->data[i].sup_index_mean), (info_field_struct *) NULL,
                                         data->learning->filename_learn, data->learning->nomvar_sup_index_mean, i);
     if (istat != 0) {
+      /* In case of failure */
       (void) free(nomvar);
       (void) free(nomvar_time);
       (void) free(nomvar_season);
@@ -215,22 +233,22 @@ int read_learning_fields(data_struct *data) {
       return istat;
     }
   
-    /* Read sup_index_var data */
+    /* Read sup_index_var data (secondary large-scale field index spatial variance for learning period) */
     istat = read_netcdf_var_generic_val(&(data->learning->data[i].sup_index_var), (info_field_struct *) NULL,
                                         data->learning->filename_learn, data->learning->nomvar_sup_index_var, i);
     if (istat != 0) {
+      /* In case of failure */
       (void) free(nomvar);
       (void) free(nomvar_time);
       (void) free(nomvar_season);
       (void) free(name);
       return istat;
     }
-  
-
   }
 
-  time_sort = (double *) malloc(data->conf->nseasons * sizeof(double));
-  if (time_sort == NULL) alloc_error(__FILE__, __LINE__);
+  /** Create whole period time info from separate season info merging **/
+
+  /* Allocate memory and set pointers to NULL for realloc use */
   time_index = (size_t *) malloc(data->conf->nseasons * sizeof(size_t));
   if (time_index == NULL) alloc_error(__FILE__, __LINE__);
   data->learning->time_s->year = NULL;
@@ -239,12 +257,17 @@ int read_learning_fields(data_struct *data) {
   data->learning->time_s->hour = NULL;
   data->learning->time_s->minutes = NULL;
   data->learning->time_s->seconds = NULL;
-  /* Create whole period time info from separate season info merging */
+
+  /* Sort the vector, get the sorted vector indexes */
+  time_sort = (double *) malloc(data->conf->nseasons * sizeof(double));
+  if (time_sort == NULL) alloc_error(__FILE__, __LINE__);
+  /* Loop over seasons */
   for (i=0; i<data->conf->nseasons; i++)
     time_sort[i] = data->learning->data[i].time[0];
-  /* Sort the vector, get the sorted vector indexes */
+  /* Sorting */
   (void) gsl_sort_index(time_index, time_sort, 1, (size_t) data->conf->nseasons);
   (void) free(time_sort);
+
   /* Merge time info */
   total_t = 0;
   for (i=0; i<data->conf->nseasons; i++) {
@@ -270,14 +293,18 @@ int read_learning_fields(data_struct *data) {
       total_t++;
     }
   }
+  /* Save total number of times */
   data->learning->ntime = total_t;
+
+  /* Free temporary vector */
   (void) free(time_index);
 
-  /* Read pc_normalized_var data */
-  istat = read_netcdf_var_generic_1d(&(data->learning->pc_normalized_var), (info_field_struct *) NULL,
-                                     data->learning->filename_learn, data->learning->nomvar_pc_normalized_var, data->conf->eofname,
-                                     &neof);
+  /* Read pc_normalized_var data (normalized EOF-projected large-scale field variance for learning period) */
+  istat = read_netcdf_var_1d(&(data->learning->pc_normalized_var), (info_field_struct *) NULL,
+                             data->learning->filename_learn, data->learning->nomvar_pc_normalized_var, data->conf->eofname,
+                             &neof);
   if (neof != neof_file) {
+    /* Verify that EOF dimension match configuration value */
     (void) fprintf(stderr, "%s: ERROR: Incorrect number of EOFs in NetCDF file %d vs configuration file %d.\n",
                    __FILE__, neof, neof_file);
     (void) free(nomvar);
@@ -287,6 +314,7 @@ int read_learning_fields(data_struct *data) {
     return -1;
   }
   if (istat != 0) {
+    /* In case of failure */
     (void) free(nomvar);
     (void) free(nomvar_time);
     (void) free(nomvar_season);
@@ -294,10 +322,12 @@ int read_learning_fields(data_struct *data) {
     return istat;
   }
 
+  /* Free memory */
   (void) free(nomvar);
   (void) free(nomvar_time);
   (void) free(nomvar_season);
   (void) free(name);
 
+  /* Success status */
   return 0;
 }

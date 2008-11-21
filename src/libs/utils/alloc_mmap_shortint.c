@@ -1,3 +1,13 @@
+/* ***************************************************** */
+/* Allocate memory using mmap for a short integer array. */
+/* alloc_mmap_shortint.c                                 */
+/* ***************************************************** */
+/* Author: Christian Page, CERFACS, Toulouse, France.    */
+/* ***************************************************** */
+/*! \file alloc_mmap_shortint.c
+    \brief Allocate memory using mmap for a short integer array.
+*/
+
 #include <utils.h>
 
 /** Allocate memory using mmap for a short integer array. */

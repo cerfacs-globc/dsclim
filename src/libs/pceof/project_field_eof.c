@@ -12,13 +12,14 @@
 
 /** Subroutine to project a 2D-time field on pre-calculated EOFs. */
 int project_field_eof(double *bufout, double *bufin, double *bufeof, double *singular_value,
-                            double missing_value_eof, double scale, int ni, int nj, int ntime, int neof)
+                      double missing_value_eof, double scale, int ni, int nj, int ntime, int neof)
 {
   /**
      @param[out]     bufout            Output 2D (neof x ntime) projected bufin field using input eof and singular_value
      @param[in]      bufin             Input field 3D (ni x nj x ntime)
-     @param[in]      eof               EOF of input field 3D (ni x nj x neof)
+     @param[in]      bufeof            EOF of input field 3D (ni x nj x neof)
      @param[in]      singular_value    Singular value for EOF
+     @param[in]      missing_value_eof Missing value for bufeof
      @param[in]      scale             Scaling for units to apply before projecting onto EOF
      @param[in]      ni                Horizontal dimension
      @param[in]      nj                Horizontal dimension
@@ -56,11 +57,16 @@ int project_field_eof(double *bufout, double *bufin, double *bufeof, double *sin
       if (bufeof[i+j*ni] != missing_value_eof)
         sum = sum + 1.0;
         } */
-  
+
+  /* Loop over all EOFs */
   for (eof=0; eof<neof; eof++) {
+
+    /* Initializing */
     norm = 0.0;
     sum_verif_norm = 0.0;
     
+    /* Loop over all gridpoints */
+    /* Compute the sum of the squared values normalized by the singular value */
     for (j=0; j<nj; j++)
       for (i=0; i<ni; i++) {
         if (bufeof[i+j*ni+eof*ni*nj] != missing_value_eof) {
@@ -85,7 +91,7 @@ int project_field_eof(double *bufout, double *bufin, double *bufeof, double *sin
     (void) fprintf(stdout, "%s: Verifying the sqrt(norm)=%lf (should be equal to 1) for EOF #%d: %lf\n", __FILE__, sqrt(norm),
                    eof, sum_verif_norm);
 
-    /* Project on EOF */
+    /* Project field onto EOF */
     for (t=0; t<ntime; t++) {
       sum = 0.0;
       for (j=0; j<nj; j++)
@@ -102,8 +108,10 @@ int project_field_eof(double *bufout, double *bufin, double *bufeof, double *sin
     (void) fprintf(stdout, "%s: %lf\n", __FILE__,
                    sqrt(gsl_stats_variance(&(bufout[eof*ntime]), 1, ntime)) / singular_value[eof]);
   }
-  
+
+  /* Free memory */
   (void) free(true_val);
 
+  /* Success status */
   return 0;
 }

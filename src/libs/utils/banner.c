@@ -1,3 +1,12 @@
+/* ***************************************************** */
+/* Show banners for execution of a program.              */
+/* banner.c                                              */
+/* ***************************************************** */
+/* Author: Christian Page, CERFACS, Toulouse, France.    */
+/* ***************************************************** */
+/*! \file banner.c
+    \brief Show banners for execution of a program.
+*/
 
 #include <utils.h>
 

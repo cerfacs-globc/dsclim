@@ -1,3 +1,13 @@
+/* ***************************************************** */
+/* Allocate memory using mmap for a long integer array.  */
+/* alloc_mmap_longint.c                                  */
+/* ***************************************************** */
+/* Author: Christian Page, CERFACS, Toulouse, France.    */
+/* ***************************************************** */
+/*! \file alloc_mmap_longint.c
+    \brief Allocate memory using mmap for a long integer array.
+*/
+
 #include <utils.h>
 
 /** Allocate memory using mmap for a long int array. */

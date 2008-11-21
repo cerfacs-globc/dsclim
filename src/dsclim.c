@@ -31,9 +31,9 @@ int main(int argc, char **argv)
      \return           Status.
    */
 
-  int i;
-  int istat = 0;
-  data_struct *data = NULL;
+  int i; /* Loop counter */
+  int istat = 0; /* Return status */
+  data_struct *data = NULL; /* Main data structure */
 
   /* Command-line arguments variables */
   char fileconf[500]; /* Configuration filename */
@@ -52,6 +52,7 @@ int main(int argc, char **argv)
     (void) exit(1);
   }
   else
+    /* Decode command-line arguments */
     for (i=1; i<argc; i++) {
       if ( !strcmp(argv[i], "-conf") )
         (void) strcpy(fileconf, argv[++i]);

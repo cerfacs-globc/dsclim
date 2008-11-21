@@ -18,34 +18,48 @@
 
 #include <io.h>
 
+/** Write a 3D field in a NetCDF output file. */
 int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
                         char *varname, char *gridname, char *lonname, char *latname, char *timename,
                         int nlon, int nlat, int ntime) {
-
   /**
-     @param[in]  data  MASTER data structure.
+     @param[in]  buf         3D Field to write
+     @param[in]  fillvalue   Missing value
+     @param[in]  filename    Output NetCDF filename
+     @param[in]  varname     Variable name in the NetCDF file
+     @param[in]  gridname    Grid type name in the NetCDF file
+     @param[in]  lonname     Longitude name dimension in the NetCDF file
+     @param[in]  latname     Latitude name dimension in the NetCDF file
+     @param[in]  timename    Time name dimension in the NetCDF file
+     @param[in]  nlon        Longitude dimension
+     @param[in]  nlat        Latitude dimension
+     @param[in]  ntime       Time dimension
      
-     \return           Status.
+     \return                 Status.
   */
 
-  int istat;
+  int istat; /* Diagnostic status */
 
-  size_t dimval;
+  size_t dimval; /* Temporary variable used to get values from dimension lengths */
 
-  int ncoutid;
-  int varoutid, timedimoutid, londimoutid, latdimoutid;
-  int vardimids[NC_MAX_VAR_DIMS];    /* dimension ids */
+  int ncoutid; /* NetCDF output file handle ID */
+  int varoutid; /* NetCDF variable output ID */
+  int timedimoutid; /* NetCDF time dimension output ID */
+  int londimoutid; /* NetCDF longitude dimension output ID */
+  int latdimoutid; /* NetCDF latitude dimension output ID */
+  int vardimids[NC_MAX_VAR_DIMS]; /* NetCDF dimension IDs */
 
-  int ntime_file;
-  int nlat_file;
-  int nlon_file;
+  int ntime_file; /* Time dimension in NetCDF output file */
+  int nlat_file; /* Latitude dimension in NetCDF output file */
+  int nlon_file; /* Longitude dimension in NetCDF output file */
 
-  size_t start[3];
-  size_t count[3];
+  size_t start[3]; /* Start element when writing */
+  size_t count[3]; /* Count of elements to write */
 
-  char *attname = NULL;
-  char *tmpstr = NULL;
+  char *attname = NULL; /* Attribute name */
+  char *tmpstr = NULL; /* Temporary string */
 
+  /* Allocate memory */
   attname = (char *) malloc(5000 * sizeof(char));
   if (attname == NULL) alloc_error(__FILE__, __LINE__);
 
@@ -53,6 +67,7 @@ int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
   istat = nc_open(filename, NC_WRITE, &ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   
+  /* Get dimension lengths */
   istat = nc_inq_dimid(ncoutid, timename, &timedimoutid);  /* get ID for time dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncoutid, timedimoutid, &dimval); /* get time length */
@@ -70,12 +85,14 @@ int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
   istat = nc_inq_dimlen(ncoutid, londimoutid, &dimval); /* get lon length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   nlon_file = (int) dimval;
-  
+
+  /* Verify that they match the provided ones in parameters */
   if ( (ntime_file != ntime) || (nlat_file != nlat) || (nlon_file != nlon) ) {
     (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions.\n", __FILE__);
     return -1;
   }
 
+  /* Go into NetCDF define mode */
   istat = nc_redef(ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
@@ -123,7 +140,9 @@ int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
   istat = ncclose(ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+  /* Free memory */
   (void) free(attname);
 
+  /* Diagnostic status */
   return 0;
 }

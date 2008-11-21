@@ -18,15 +18,18 @@
 
 #include <io.h>
 
-/* Get NetCDF string attribute */
+/** Get NetCDF string attribute. */
 int get_attribute_str(char **var, int ncinid, int varid, char *attrname)
 {
   /**
-     @param[in]  
+     @param[out] var       String attribute value
+     @param[in]  ncinid    NetCDF input filename ID
+     @param[in]  varid     NetCDF variable ID
+     @param[in]  attrname  NetCDF attribute name
   */
 
-  int istat;
-  size_t t_len;
+  int istat; /* Diagnostic status */
+  size_t t_len; /* Length of attribute value string */
 
   /* Get attribute length */
   istat = nc_inq_attlen(ncinid, varid, attrname, &t_len);
@@ -49,5 +52,6 @@ int get_attribute_str(char **var, int ncinid, int varid, char *attrname)
     (*var)[0] = '\0';
   }
 
+  /* Diagnostic status */
   return ((int) istat);
 }

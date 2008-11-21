@@ -1,3 +1,13 @@
+/* ***************************************************** */
+/* Allocate memory using mmap for a double array.        */
+/* alloc_mmap_double.c                                   */
+/* ***************************************************** */
+/* Author: Christian Page, CERFACS, Toulouse, France.    */
+/* ***************************************************** */
+/*! \file alloc_mmap_double.c
+    \brief Allocate memory using mmap for a double precision floating point array.
+*/
+
 #include <utils.h>
 
 /** Allocate memory using mmap for a double precision floating point array. */

@@ -18,42 +18,63 @@
 
 #include <io.h>
 
+/** Read dimensions in a NetCDF file for 3D variables. */
 int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_type, char **time_units,
                         int *nlon, int *nlat, int *ntime, info_struct *info, char *coords, char *gridname,
                         char *lonname, char *latname, char *timename, char *filename) {
-
   /**
-     @param[in]  data  MASTER data structure.
+     @param[out]  lon        Longitude field
+     @param[out]  lat        Latitude field
+     @param[out]  timeval    Time field
+     @param[out]  cal_type   Calendar type (udunits)
+     @param[out]  time_units Time units (udunits)
+     @param[out]  nlon       Longitude dimension
+     @param[out]  nlat       Latitude dimension
+     @param[out]  ntime      Time dimension
+     @param[out]  info       Information structure for global NetCDF attributes
+     @param[in]   coords     Coordinates arrangement of latitude and longitude data: either 1D or 2D
+     @param[in]   gridname   Projection grid name
+     @param[in]   lonname    Longitude dimension name
+     @param[in]   latname    Latitude dimension name
+     @param[in]   timename   Time dimension name
+     @param[in]   filename   Input NetCDF filename
      
      \return           Status.
   */
 
-  int istat;
-  int t;
+  int istat; /* Diagnostic status */
 
-  size_t dimval;
+  size_t dimval; /* Variable used to retrieve dimension length */
 
-  int ncinid;
-  int timediminid, londiminid, latdiminid;
-  int timeinid, latinid, loninid;
-  nc_type vartype;
-  int varndims;
-  int vardimids[NC_MAX_VAR_DIMS];    /* dimension ids */
+  int ncinid; /* NetCDF input file handle ID */
+  int latinid; /* Latitude variable ID */
+  int loninid; /* Longitude variable ID */
+  int timeinid; /* Time variable ID */
+  nc_type vartype; /* Type of the variable (NC_FLOAT, NC_DOUBLE, etc.) */
+  int varndims; /* Number of dimensions of variable */
+  int vardimids[NC_MAX_VAR_DIMS]; /* Variable dimension ids */
+  int timediminid; /* Time dimension ID */
+  int londiminid; /* Longitude dimension ID */
+  int latdiminid; /* Latitude dimension ID */
 
-  size_t start[3];
-  size_t count[3];
+  size_t start[3]; /* Start position to read */
+  size_t count[3]; /* Number of elements to read */
 
-  double *tmpd = NULL;
+  double *tmpd = NULL; /* Temporary buffer to read variable from NetCDF file */
 
-  int i;
-  int j;
-  int ndims;
+  int i; /* Loop counter */
+  int j; /* Loop counter */
+  int t; /* Time loop counter */
+  int ndims; /* Number of dimensions of latitude and longitude variables, 1 or 2 for 1D and 2D respectively */
 
   /* Read data in NetCDF file */
+
+  /* Open NetCDF file for reading */
   printf("%s: Reading info from NetCDF input file %s.\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+  /* Get dimensions ID */
   istat = nc_inq_dimid(ncinid, timename, &timediminid);  /* get ID for time dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncinid, timediminid, &dimval); /* get time length */
@@ -64,6 +85,7 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
     /** 1D dimensions lat & lon **/
     ndims = 1;
 
+    /* Get dimensions length */
     istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
@@ -80,6 +102,7 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
     /** 1D dimensions x and y with 2D lat & lon related variables **/
     ndims = 2;
 
+    /* Get dimensions length */
     istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
@@ -96,6 +119,7 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
     /** 1D dimensions x and y with 2D lat & lon related variables **/
     ndims = 2;
 
+    /* Get dimensions length */
     istat = nc_inq_dimid(ncinid, "y", &latdiminid);  /* get ID for lat dimension */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
@@ -109,6 +133,7 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
     *nlon = (int) dimval;
   }
   
+  /* Get time dimension ID */
   istat = nc_inq_varid(ncinid, timename, &timeinid);  /* get ID for time variable */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   /* Get time dimensions and type */
@@ -118,6 +143,8 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
     (void) fprintf(stderr, "Error NetCDF type and/or dimensions %d != 1.\n", varndims);
     return -1;
   }
+
+  /* Get dimension ID */
   istat = nc_inq_varid(ncinid, latname, &latinid);  /* get ID for lat variable */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   /* Get lat dimensions and type */
@@ -127,6 +154,8 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
     (void) fprintf(stderr, "Error NetCDF type and/or dimensions %d != %d.\n", varndims, ndims);
     return -1;
   }
+
+  /* Get dimension ID */
   istat = nc_inq_varid(ncinid, lonname, &loninid);  /* get ID for lon variable */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   /* Get lat dimensions and type */
@@ -265,5 +294,6 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
       (*timeval)[t] = (double) t;
   }
 
+  /* Success status */
   return 0;
 }

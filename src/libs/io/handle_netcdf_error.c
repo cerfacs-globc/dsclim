@@ -18,7 +18,7 @@
 
 #include <io.h>
 
-/* Handle NetCDF error */
+/** Handle NetCDF error. */
 void handle_netcdf_error(int status, char *srcfilename, int lineno)
 {
   /**

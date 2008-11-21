@@ -1,3 +1,13 @@
+/* ***************************************************** */
+/* Allocate memory using mmap for a float array.         */
+/* alloc_mmap_float.c                                    */
+/* ***************************************************** */
+/* Author: Christian Page, CERFACS, Toulouse, France.    */
+/* ***************************************************** */
+/*! \file alloc_mmap_float.c
+    \brief Allocate memory using mmap for a float array.
+*/
+
 #include <utils.h>
 
 /** Allocate memory using mmap for a float array. */

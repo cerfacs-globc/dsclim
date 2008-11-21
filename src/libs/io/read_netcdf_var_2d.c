@@ -18,45 +18,60 @@
 
 #include <io.h>
 
+/** Read a 2D variable in a NetCDF file, and return information in info_field_struct structure and proj_struct. */
 int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
                        char *lonname, char *latname, int *nlon, int *nlat) {
-
   /**
-     @param[in]  data  MASTER data structure.
+     @param[out]  buf        2D variable
+     @param[out]  info_field Information about the output variable
+     @param[out]  proj       Information about the horizontal projection of the output variable
+     @param[in]   filename   NetCDF input filename
+     @param[in]   varname    NetCDF variable name
+     @param[in]   lonname    Longitude dimension name
+     @param[in]   latname    Latitude dimension name
+     @param[out]  nlon       Longitude dimension length
+     @param[out]  nlat       Latitude dimension length
      
      \return           Status.
   */
 
-  int istat;
+  int istat; /* Diagnostic status */
 
-  size_t dimval;
+  size_t dimval; /* Variable used to retrieve dimension length */
 
-  int ncinid;
-  int varinid, timediminid, londiminid, latdiminid, projinid;
-  nc_type vartype_main;
-  int varndims;
-  int vardimids[NC_MAX_VAR_DIMS];    /* dimension ids */
+  int ncinid; /* NetCDF input file handle ID */
+  int varinid; /* NetCDF variable ID */
+  int projinid; /* Projection variable ID */
+  nc_type vartype_main; /* Type of the variable (NC_FLOAT, NC_DOUBLE, etc.) */
+  int varndims; /* Number of dimensions of variable */
+  int vardimids[NC_MAX_VAR_DIMS]; /* Variable dimension ids */
+  int londiminid; /* Longitude dimension ID */
+  int latdiminid; /* Latitude dimension ID */
 
-  size_t start[3];
-  size_t count[3];
+  size_t start[3]; /* Start position to read */
+  size_t count[3]; /* Number of elements to read */
 
-  float valf;
-  int vali;
-  char *tmpstr = NULL;
-  size_t t_len;
+  float valf; /* Variable used to retrieve fillvalue */
+  int vali; /* Variable used to retrieve integer values */
+  char *tmpstr = NULL; /* Temporary string */
+  size_t t_len; /* Length of string attribute */
 
-  float *proj_latin = NULL;
+  float *proj_latin = NULL; /* Parallel latitudes of projection */
 
+  /* Allocate memory */
   tmpstr = (char *) malloc(5000 * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Read data in NetCDF file */
+
+  /* Open NetCDF file for reading */
   printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   printf("%s: READ %s %s.\n", __FILE__, varname, filename);
 
+  /* Get dimensions length */
   istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
@@ -69,6 +84,7 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   *nlon = (int) dimval;
   
+  /* Get main variable ID */
   istat = nc_inq_varid(ncinid, varname, &varinid); /* get main variable ID */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
@@ -78,6 +94,7 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
   istat = nc_inq_var(ncinid, varinid, (char *) NULL, &vartype_main, &varndims, vardimids, (int *) NULL);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+  /* Verify that variable is really 2D */
   if (varndims != 2) {
     (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions nlon %d nlat %d.\n", __FILE__, *nlon, *nlat);
     (void) free(tmpstr);
@@ -86,8 +103,9 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
     return -1;
   }
 
+  /* If info_field si not NULL, get some information about the read variable */
   if (info_field != NULL) {
-    /* Get fillvalue */
+    /* Get missing value */
     if (vartype_main == NC_FLOAT) {
       istat = nc_get_att_float(ncinid, varinid, "missing_value", &valf);
       if (istat != NC_NOERR)
@@ -101,6 +119,7 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
         info_field->fillvalue = -9999.0;
     }
     
+    /* Get coordinates */
     istat = nc_inq_attlen(ncinid, varinid, "coordinates", &t_len);
     if (istat == NC_NOERR) {
       istat = nc_get_att_text(ncinid, varinid, "coordinates", tmpstr);
@@ -115,6 +134,7 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
     else
       info_field->coordinates = strdup("lon lat");
     
+    /* Get grid projection */
     istat = nc_inq_attlen(ncinid, varinid, "grid_mapping", &t_len);
     if (istat == NC_NOERR) {
       handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -130,6 +150,7 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
     else
       info_field->grid_mapping = strdup("unknown");
     
+    /* Get units */
     istat = nc_inq_attlen(ncinid, varinid, "units", &t_len);
     if (istat == NC_NOERR) {
       handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -145,6 +166,7 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
     else
       info_field->units = strdup("unknown");
     
+    /* Get long name */
     istat = nc_inq_attlen(ncinid, varinid, "long_name", &t_len);
     if (istat == NC_NOERR) {
       handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -161,6 +183,7 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
       info_field->long_name = strdup(varname);
   }
 
+  /* if proj is not NULL, retrieve informations about the horizontal projection parameters */
   if (proj != NULL) {
     /* Get projection variable ID */
     if ( !strcmp(info_field->grid_mapping, "Lambert_Conformal") ) {
@@ -202,7 +225,7 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
     else if ( !strcmp(info_field->grid_mapping, "Latitude_Longitude") )
       proj->name = strdup(info_field->grid_mapping);      
     else {
-      fprintf(stderr, "%s: WARNING: No projection parameter available.\n", __FILE__, info_field->grid_mapping);
+      fprintf(stderr, "%s: WARNING: No projection parameter available for %s.\n", __FILE__, info_field->grid_mapping);
       proj->name = strdup("Latitude_Longitude");      
     }
   }
@@ -226,7 +249,9 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
   istat = ncclose(ncinid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+  /* Free memory */
   (void) free(tmpstr);
 
+  /* Success status */
   return 0;
 }
