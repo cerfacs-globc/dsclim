@@ -86,6 +86,7 @@ static void dateify( int year, int month, int day, int hour, int minute,
  * days since 2001-01-01	noleap		-146000		 1601-01-01	works with neg values too
  * days since 1001-01-01	noleap		-146000		 0601-01-01	neg values don't care before/after 1582 either
  */
+/** This extends the standard utCalendar call by recognizing CF-1.0 compliant calendar names. */
 int utCalendar_cal( double val, utUnit *dataunits, int *year, int *month, int *day, int *hour, 
                     int *minute, float *second, char *calendar ) 
 {
@@ -350,6 +351,7 @@ days since 2000-02-25	noleap 		2000, 3, 1, 12, 0, 0.0		4.5		2000 was a leap year
 
 
 /********************************************************************************************************/
+/** Similar to utInvCalendar, but takes an extra 'cal' argument that supports non-standard calendar types. */
 int utInvCalendar_cal( int year, int month, int day, int hour, int minute, 
                        double second, utUnit *unit, double *value, const char *calendar )
 {

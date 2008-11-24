@@ -26,25 +26,30 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
                          char *lonname, char *latname, char *timename,
                          char *filename) {
   /**
-     @param[in]  lon         Lontitude field
-     @param[in]  lat         Latitude field
-     @param[in]  timein      Time field
-     @param[in]  cal_type    Calendar-type (udunits)
-     @param[in]  time_units  Time units (udunits)
-     @param[in]  nlon        Longitude dimension
-     @param[in]  nlat        Latitude dimension
-     @param[in]  ntime       Time dimension
-     @param[in]  timestep    Timestep string (NetCDF attribute)
-     @param[in]  gridname    Grid type name in the NetCDF file (NetCDF attribute)
-     @param[in]  coords      Coordinates type (NetCDF attribute)
-     @param[in]  latin1      Latin1 projection parameter
-     @param[in]  filename    Output NetCDF filename
-     @param[in]  varname     Variable name in the NetCDF file
-     @param[in]  lonname     Longitude name dimension in the NetCDF file
-     @param[in]  latname     Latitude name dimension in the NetCDF file
-     @param[in]  timename    Time name dimension in the NetCDF file
+     @param[in]  lon                Lontitude field
+     @param[in]  lat                Latitude field
+     @param[in]  timein             Time field
+     @param[in]  cal_type           Calendar-type (udunits)
+     @param[in]  time_units         Time units (udunits)
+     @param[in]  nlon               Longitude dimension
+     @param[in]  nlat               Latitude dimension
+     @param[in]  ntime              Time dimension
+     @param[in]  timestep           Timestep string (NetCDF attribute)
+     @param[in]  gridname           Grid type name in the NetCDF file (NetCDF attribute)
+     @param[in]  coords             Coordinates type (NetCDF attribute)
+     @param[in]  grid_mapping_name  Grid mapping name in the NetCDF file (CF-1.0 compliant)
+     @param[in]  latin1             Latin1 projection parameter
+     @param[in]  latin2             Latin2 projection parameter
+     @param[in]  lonc               Lonc center longitude projection parameter
+     @param[in]  lat0               Lat0 first latitude projection parameter
+     @param[in]  false_easting      False_easting projection parameter
+     @param[in]  false_northing     False_northing projection parameter
+     @param[in]  filename           Output NetCDF filename
+     @param[in]  lonname            Longitude name dimension in the NetCDF file
+     @param[in]  latname            Latitude name dimension in the NetCDF file
+     @param[in]  timename           Time name dimension in the NetCDF file
      
-     \return                 Status.
+     \return                        Status.
   */
 
   int istat;

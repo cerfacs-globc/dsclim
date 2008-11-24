@@ -16,6 +16,22 @@
   <setting name="base_time_units">days since 1900-01-01 12:00:00</setting>
   <setting name="base_calendar_type">gregorian</setting>
 
+  <!-- Observation database for analog days -->
+  <setting name="observations">
+    <setting name="number_of_variables">7</setting>
+    <setting name="frequency">daily</setting>
+    <setting name="path">/home/vittel/SAFRAN/netcdf/daily</setting>
+    <setting name="variables">
+      <name id="1" acronym="T" netcdfname="tas">Temperature at 2 m</name>
+      <name id="2" acronym="Q" netcdfname="hus">Specific humidity at 2 m</name>
+      <name id="3" acronym="PRCP" netcdfname="prr">Liquid precipitation at the surface</name>
+      <name id="4" acronym="SNOW" netcdfname="prsn">Solid precipitation at the surface</name>
+      <name id="5" acronym="RAT" netcdfname="rlds">Incoming infra-red radiation at the surface</name>
+      <name id="6" acronym="GLO" netcdfname="rsds">Incoming shortwave radiation at the surface</name>
+      <name id="7" acronym="Vu" netcdfname="uvas">Wind speed module at 10 m</name>
+    </setting>
+  </setting>
+
   <!-- Learning data -->
   <setting name="learning">
     <learning_provided>1</learning_provided>

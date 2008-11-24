@@ -22,7 +22,7 @@
 /** Read regression point positions. */
 int read_regression_points(reg_struct *reg) {
   /**
-     @param[in]  data  MASTER regression structure.
+     @param[in]  reg   Regression structure.
      
      \return           Status.
   */

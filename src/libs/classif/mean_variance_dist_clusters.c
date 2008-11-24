@@ -18,6 +18,7 @@ void mean_variance_dist_clusters(double *mean_dist, double *var_dist, double *pc
      @param[out]  var_dist        Variance of distances to clusters.
      @param[in]   pc              EOF-projected large-scale field.
      @param[in]   clusters        Cluster centroids for each EOF in EOF-projected space of the large-scale field.
+     @param[in]   var_pc          Norm of the variance of the first EOF of the EOF-projected large-scale field of the learning period.
      @param[in]   var_pc_norm_all Norm of the variance of the first EOF of the EOF-projected large-scale field of the control run.
      @param[in]   neof            EOF dimension
      @param[in]   nclust          Clusters dimension

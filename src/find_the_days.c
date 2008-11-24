@@ -12,13 +12,13 @@
 #include <dsclim.h>
 
 /** Find analog days given cluster, supplemental large-scale field, and precipitation distances. */
-void find_the_days(int *analog_days, double *precip_index, double *precip_index_learn, double *sup_field_index,
+void find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn, double *sup_field_index,
                    double *sup_field_index_learn, int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
                    int *year_learn, int *month_learn, int *day_learn,
                    int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
                    int sup_choice) {
   /**
-     @param[out]  analog_days           Analog days time indexes
+     @param[out]  analog_days           Analog days time indexes and dates, as well as corresponding downscale dates
      @param[in]   precip_index          Precipitation index of days to downscale
      @param[in]   precip_index_learn    Precipitation index of learning period
      @param[in]   sup_field_index       Secondary large-scale field index of days to downscale
@@ -55,7 +55,7 @@ void find_the_days(int *analog_days, double *precip_index, double *precip_index_
 
   int cur_dayofy; /* Current day of year being downscaled */
   int learn_dayofy; /* Learning day of year being processed */
-  int diff_day_learn; /* Difference in terms of day of year between downscaled dya of year and learning one */
+  int diff_day_learn; /* Difference in terms of day of year between downscaled day of year and learning one */
 
   double max_metric; /* Maximum metric value. The metric is the value used to compare days (cluster distance, index distance, etc.) */
   double max_metric_sup; /* Maximum metric value for secondary large-scale field metric. */
@@ -279,6 +279,7 @@ void find_the_days(int *analog_days, double *precip_index, double *precip_index_
           metric_norm[tl] = (metric[tl] - varmean) / varstd;
 
       /* Sort the vector, retrieve the sortex indexes and select only the first ndayschoices ones */
+      printf("%d %d\n",ntime_days,ndayschoices);
       (void) gsl_sort_smallest_index(metric_index, (size_t) ndayschoices, metric_norm, 1, (size_t) ntime_days);
       
       if (shuffle == TRUE) {
@@ -291,7 +292,16 @@ void find_the_days(int *analog_days, double *precip_index, double *precip_index_
         min_metric_index = metric_index[random_index[0]];
 
         /* Save analog day time index in the learning period */
-        analog_days[t] = ntime_days_learn[metric_index[random_index[0]]];
+        analog_days.tindex[t] = ntime_days_learn[metric_index[random_index[0]]];
+        analog_days.tindex_all[t] = buf_learn_sub_i[analog_days.tindex[t]];
+        analog_days.year[t] = year_learn[analog_days.tindex[t]];
+        analog_days.month[t] = month_learn[analog_days.tindex[t]];
+        analog_days.day[t] = day_learn[analog_days.tindex[t]];
+        /* Save date of day being downscaled */
+        analog_days.year_s[t] = year[buf_sub_i[t]];
+        analog_days.month_s[t] = month[buf_sub_i[t]];
+        analog_days.day_s[t] = day[buf_sub_i[t]];
+        analog_days.tindex_s_all[t] = buf_sub_i[t];
       }
       else {
         /* Don't shuffle. Instead choose the one having the smallest metric for the best match */
@@ -327,7 +337,14 @@ void find_the_days(int *analog_days, double *precip_index, double *precip_index_
           }
         }
         /* Save analog day time index in the learning period */
-        analog_days[t] = ntime_days_learn[min_metric_index];
+        analog_days.tindex[t] = ntime_days_learn[min_metric_index];
+        analog_days.year[t] = year_learn[analog_days.tindex[t]];
+        analog_days.month[t] = month_learn[analog_days.tindex[t]];
+        analog_days.day[t] = day_learn[analog_days.tindex[t]];
+        /* Save date of day being downscaled */
+        analog_days.year_s[t] = year[buf_sub_i[t]];
+        analog_days.month_s[t] = month[buf_sub_i[t]];
+        analog_days.day_s[t] = day[buf_sub_i[t]];
       }
       
       /* Free memory */

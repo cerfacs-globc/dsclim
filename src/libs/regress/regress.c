@@ -6,7 +6,7 @@
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
-/*! \file regres.c
+/*! \file regress.c
     \brief Compute regression coefficients with a regression constant given two vectors, and do it for npts regression points.
 */
 

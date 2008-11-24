@@ -1,6 +1,7 @@
 /* ***************************************************** */
-/* read_learning_fields Read learning fields.            */
-/* read_learning_fields.c                                */
+/* read_large_scale_fields Read large-scale fields data  */
+/* from input files.                                     */
+/* read_large_scale_fields.c                             */
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
@@ -12,13 +13,13 @@
 /* ***************************************************** */
 /* Revisions                                             */
 /* ***************************************************** */
-/*! \file read_learning_fields.c
-    \brief Read Learning data from input files. Currently only NetCDF is implemented.
+/*! \file read_large_scale_fields.c
+    \brief Read large-scale fields data from input files. Currently only NetCDF is implemented.
 */
 
 #include <dsclim.h>
 
-/** Read Learning data from input files. Currently only NetCDF is implemented. */
+/** Read large-scale fields data from input files. Currently only NetCDF is implemented. */
 int read_large_scale_fields(data_struct *data) {
   /**
      @param[in]  data  MASTER data structure.

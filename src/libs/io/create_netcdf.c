@@ -47,7 +47,6 @@ int create_netcdf(char *title, char *title_french, char *summary, char *summary_
      @param[in]  country              Country of the institution who developed the numerical model used
      @param[in]  member               Member in the case of multi-member model configurations
      @param[in]  downscaling_forcing  Observations database used when downscaling
-     @param[in]  timestep             timestep used in the file
      @param[in]  contact_email        Contact email
      @param[in]  contact_name         Contact name
      @param[in]  other_contact_email  Other contact email

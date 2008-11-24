@@ -1,6 +1,6 @@
 /* ***************************************************** */
-/* read_netcdf_var_generic_1d Read a 1D NetCDF variable. */
-/* read_netcdf_var_generic_1d.c                          */
+/* read_netcdf_var_generic_val Read a 1D NetCDF variable.*/
+/* read_netcdf_var_generic_val.c                         */
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
@@ -12,7 +12,7 @@
 /* ***************************************************** */
 /* Revisions                                             */
 /* ***************************************************** */
-/*! \file read_netcdf_var_generic_1d.c
+/*! \file read_netcdf_var_generic_val.c
     \brief Read a NetCDF variable.
 */
 

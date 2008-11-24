@@ -327,6 +327,7 @@ int wt_downscaling(data_struct *data) {
   /* Select the first large-scale field which must contain the cluster distances */
   /* and the first secondary large-scale fields which must contains its spatial mean */
   i = 0;
+
   /* Downscale also control run if needed */
   if (data->conf->period_ctrl->downscale == TRUE)
     end_cat = CTRL_FIELD_LS;
@@ -352,13 +353,17 @@ int wt_downscaling(data_struct *data) {
   
   /** Step 10: Find the days : resampling **/
 
+  /* Select the first large-scale field which must contain the cluster distances */
+  /* and the first secondary large-scale fields which must contains its spatial mean */
+  i = 0;
+
   /* Downscale also control run if needed */  
   if (data->conf->period_ctrl->downscale == TRUE)
     end_cat = CTRL_FIELD_LS;
   else
     end_cat = FIELD_LS;
 
-  /* Loop over larg-scale field categories (model run and optionally control run) */
+  /* Loop over large-scale field categories (model run and optionally control run) */
   for (cat=FIELD_LS; cat <= end_cat; cat++) {
     /* Process only if, for this category, at least one large-scale field is available */
     if (data->field[cat].n_ls > 0)
@@ -367,8 +372,24 @@ int wt_downscaling(data_struct *data) {
         
         /* Find the analog days in the learning period given the precipitation index, */
         /* the spatial mean of the secondary large-scale fields and its index, and the cluster classification of the days */
-        data->field[cat].analog_days[s] = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
-        if (data->field[cat].analog_days[s] == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days[s].tindex = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
+        if (data->field[cat].analog_days[s].tindex == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days[s].tindex_all = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
+        if (data->field[cat].analog_days[s].tindex_all == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days[s].year = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
+        if (data->field[cat].analog_days[s].year == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days[s].month = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
+        if (data->field[cat].analog_days[s].month == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days[s].day = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
+        if (data->field[cat].analog_days[s].day == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days[s].tindex_s_all = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
+        if (data->field[cat].analog_days[s].tindex_s_all == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days[s].year_s = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
+        if (data->field[cat].analog_days[s].year_s == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days[s].month_s = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
+        if (data->field[cat].analog_days[s].month_s == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days[s].day_s = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
+        if (data->field[cat].analog_days[s].day_s == NULL) alloc_error(__FILE__, __LINE__);
         (void) printf("%s: Searching analog days for season #%d\n", __FILE__, s);
         (void) find_the_days(data->field[cat].analog_days[s], data->field[cat].precip_index[s], data->learning->data[s].precip_index,
                              data->field[cat+2].data[i].down->smean_norm[s], data->learning->data[s].sup_index,
@@ -385,15 +406,51 @@ int wt_downscaling(data_struct *data) {
   }
   
   /** Step 11: Compute the secondary large-scale fields difference if wanted */
-  
 
+  /* Downscale also control run if needed */
+  if (data->conf->period_ctrl->downscale == TRUE)
+    end_cat = CTRL_SEC_FIELD_LS;
+  else
+    end_cat = SEC_FIELD_LS;
 
+  /* Loop over secondary field categories (model run and optionally control run) */
+  for (cat=SEC_FIELD_LS; cat <= end_cat; cat++) {
+    /* Process only if, for this category, at least one secondary large-scale field is available */
+    if (data->field[cat].n_ls > 0)
+      /* Loop over each season */
+      for (s=0; s<data->conf->nseasons; s++)
+        (void) compute_secondary_large_scale_diff(data->field[cat].data[i].down->delta[s], data->field[cat].analog_days[s],
+                                                  data->field[cat].data[i].down->smean_norm[s], data->learning->data[s].sup_index,
+                                                  data->field[cat].data[i].down->var[s], data->learning->data[s].sup_index_var,
+                                                  ntime_sub[cat][s]);
+    /** Optionally save analog_days information in an output file **/
+    /** TODO **/
+  }
         
   /** Step 12: Reconstruct data using chosen resampled days and write output */
-
-
-
-
+  
+  /* Downscale also control run if needed */  
+  if (data->conf->period_ctrl->downscale == TRUE)
+    end_cat = CTRL_FIELD_LS;
+  else
+    end_cat = FIELD_LS;
+  
+  /* Loop over large-scale field categories (model run and optionally control run) */
+  for (cat=FIELD_LS; cat <= end_cat; cat++) {
+    /* Process only if, for this category, at least one large-scale field is available */
+    if (data->field[cat].n_ls > 0) {
+      /* Loop over each season */
+      for (s=0; s<data->conf->nseasons; s++) {
+        /* Merge all seasons of analog_day data */
+        istat = merge_seasons(data->field[cat].analog_days_year, data->field[cat].analog_days[s],
+                              data->field[cat].ntime_ls, ntime_sub[cat][s]);
+        if (istat != 0) return istat;
+      }
+      /* Process all data */
+      //      istat = output_downscaled_analog(data->field[cat].analog_days_year, data->field[cat].ntime_ls);
+    }
+  }
+          
   /* Free memory for specific downscaling buffers */
   for (cat=0; cat<NCAT; cat++)
     (void) free(ntime_sub[cat]);

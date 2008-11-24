@@ -1,3 +1,6 @@
+/*! \file dsclim.h
+    \brief Include file for main program of downscaling algorithm.
+*/
 #ifndef DSCLIM_H
 #define DSCLIM_H
 
@@ -44,13 +47,13 @@
 
 /** Number of field type categories. */
 #define NCAT 4
-/* Large-scale fields category. */
+/** Large-scale fields category. */
 #define FIELD_LS 0
-/* Large-scale fields category for control-run. */
+/** Large-scale fields category for control-run. */
 #define CTRL_FIELD_LS 1
-/* Large-scale secondary fields category. */
+/** Large-scale secondary fields category. */
 #define SEC_FIELD_LS 2
-/* Large-scale secondary fields category for control-run. */
+/** Large-scale secondary fields category for control-run. */
 #define CTRL_SEC_FIELD_LS 3
 
 /* Local C includes. */
@@ -60,6 +63,30 @@
 #include <pceof.h>
 #include <io.h>
 #include <regress.h>
+
+/** Data structure var_struct for observation database variables. */
+typedef struct {
+  int nobs_var; /**< Number of observation variables. */
+  char *frequency; /**< Frequency of observation data. */
+  char *path; /**< Directory where observation data is stored: the template is of the form path/acronym_YYYYYYYY.nc where YYYYYYYY are the beginning and ending years concatenated. */
+  char **acronym; /**< Acronym for variable in filename and NetCDF file. */
+  char **netcdfname; /**< Standard NetCDF variable acronym. */
+  char **name; /**< Long name of observation variable. */
+} var_struct;
+
+/** Analog day structure analog_day_struct, season-dependent. */
+typedef struct {
+  int *tindex; /**< Time index of analog day. */
+  int *tindex_all; /**< Time index of analog day in the season-merged index. */
+  int *year; /**< Year of analog day. */
+  int *month; /**< Month of analog day. */
+  int *day; /**< Day of analog day. */
+  int ntime; /**< Number of analog times. */
+  int *tindex_s_all; /**< Time index of day being downscaled in the season-merged index. */
+  int *year_s; /**< Years of dates being downscaled. */
+  int *month_s; /**< Months of dates being downscaled. */
+  int *day_s; /**< Days of dates being downscaled. */
+} analog_day_struct;
 
 /** EOF data field structure eof_data_struct. */
 typedef struct {
@@ -109,6 +136,7 @@ typedef struct {
   double *mean; /**< Seasonal mean of spatially-averaged secondary fields. */
   double *var; /**< Seasonal variance of spatially-averaged secondary fields. */
   double *var_pc_norm; /**< Normalization for EOF-projected large-scale fields. */
+  double **delta; /**< Secondary large-scale field difference between value of learning field at analog date vs model field at downscaled date. */
 } downscale_struct;
 
 /** Field data structure field_data_struct. */
@@ -139,7 +167,7 @@ typedef struct {
   int n_ls; /**< Number of large scale fields. */
   int ntime_ls; /**< Time dimension of large scale fields. */
   double *time_ls; /**< Time vector of large scale fields. */
-  time_struct *time_s; /**< Time structure of large scale fields. */
+  time_struct *time_s; /**< Time structure of large scale fields. */  
   double *lon_ls; /**< Longitude of gridpoints of large scale fields. */
   double *lat_ls; /**< Latitude of gridpoints of large scale fields. */
   int nlon_ls; /**< X dimension of large scale fields. */
@@ -149,7 +177,8 @@ typedef struct {
   int nlon_eof_ls; /**< X dimension of large scale fields EOF. */
   int nlat_eof_ls; /**< Y dimension of large scale fields EOF. */
   double **precip_index; /**< Precipitation index reconstructed from regression coefficients. */
-  int **analog_days; /**< Analog days. */
+  analog_day_struct *analog_days; /**< Analog days season-dependent. */
+  analog_day_struct analog_days_year; /**< Analog days all seasons merged. */
   proj_struct *proj; /**< Projection information of large scale fields. */
   field_data_struct *data; /**< Fields data. */
 } field_struct;
@@ -254,6 +283,7 @@ typedef struct {
   int downscale; /**< Downscale or not control-run period. */
   int npts_reg; /**< Number of points for the regression. */
   char *classif_type; /**< Classification type (euclidian only for now). */
+  var_struct *obs_var; /**< Structure for observation variables information. */
 } conf_struct;
 
 /** MASTER data structure data_struct. */
@@ -274,10 +304,14 @@ int read_large_scale_eof(data_struct *data);
 int read_learning_fields(data_struct *data);
 int remove_clim(data_struct *data);
 int read_regression_points(reg_struct *reg);
-void find_the_days(int *analog_days, double *precip_index, double *precip_index_learn, double *sup_field_index,
+void find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn, double *sup_field_index,
                    double *sup_field_index_learn, int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
                    int *year_learn, int *month_learn, int *day_learn,
                    int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts,
                    int shuffle, int sup, int sup_choice);
+void compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days, double *sup_field_index,
+                                        double *sup_field_index_learn, double sup_field_var, double sup_field_var_learn, int ntimes);
+int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int ntimes_merged, int ntimes);
+void free_main_data(data_struct *data);
 
 #endif

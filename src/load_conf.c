@@ -171,15 +171,6 @@ int load_conf(data_struct *data, char *fileconf) {
     data->conf->latname_eof = strdup("lat");
   (void) fprintf(stdout, "%s: latitude_name_eof = %s\n", __FILE__, data->conf->latname_eof);
 
-  /** eof_name **/  
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "eof_name");
-  val = xml_get_setting(conf, path);
-  if (val != NULL)
-    data->conf->eofname = strdup((char *) val);
-  else
-    data->conf->eofname = strdup("pc");
-  (void) fprintf(stdout, "%s: eof_name = %s\n", __FILE__, data->conf->eofname);
-
   /** time_name **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "time_name");
   val = xml_get_setting(conf, path);
@@ -338,6 +329,63 @@ int load_conf(data_struct *data, char *fileconf) {
     data->conf->latitude_max = 60.0;
   (void) fprintf(stdout, "%s: Large-scale domain latitude max = %lf\n", __FILE__, data->conf->latitude_max);
 
+
+  /**** OBSERVATION DATABASE CONFIGURATION ****/
+
+  data->conf->obs_var = (var_struct *) malloc(sizeof(var_struct));
+  if (data->conf->obs_var == NULL) alloc_error(__FILE__, __LINE__);
+
+  /** number_of_variables **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "observations", "setting", "number_of_variables");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->conf->obs_var->nobs_var = (int) xmlXPathCastStringToNumber(val);
+    (void) fprintf(stdout, "%s: observations: number_of_variables = %d\n", __FILE__, data->conf->obs_var->nobs_var);
+
+    /** Allocate memory for variable informations **/
+
+    data->conf->obs_var->acronym = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
+    if (data->conf->obs_var->acronym == NULL) alloc_error(__FILE__, __LINE__);
+    data->conf->obs_var->netcdfname = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
+    if (data->conf->obs_var->netcdfname == NULL) alloc_error(__FILE__, __LINE__);
+    data->conf->obs_var->name = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
+    if (data->conf->obs_var->name == NULL) alloc_error(__FILE__, __LINE__);
+
+    /* Loop over observation variables */
+    for (i=0; i<data->conf->obs_var->nobs_var; i++) {
+
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]/%s[@id=\"%d\"]@\"%s\"", "setting", "observations", "setting", "variables", "name", i+1, "acronym");
+      val = xml_get_setting(conf, path);
+      if (val != NULL)
+        data->conf->obs_var->acronym[i] = strdup((char *) val);
+      else {
+        (void) fprintf(stderr, "%s: Missing or invalid observation variable acronym setting. Aborting.\n", __FILE__);
+        return -1;
+      }
+
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]/%s[@id=\"%d\"]@\"%s\"", "setting", "observations", "setting", "variables", "name", i+1, "netcdfname");
+      val = xml_get_setting(conf, path);
+      if (val != NULL)
+        data->conf->obs_var->netcdfname[i] = strdup((char *) val);
+      else {
+        (void) fprintf(stderr, "%s: Missing or invalid observation variable netcdfname setting. Aborting.\n", __FILE__);
+        return -1;
+      }
+
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]/%s[@id=\"%d\"]", "setting", "observations", "setting", "variables", "name", i+1);
+      val = xml_get_setting(conf, path);
+      if (val != NULL)
+        data->conf->obs_var->name[i] = strdup((char *) val);
+      else {
+        (void) fprintf(stderr, "%s: Missing or invalid observation variable name setting. Aborting.\n", __FILE__);
+        return -1;
+      }
+    }
+  }
+  else {
+    (void) fprintf(stderr, "%s: Invalid number_of_variables value %s in configuration file. Aborting.\n", __FILE__, val);
+    return -1;
+  }
 
   /**** CONTROL-RUN PERIOD CONFIGURATION ****/
 
@@ -858,7 +906,7 @@ int load_conf(data_struct *data, char *fileconf) {
 
       data->field[cat].precip_index = (double **) malloc(data->conf->nseasons * sizeof(double *));
       if (data->field[cat].precip_index == NULL) alloc_error(__FILE__, __LINE__);
-      data->field[cat].analog_days = (int **) malloc(data->conf->nseasons * sizeof(int *));
+      data->field[cat].analog_days = (analog_day_struct *) malloc(data->conf->nseasons * sizeof(analog_day_struct));
       if (data->field[cat].analog_days == NULL) alloc_error(__FILE__, __LINE__);
 
       /* Loop over large-scale fields */
@@ -884,6 +932,8 @@ int load_conf(data_struct *data, char *fileconf) {
           if (data->field[cat].data[i].down->mean == NULL) alloc_error(__FILE__, __LINE__);
           data->field[cat].data[i].down->var = (double *) malloc(data->conf->nseasons * sizeof(double));
           if (data->field[cat].data[i].down->var == NULL) alloc_error(__FILE__, __LINE__);
+          data->field[cat].data[i].down->delta = (double **) malloc(data->conf->nseasons * sizeof(double *));
+          if (data->field[cat].data[i].down->delta == NULL) alloc_error(__FILE__, __LINE__);
         }
       }
     }
@@ -998,6 +1048,8 @@ int load_conf(data_struct *data, char *fileconf) {
           }
         }
       }
+      else
+        data->conf->season[i].nmonths = 0;
     }
   }
   else {
