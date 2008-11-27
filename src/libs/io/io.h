@@ -127,6 +127,8 @@ int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *
                                char *lonname, char *latname, char *eofname, char *filename);
 int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
                              char *lonname, char *latname, char *timename, int *nlon, int *nlat, int *ntime);
+int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
+                          char *lonname, char *latname, char *timename, int t, int *nlon, int *nlat, int *ntime);
 int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
                        char *lonname, char *latname, int *nlon, int *nlat);
 int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filename, char *varname,
@@ -135,6 +137,9 @@ int read_netcdf_var_generic_val(double *buf, info_field_struct *info_field, char
 int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
                               char *varname, char *gridname, char *lonname, char *latname, char *timename,
                               int nlon, int nlat, int ntime);
+int write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *filename,
+                           char *varname, char *gridname, char *lonname, char *latname, char *timename,
+                           int t, int nlon, int nlat, int ntime);
 int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_type, char *time_units,
                                int nlon, int nlat, int ntime, char *timestep, char *gridname, char *coords,
                                char *grid_mapping_name, double latin1, double latin2,

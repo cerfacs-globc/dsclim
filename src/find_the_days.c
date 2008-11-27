@@ -279,7 +279,7 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
           metric_norm[tl] = (metric[tl] - varmean) / varstd;
 
       /* Sort the vector, retrieve the sortex indexes and select only the first ndayschoices ones */
-      printf("%d %d\n",ntime_days,ndayschoices);
+      //      printf("%d %d\n",ntime_days,ndayschoices);
       (void) gsl_sort_smallest_index(metric_index, (size_t) ndayschoices, metric_norm, 1, (size_t) ntime_days);
       
       if (shuffle == TRUE) {
@@ -338,6 +338,7 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
         }
         /* Save analog day time index in the learning period */
         analog_days.tindex[t] = ntime_days_learn[min_metric_index];
+        analog_days.tindex_all[t] = buf_learn_sub_i[analog_days.tindex[t]];
         analog_days.year[t] = year_learn[analog_days.tindex[t]];
         analog_days.month[t] = month_learn[analog_days.tindex[t]];
         analog_days.day[t] = day_learn[analog_days.tindex[t]];
@@ -345,6 +346,7 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
         analog_days.year_s[t] = year[buf_sub_i[t]];
         analog_days.month_s[t] = month[buf_sub_i[t]];
         analog_days.day_s[t] = day[buf_sub_i[t]];
+        analog_days.tindex_s_all[t] = buf_sub_i[t];
       }
       
       /* Free memory */

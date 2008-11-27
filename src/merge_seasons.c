@@ -26,6 +26,7 @@ int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog
   for (t=0; t<ntimes; t++) {
     /* Retrieve current index */
     curindex_merged = analog_days.tindex_s_all[t];
+    //    printf("%d %d\n",t,analog_days.tindex_s_all[t]);
     /* Check for bounds */
     if (curindex_merged < 0 || curindex_merged >= ntimes_merged) {
       (void) fprintf(stderr, "%s: Fatal error: index in merged season vector outside bounds! curindex_merged=%d max=%d\n",

@@ -69,9 +69,13 @@ typedef struct {
   int nobs_var; /**< Number of observation variables. */
   char *frequency; /**< Frequency of observation data. */
   char *path; /**< Directory where observation data is stored: the template is of the form path/acronym_YYYYYYYY.nc where YYYYYYYY are the beginning and ending years concatenated. */
+  int month_begin; /**< The input year in the database begins at this month number (1-12). */
+  int year_digits; /**< Number of digits to represent years in observations data filename. */
   char **acronym; /**< Acronym for variable in filename and NetCDF file. */
   char **netcdfname; /**< Standard NetCDF variable acronym. */
   char **name; /**< Long name of observation variable. */
+  double *delta; /**< Value to add to get SI units. */
+  double *factor; /**< Value to multiply to get SI units. */
 } var_struct;
 
 /** Analog day structure analog_day_struct, season-dependent. */
@@ -275,6 +279,8 @@ typedef struct {
   double longitude_max; /**< Domain maximum longitude. */
   double latitude_min; /**< Domain minimum latitude. */
   double latitude_max; /**< Domain maximum latitude. */
+  char *output_path; /**< Output path. */
+  int output_month_begin; /**< Output month number (1-12) in where we begin the output year. */
   int nseasons; /**< Number of seasons. */
   season_struct *season; /**< Seasons definition. */
   int nperiods; /**< Number of periods. */
@@ -312,6 +318,7 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
 void compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days, double *sup_field_index,
                                         double *sup_field_index_learn, double sup_field_var, double sup_field_var_learn, int ntimes);
 int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int ntimes_merged, int ntimes);
+int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, double *time_ls, int ntime);
 void free_main_data(data_struct *data);
 
 #endif

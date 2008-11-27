@@ -16,19 +16,27 @@
   <setting name="base_time_units">days since 1900-01-01 12:00:00</setting>
   <setting name="base_calendar_type">gregorian</setting>
 
+  <!-- Output information -->
+  <setting name="output">
+    <setting name="path">/home/page/downscaling/data/results/SRESA1B/v2_new</setting>
+    <setting name="month_begin">08</setting>
+  </setting>
+
   <!-- Observation database for analog days -->
   <setting name="observations">
     <setting name="number_of_variables">7</setting>
     <setting name="frequency">daily</setting>
-    <setting name="path">/home/vittel/SAFRAN/netcdf/daily</setting>
+    <setting name="path">/home/vittel/SAFRAN/netcdf</setting>
+    <setting name="month_begin">08</setting>
+    <setting name="year_digits">2</setting>
     <setting name="variables">
-      <name id="1" acronym="T" netcdfname="tas">Temperature at 2 m</name>
-      <name id="2" acronym="Q" netcdfname="hus">Specific humidity at 2 m</name>
-      <name id="3" acronym="PRCP" netcdfname="prr">Liquid precipitation at the surface</name>
-      <name id="4" acronym="SNOW" netcdfname="prsn">Solid precipitation at the surface</name>
-      <name id="5" acronym="RAT" netcdfname="rlds">Incoming infra-red radiation at the surface</name>
-      <name id="6" acronym="GLO" netcdfname="rsds">Incoming shortwave radiation at the surface</name>
-      <name id="7" acronym="Vu" netcdfname="uvas">Wind speed module at 10 m</name>
+      <name id="1" acronym="T" netcdfname="tas" factor="1.0" delta="0.0">Temperature at 2 m</name>
+      <name id="2" acronym="Q" netcdfname="hus" factor="1.0" delta="0.0">Specific humidity at 2 m</name>
+      <name id="3" acronym="PRCP" netcdfname="prr" factor="1.0" delta="0.0">Liquid precipitation at the surface</name>
+      <name id="4" acronym="SNOW" netcdfname="prsn" factor="1.0" delta="0.0">Solid precipitation at the surface</name>
+      <name id="5" acronym="RAT" netcdfname="rlds" factor="1.0" delta="0.0">Incoming infra-red radiation at the surface</name>
+      <name id="6" acronym="GLO" netcdfname="rsds" factor="1.0" delta="0.0">Incoming shortwave radiation at the surface</name>
+      <name id="7" acronym="Vu" netcdfname="uvas" factor="1.0" delta="0.0">Wind speed module at 10 m</name>
     </setting>
   </setting>
 

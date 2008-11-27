@@ -73,12 +73,16 @@ void free_main_data(data_struct *data) {
         (void) free(data->field[i].data[j].down->smean_norm);
         (void) free(data->field[i].data[j].down->mean);
         (void) free(data->field[i].data[j].down->var);
+        for (s=0; s<data->conf->nseasons; s++)
+          (void) free(data->field[i].data[j].down->delta[s]);
         (void) free(data->field[i].data[j].down->delta);
       }
     }
 
     for (s=0; s<data->conf->nseasons; s++) {
       (void) free(data->field[i].analog_days[s].tindex);
+      (void) free(data->field[i].analog_days[s].tindex_all);
+      (void) free(data->field[i].analog_days[s].tindex_s_all);
       (void) free(data->field[i].analog_days[s].year);
       (void) free(data->field[i].analog_days[s].month);
       (void) free(data->field[i].analog_days[s].day);
@@ -87,6 +91,16 @@ void free_main_data(data_struct *data) {
       (void) free(data->field[i].analog_days[s].day_s);
     }
     (void) free(data->field[i].analog_days);
+
+    (void) free(data->field[i].analog_days_year.tindex);
+    (void) free(data->field[i].analog_days_year.tindex_all);
+    (void) free(data->field[i].analog_days_year.tindex_s_all);
+    (void) free(data->field[i].analog_days_year.year);
+    (void) free(data->field[i].analog_days_year.month);
+    (void) free(data->field[i].analog_days_year.day);
+    (void) free(data->field[i].analog_days_year.year_s);
+    (void) free(data->field[i].analog_days_year.month_s);
+    (void) free(data->field[i].analog_days_year.day_s);
 
     (void) free(data->field[i].precip_index);
 
@@ -139,6 +153,8 @@ void free_main_data(data_struct *data) {
       (void) free(data->conf->obs_var->acronym);
       (void) free(data->conf->obs_var->netcdfname);
       (void) free(data->conf->obs_var->name);
+      (void) free(data->conf->obs_var->factor);
+      (void) free(data->conf->obs_var->delta);
     }
   (void) free(data->conf->obs_var);
   
@@ -154,6 +170,7 @@ void free_main_data(data_struct *data) {
   (void) free(data->conf->timename);
   (void) free(data->conf->ptsname);
   (void) free(data->conf->clustname);
+  (void) free(data->conf->output_path);
 
   (void) free(data->conf->period);
   (void) free(data->conf->period_ctrl);

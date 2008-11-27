@@ -418,11 +418,14 @@ int wt_downscaling(data_struct *data) {
     /* Process only if, for this category, at least one secondary large-scale field is available */
     if (data->field[cat].n_ls > 0)
       /* Loop over each season */
-      for (s=0; s<data->conf->nseasons; s++)
-        (void) compute_secondary_large_scale_diff(data->field[cat].data[i].down->delta[s], data->field[cat].analog_days[s],
+      for (s=0; s<data->conf->nseasons; s++) {
+        data->field[cat].data[i].down->delta[s] = (double *) malloc(ntime_sub[cat][s] * sizeof(double));
+        if (data->field[cat].data[i].down->delta[s] == NULL) alloc_error(__FILE__, __LINE__);
+        (void) compute_secondary_large_scale_diff(data->field[cat].data[i].down->delta[s], data->field[cat-2].analog_days[s],
                                                   data->field[cat].data[i].down->smean_norm[s], data->learning->data[s].sup_index,
                                                   data->field[cat].data[i].down->var[s], data->learning->data[s].sup_index_var,
                                                   ntime_sub[cat][s]);
+      }
     /** Optionally save analog_days information in an output file **/
     /** TODO **/
   }
@@ -439,15 +442,34 @@ int wt_downscaling(data_struct *data) {
   for (cat=FIELD_LS; cat <= end_cat; cat++) {
     /* Process only if, for this category, at least one large-scale field is available */
     if (data->field[cat].n_ls > 0) {
+      data->field[cat].analog_days_year.tindex = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+      if (data->field[cat].analog_days_year.tindex == NULL) alloc_error(__FILE__, __LINE__);
+      data->field[cat].analog_days_year.tindex_all = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+      if (data->field[cat].analog_days_year.tindex_all == NULL) alloc_error(__FILE__, __LINE__);
+      data->field[cat].analog_days_year.year = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+      if (data->field[cat].analog_days_year.year == NULL) alloc_error(__FILE__, __LINE__);
+      data->field[cat].analog_days_year.month = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+      if (data->field[cat].analog_days_year.month == NULL) alloc_error(__FILE__, __LINE__);
+      data->field[cat].analog_days_year.day = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+      if (data->field[cat].analog_days_year.day == NULL) alloc_error(__FILE__, __LINE__);
+      data->field[cat].analog_days_year.tindex_s_all = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+      if (data->field[cat].analog_days_year.tindex_s_all == NULL) alloc_error(__FILE__, __LINE__);
+      data->field[cat].analog_days_year.year_s = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+      if (data->field[cat].analog_days_year.year_s == NULL) alloc_error(__FILE__, __LINE__);
+      data->field[cat].analog_days_year.month_s = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+      if (data->field[cat].analog_days_year.month_s == NULL) alloc_error(__FILE__, __LINE__);
+      data->field[cat].analog_days_year.day_s = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+      if (data->field[cat].analog_days_year.day_s == NULL) alloc_error(__FILE__, __LINE__);
       /* Loop over each season */
       for (s=0; s<data->conf->nseasons; s++) {
         /* Merge all seasons of analog_day data */
+        printf("Season: %d\n",s);
         istat = merge_seasons(data->field[cat].analog_days_year, data->field[cat].analog_days[s],
                               data->field[cat].ntime_ls, ntime_sub[cat][s]);
         if (istat != 0) return istat;
       }
       /* Process all data */
-      //      istat = output_downscaled_analog(data->field[cat].analog_days_year, data->field[cat].ntime_ls);
+      istat = output_downscaled_analog(data->field[cat].analog_days_year, data, data->field[cat].time_ls, data->field[cat].ntime_ls);
     }
   }
           

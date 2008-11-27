@@ -329,6 +329,29 @@ int load_conf(data_struct *data, char *fileconf) {
     data->conf->latitude_max = 60.0;
   (void) fprintf(stdout, "%s: Large-scale domain latitude max = %lf\n", __FILE__, data->conf->latitude_max);
 
+  /**** OUTPUT CONFIGURATION ****/
+
+  /** path **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "output", "setting", "path");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->output_path = strdup((char *) val);
+  else {
+    (void) fprintf(stderr, "%s: Missing or invalid output path setting. Aborting.\n", __FILE__);
+    return -1;
+  }
+  (void) fprintf(stdout, "%s: output path = %s\n", __FILE__, data->conf->output_path);
+
+  /** month_begin **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "output", "setting", "month_begin");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->output_month_begin = xmlXPathCastStringToNumber(val);
+  else {
+    (void) fprintf(stderr, "%s: Missing or invalid output month_begin setting. Aborting.\n", __FILE__);
+    return -1;
+  }
+  (void) fprintf(stdout, "%s: output month_begin = %d\n", __FILE__, data->conf->output_month_begin);
 
   /**** OBSERVATION DATABASE CONFIGURATION ****/
 
@@ -350,11 +373,15 @@ int load_conf(data_struct *data, char *fileconf) {
     if (data->conf->obs_var->netcdfname == NULL) alloc_error(__FILE__, __LINE__);
     data->conf->obs_var->name = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
     if (data->conf->obs_var->name == NULL) alloc_error(__FILE__, __LINE__);
+    data->conf->obs_var->factor = (double *) malloc(data->conf->obs_var->nobs_var * sizeof(double));
+    if (data->conf->obs_var->factor == NULL) alloc_error(__FILE__, __LINE__);
+    data->conf->obs_var->delta = (double *) malloc(data->conf->obs_var->nobs_var * sizeof(double));
+    if (data->conf->obs_var->delta == NULL) alloc_error(__FILE__, __LINE__);
 
     /* Loop over observation variables */
     for (i=0; i<data->conf->obs_var->nobs_var; i++) {
 
-      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]/%s[@id=\"%d\"]@\"%s\"", "setting", "observations", "setting", "variables", "name", i+1, "acronym");
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]/%s[@id=\"%d\"]/@%s", "setting", "observations", "setting", "variables", "name", i+1, "acronym");
       val = xml_get_setting(conf, path);
       if (val != NULL)
         data->conf->obs_var->acronym[i] = strdup((char *) val);
@@ -363,7 +390,7 @@ int load_conf(data_struct *data, char *fileconf) {
         return -1;
       }
 
-      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]/%s[@id=\"%d\"]@\"%s\"", "setting", "observations", "setting", "variables", "name", i+1, "netcdfname");
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]/%s[@id=\"%d\"]/@%s", "setting", "observations", "setting", "variables", "name", i+1, "netcdfname");
       val = xml_get_setting(conf, path);
       if (val != NULL)
         data->conf->obs_var->netcdfname[i] = strdup((char *) val);
@@ -380,10 +407,76 @@ int load_conf(data_struct *data, char *fileconf) {
         (void) fprintf(stderr, "%s: Missing or invalid observation variable name setting. Aborting.\n", __FILE__);
         return -1;
       }
+
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]/%s[@id=\"%d\"]/@%s", "setting", "observations", "setting", "variables", "name", i+1, "factor");
+      val = xml_get_setting(conf, path);
+      if (val != NULL)
+        data->conf->obs_var->factor[i] = (double) xmlXPathCastStringToNumber(val);
+      else {
+        (void) fprintf(stderr, "%s: Missing or invalid observation variable factor setting. Aborting.\n", __FILE__);
+        return -1;
+      }
+
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]/%s[@id=\"%d\"]/@%s", "setting", "observations", "setting", "variables", "name", i+1, "delta");
+      val = xml_get_setting(conf, path);
+      if (val != NULL)
+        data->conf->obs_var->delta[i] = (double) xmlXPathCastStringToNumber(val);
+      else {
+        (void) fprintf(stderr, "%s: Missing or invalid observation variable delta setting. Aborting.\n", __FILE__);
+        return -1;
+      }
+
+      (void) printf("%s: Variable id=%d name=\"%s\" netcdfname=%s acronym=%s factor=%f delta=%f\n", __FILE__, i+1, data->conf->obs_var->name[i], data->conf->obs_var->netcdfname[i], data->conf->obs_var->acronym[i], data->conf->obs_var->factor[i], data->conf->obs_var->delta[i]);
     }
   }
   else {
     (void) fprintf(stderr, "%s: Invalid number_of_variables value %s in configuration file. Aborting.\n", __FILE__, val);
+    return -1;
+  }
+
+  /** Data frequency **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "observations", "setting", "frequency");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->obs_var->frequency = strdup((char *) val);
+  else {
+    (void) fprintf(stderr, "%s: Missing or invalid observations data frequency setting. Aborting.\n", __FILE__);
+    return -1;
+  }
+
+  /** Number of digits for year in data filename **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "observations", "setting", "year_digits");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->conf->obs_var->year_digits = (int) xmlXPathCastStringToNumber(val);
+    if (data->conf->obs_var->year_digits != 2 && data->conf->obs_var->year_digits != 4) {
+      (void) fprintf(stderr, "%s: Invalid observations data year_digits setting %d. Only values of 2 or 4 are valid. Aborting.\n",
+                     __FILE__, data->conf->obs_var->year_digits);
+      return -1;
+    }
+  }
+  else {
+    (void) fprintf(stderr, "%s: Missing or invalid observations data year_digits setting. Aborting.\n", __FILE__);
+    return -1;
+  }
+
+  /** Data path **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "observations", "setting", "path");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->obs_var->path = strdup((char *) val);
+  else {
+    (void) fprintf(stderr, "%s: Missing or invalid observations data path setting. Aborting.\n", __FILE__);
+    return -1;
+  }
+
+  /** month_begin **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "observations", "setting", "month_begin");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->obs_var->month_begin = xmlXPathCastStringToNumber(val);
+  else {
+    (void) fprintf(stderr, "%s: Missing or invalid observations data month_begin setting. Aborting.\n", __FILE__);
     return -1;
   }
 
