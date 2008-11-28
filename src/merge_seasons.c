@@ -26,7 +26,6 @@ int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog
   for (t=0; t<ntimes; t++) {
     /* Retrieve current index */
     curindex_merged = analog_days.tindex_s_all[t];
-    //    printf("%d %d\n",t,analog_days.tindex_s_all[t]);
     /* Check for bounds */
     if (curindex_merged < 0 || curindex_merged >= ntimes_merged) {
       (void) fprintf(stderr, "%s: Fatal error: index in merged season vector outside bounds! curindex_merged=%d max=%d\n",
@@ -34,10 +33,15 @@ int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog
       return -1;
     }
     /* Retrieve values */
-    analog_days_merged.tindex_s_all[curindex_merged] = analog_days.tindex_all[t];
-    analog_days_merged.year_s[curindex_merged] = analog_days.year[t];
-    analog_days_merged.month_s[curindex_merged] = analog_days.month[t];
-    analog_days_merged.day_s[curindex_merged] = analog_days.day[t];
+    analog_days_merged.tindex_all[curindex_merged] = analog_days.tindex_all[t];
+    analog_days_merged.year[curindex_merged] = analog_days.year[t];
+    analog_days_merged.month[curindex_merged] = analog_days.month[t];
+    analog_days_merged.day[curindex_merged] = analog_days.day[t];
+
+    analog_days_merged.tindex_s_all[curindex_merged] = analog_days.tindex_s_all[t];
+    analog_days_merged.year_s[curindex_merged] = analog_days.year_s[t];
+    analog_days_merged.month_s[curindex_merged] = analog_days.month_s[t];
+    analog_days_merged.day_s[curindex_merged] = analog_days.day_s[t];
   }
   
   /* Success status */

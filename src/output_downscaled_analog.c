@@ -47,6 +47,7 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
   proj_struct *proj = NULL; /* Temporary projection information structure */
 
   int tmpi; /* Temporay integer value */
+  char *format = NULL; /* Temporay format string */
 
   int t; /* Time loop counter */
   int tl; /* Time loop counter */
@@ -61,6 +62,8 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
   if (infile == NULL) alloc_error(__FILE__, __LINE__);
   outfile = (char *) malloc(5000 * sizeof(char));
   if (outfile == NULL) alloc_error(__FILE__, __LINE__);
+  format = (char *) malloc(5000 * sizeof(char));
+  if (format == NULL) alloc_error(__FILE__, __LINE__);
 
   if (data->conf->output_month_begin == 1)
     output_month_end = 12;
@@ -73,40 +76,42 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
     /** Retrieve dimensions for this variable if needed, using the first timestep **/
 
     /* Create input filename for retrieving dimensions */
+    (void) strcpy(format, "%s/%s/");
+    (void) strcat(format, data->conf->obs_var->template);
     if (data->conf->obs_var->month_begin != 1) {
       /* Months in observation files *does not* begin in January: must have 2 years in filename */
-      printf("%d %d %d\n",analog_days.month[0] , data->conf->obs_var->month_begin,analog_days.year[0]);
+      printf("%d %d %d\n",analog_days.month[0], data->conf->obs_var->month_begin,analog_days.year[0]);
       if (analog_days.month[0] < data->conf->obs_var->month_begin)
         year1 = analog_days.year[0] - 1;
       else
         year1 = analog_days.year[0];
       year2 = year1 + 1;
       if (data->conf->obs_var->year_digits == 4)
-        (void) sprintf(infile, "%s/%s/%s_%d%d.nc", data->conf->obs_var->path, data->conf->obs_var->frequency, data->conf->obs_var->acronym[var], year1, year2);
+        (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency, data->conf->obs_var->acronym[var], year1, year2);
       else {
         tmpi = year1 / 100;
         year1 = year1 - (tmpi*100);
         tmpi = year2 / 100;
         year2 = year2 - (tmpi*100);
-        (void) sprintf(infile, "%s/%s/%s_%02d%02d.nc", data->conf->obs_var->path, data->conf->obs_var->frequency,
+        (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
                        data->conf->obs_var->acronym[var], year1, year2);
       }
     }
     else {
       /* Months in observation files begins in January: must have 1 year in filename */
       if (data->conf->obs_var->year_digits == 4)
-        (void) sprintf(infile, "%s/%s/%s_%d.nc", data->conf->obs_var->path, data->conf->obs_var->frequency,
+        (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
                        data->conf->obs_var->acronym[var], year1);
       else {
         tmpi = year1 / 100;
         year1 = year1 - (tmpi*100);
-        (void) sprintf(infile, "%s/%s/%s_%02d.nc", data->conf->obs_var->path, data->conf->obs_var->frequency,
+        (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
                        data->conf->obs_var->acronym[var], year1);
       }
     }
     istat = read_netcdf_dims_3d(&lon, &lat, &timeval, &cal_type, &time_units, &nlon, &nlat, &ntime_obs,
-                                data->info, data->conf->proj->coords, data->conf->proj->name,
-                                data->conf->lonname, data->conf->latname, data->conf->timename,
+                                data->info, data->conf->obs_var->proj->coords, data->conf->obs_var->proj->name,
+                                data->conf->obs_var->lonname, data->conf->obs_var->latname, data->conf->obs_var->timename,
                                 infile);
     (void) free(timeval);
     (void) free(cal_type);
@@ -178,11 +183,11 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
         ctimeval[0] = time_ls[0];
         istat = write_netcdf_dims_3d(lon, lat, ctimeval, data->conf->cal_type,
                                      data->conf->time_units, nlon, nlat, 1,
-                                     data->info->timestep, data->conf->proj->name, data->conf->proj->coords,
-                                     data->conf->proj->grid_mapping_name, data->conf->proj->latin1,
-                                     data->conf->proj->latin2, data->conf->proj->lonc, data->conf->proj->lat0,
-                                     data->conf->proj->false_easting, data->conf->proj->false_northing,
-                                     data->conf->lonname, data->conf->latname, data->conf->timename,
+                                     data->info->timestep, data->conf->obs_var->proj->name, data->conf->obs_var->proj->coords,
+                                     data->conf->obs_var->proj->grid_mapping_name, data->conf->obs_var->proj->latin1,
+                                     data->conf->obs_var->proj->latin2, data->conf->obs_var->proj->lonc, data->conf->obs_var->proj->lat0,
+                                     data->conf->obs_var->proj->false_easting, data->conf->obs_var->proj->false_northing,
+                                     data->conf->obs_var->lonname, data->conf->obs_var->latname, data->conf->obs_var->timename,
                                      outfile);
         if (istat != 0) {
           /* In case of failure */
@@ -196,6 +201,8 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
       }
 
       /* Create input filename for reading data */
+      (void) strcpy(format, "%s/%s/");
+      (void) strcat(format, data->conf->obs_var->template);
       if (data->conf->obs_var->month_begin != 1) {
         /* Months in observation files *does not* begin in January: must have 2 years in filename */
         if (analog_days.month[t] < data->conf->obs_var->month_begin)
@@ -204,26 +211,26 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
           year1 = analog_days.year[t];
         year2 = year1 + 1;
         if (data->conf->obs_var->year_digits == 4)
-          (void) sprintf(infile, "%s/%s/%s_%d%d.nc", data->conf->obs_var->path, data->conf->obs_var->frequency,
+          (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
                          data->conf->obs_var->acronym[var], year1, year2);
         else {
           tmpi = year1 / 100;
           year1 = year1 - (tmpi*100);
           tmpi = year2 / 100;
           year2 = year2 - (tmpi*100);
-          (void) sprintf(infile, "%s/%s/%s_%02d%02d.nc", data->conf->obs_var->path, data->conf->obs_var->frequency,
+          (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
                          data->conf->obs_var->acronym[var], year1, year2);
         }
       }
       else {
         /* Months in observation files begins in January: must have 1 year in filename */
         if (data->conf->obs_var->year_digits == 4)
-          (void) sprintf(infile, "%s/%s/%s_%d.nc", data->conf->obs_var->path, data->conf->obs_var->frequency,
+          (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
                          data->conf->obs_var->acronym[var], year1);
         else {
           tmpi = year1 / 100;
           year1 = year1 - (tmpi*100);
-          (void) sprintf(infile, "%s/%s/%s_%02d.nc", data->conf->obs_var->path, data->conf->obs_var->frequency,
+          (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
                          data->conf->obs_var->acronym[var], year1);
         }
       }
@@ -246,7 +253,7 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
       proj = (proj_struct *) malloc(sizeof(proj_struct));
       if (proj == NULL) alloc_error(__FILE__, __LINE__);
       istat = read_netcdf_var_3d_2d(&buf, info, proj, infile, data->conf->obs_var->acronym[var],
-                                    data->conf->lonname, data->conf->latname, data->conf->timename,
+                                    data->conf->obs_var->lonname, data->conf->obs_var->latname, data->conf->obs_var->timename,
                                     tl, &nlon_file, &nlat_file, &ntime_file);
 
       /* Apply modifications to data if needed */
@@ -254,7 +261,7 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
       /* Write data */
       istat = write_netcdf_var_3d_2d(buf, time_ls, info->fillvalue, outfile, data->conf->obs_var->netcdfname[var],
                                      proj->grid_mapping_name,
-                                     data->conf->lonname, data->conf->latname, data->conf->timename,
+                                     data->conf->obs_var->lonname, data->conf->obs_var->latname, data->conf->obs_var->timename,
                                      t, nlon_file, nlat_file, ntime_file);
     
       (void) free(timeval);
@@ -276,6 +283,7 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
 
   (void) free(infile);
   (void) free(outfile);
+  (void) free(format);
 
   /* Success diagnostic */
   return 0;

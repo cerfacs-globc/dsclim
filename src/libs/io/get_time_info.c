@@ -118,14 +118,19 @@ int get_time_info(time_struct *time_s, double **timeval, char **time_units, char
 
   /* Get calendar type attribute length */
   istat = nc_inq_attlen(ncinid, timeinid, "calendar", &t_len);
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  /* Allocate required space before retrieving values */
-  (*cal_type) = (char *) malloc(t_len + 1);
-  if ((*cal_type) == NULL) alloc_error(__FILE__, __LINE__);
-  /* Get calendar type attribute value */
-  istat = nc_get_att_text(ncinid, timeinid, "calendar", *cal_type);
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  (*cal_type)[t_len] = '\0'; /* null terminate */
+  if (istat != NC_NOERR) {
+    /* If not present, assume standard calendar */
+    *cal_type = strdup("gregorian");
+  }
+  else {
+    /* Allocate required space before retrieving values */
+    (*cal_type) = (char *) malloc(t_len + 1);
+    if ((*cal_type) == NULL) alloc_error(__FILE__, __LINE__);
+    /* Get calendar type attribute value */
+    istat = nc_get_att_text(ncinid, timeinid, "calendar", *cal_type);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    (*cal_type)[t_len] = '\0'; /* null terminate */
+  }
 
   /* Compute time info and store into easy time structure */
   time_s->year = (int *) malloc((*ntime) * sizeof(int));

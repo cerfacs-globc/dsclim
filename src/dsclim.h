@@ -67,10 +67,15 @@
 /** Data structure var_struct for observation database variables. */
 typedef struct {
   int nobs_var; /**< Number of observation variables. */
+  char *lonname; /**< Longitude dimension name for observation files. */
+  char *latname; /**< Latitude dimension name for observation files. */
+  char *timename; /**< Time dimension name for observation files. */
+  proj_struct *proj; /**< Projection information of large scale fields. */
   char *frequency; /**< Frequency of observation data. */
   char *path; /**< Directory where observation data is stored: the template is of the form path/acronym_YYYYYYYY.nc where YYYYYYYY are the beginning and ending years concatenated. */
   int month_begin; /**< The input year in the database begins at this month number (1-12). */
   int year_digits; /**< Number of digits to represent years in observations data filename. */
+  char *template; /**< Observation datafiles template. */
   char **acronym; /**< Acronym for variable in filename and NetCDF file. */
   char **netcdfname; /**< Standard NetCDF variable acronym. */
   char **name; /**< Long name of observation variable. */
@@ -114,7 +119,7 @@ typedef struct {
   char *eof_fileout_ls; /**< EOF and singular values of large-scale fields input filename. */
   info_field_struct *info; /**< Information (field attributes) about large scale fields EOF. */
   int neof_ls; /**< EOF dimension of large scale fields. */
-  char *eof_coords; /**< EOF coordinates NetCDF variable name. */
+  char *eof_coords; /**< EOF coordinates NetCDF (1D or 2D). */
 } eof_info_struct;
 
 /** Climatology information structure clim_info_struct. */
@@ -274,7 +279,6 @@ typedef struct {
   char *eofname; /**< EOF dimension name for downscaling. */
   char *ptsname; /**< Points dimension name for downscaling. */
   char *clustname; /**< Cluster dimension name. */
-  proj_struct *proj; /**< Projection information for downscaling. */
   double longitude_min; /**< Domain minimum longitude. */
   double longitude_max; /**< Domain maximum longitude. */
   double latitude_min; /**< Domain minimum latitude. */

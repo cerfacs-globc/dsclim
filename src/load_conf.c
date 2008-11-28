@@ -44,8 +44,6 @@ int load_conf(data_struct *data, char *fileconf) {
   /* Allocate memory in main data structure */
   data->conf = (conf_struct *) malloc(sizeof(conf_struct));
   if (data->conf == NULL) alloc_error(__FILE__, __LINE__);
-  data->conf->proj = (proj_struct *) malloc(sizeof(proj_struct));
-  if (data->conf->proj == NULL) alloc_error(__FILE__, __LINE__);
   data->conf->period_ctrl = (period_struct *) malloc(sizeof(period_struct));
   if (data->conf->period_ctrl == NULL) alloc_error(__FILE__, __LINE__);
   data->info = (info_struct *) malloc(sizeof(info_struct));
@@ -208,89 +206,6 @@ int load_conf(data_struct *data, char *fileconf) {
   (void) fprintf(stdout, "%s: clust_name = %s\n", __FILE__, data->conf->clustname);
 
 
-  /**** DOWNSCALING OUTPUT CONFIGURATION ****/
-
-  /** name **/
-  (void) sprintf(path, "/configuration/%s[@name=\"projection\"]/%s", "setting", "name");
-  val = xml_get_setting(conf, path);
-  if (val != NULL)
-    data->conf->proj->name = strdup((char *) val);
-  else
-    data->conf->proj->name = strdup("Lambert_Conformal");
-  (void) fprintf(stdout, "%s: output projection name = %s\n", __FILE__, data->conf->proj->name);
-
-  /** coordinates **/
-  (void) sprintf(path, "/configuration/%s[@name=\"projection\"]/%s", "setting", "coordinates");
-  val = xml_get_setting(conf, path);
-  if (val != NULL)
-    data->conf->proj->coords = strdup((char *) val);
-  else
-    data->conf->proj->coords = strdup("2D");
-  (void) fprintf(stdout, "%s: output projection coords = %s\n", __FILE__, data->conf->proj->coords);
-
-  /** grid_mapping_name **/
-  (void) sprintf(path, "/configuration/%s[@name=\"projection\"]/%s", "setting", "grid_mapping_name");
-  val = xml_get_setting(conf, path);
-  if (val != NULL)
-    data->conf->proj->grid_mapping_name = strdup((char *) val);
-  else
-    data->conf->proj->grid_mapping_name = strdup("lambert_conformal_conic");
-  (void) fprintf(stdout, "%s: output projection grid_mapping_name = %s\n", __FILE__, data->conf->proj->grid_mapping_name);
-
-  /** latin1 **/
-  (void) sprintf(path, "/configuration/%s[@name=\"projection\"]/%s", "setting", "latin1");
-  val = xml_get_setting(conf, path);
-  if (val != NULL)
-    (void) sscanf((char *) val, "%lf", &(data->conf->proj->latin1));
-  else
-    data->conf->proj->latin1 = 45.89892;
-  (void) fprintf(stdout, "%s: output projection latin1 = %lf\n", __FILE__, data->conf->proj->latin1);
-
-  /** latin2 **/
-  (void) sprintf(path, "/configuration/%s[@name=\"projection\"]/%s", "setting", "latin2");
-  val = xml_get_setting(conf, path);
-  if (val != NULL)
-    (void) sscanf((char *) val, "%lf", &(data->conf->proj->latin2));
-  else
-    data->conf->proj->latin2 = 47.69601;
-  (void) fprintf(stdout, "%s: output projection latin2 = %lf\n", __FILE__, data->conf->proj->latin2);
-
-  /** lonc **/
-  (void) sprintf(path, "/configuration/%s[@name=\"projection\"]/%s", "setting", "lonc");
-  val = xml_get_setting(conf, path);
-  if (val != NULL)
-    (void) sscanf((char *) val, "%lf", &(data->conf->proj->lonc));
-  else
-    data->conf->proj->lonc = 2.337229;
-  (void) fprintf(stdout, "%s: output projection lonc = %lf\n", __FILE__, data->conf->proj->lonc);
-
-  /** lat0 **/
-  (void) sprintf(path, "/configuration/%s[@name=\"projection\"]/%s", "setting", "lat0");
-  val = xml_get_setting(conf, path);
-  if (val != NULL)
-    (void) sscanf((char *) val, "%lf", &(data->conf->proj->lat0));
-  else
-    data->conf->proj->lat0 = 46.8;
-  (void) fprintf(stdout, "%s: output projection lat0 = %lf\n", __FILE__, data->conf->proj->lat0);
-
-  /** false_easting **/
-  (void) sprintf(path, "/configuration/%s[@name=\"projection\"]/%s", "setting", "false_easting");
-  val = xml_get_setting(conf, path);
-  if (val != NULL)
-    (void) sscanf((char *) val, "%lf", &(data->conf->proj->false_easting));
-  else
-    data->conf->proj->false_easting = 600000.0;
-  (void) fprintf(stdout, "%s: output projection false_easting = %lf\n", __FILE__, data->conf->proj->false_easting);
-
-  /** false_northing **/
-  (void) sprintf(path, "/configuration/%s[@name=\"projection\"]/%s", "setting", "false_northing");
-  val = xml_get_setting(conf, path);
-  if (val != NULL)
-    (void) sscanf((char *) val, "%lf", &(data->conf->proj->false_northing));
-  else
-    data->conf->proj->false_northing = 2200000.0;
-  (void) fprintf(stdout, "%s: output projection false_northing = %lf\n", __FILE__, data->conf->proj->false_northing);
-
   /**** LARGE-SCALE DOMAIN CONFIGURATION ****/
 
   /** longitude min **/
@@ -332,7 +247,7 @@ int load_conf(data_struct *data, char *fileconf) {
   /**** OUTPUT CONFIGURATION ****/
 
   /** path **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "output", "setting", "path");
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "path");
   val = xml_get_setting(conf, path);
   if (val != NULL)
     data->conf->output_path = strdup((char *) val);
@@ -343,7 +258,7 @@ int load_conf(data_struct *data, char *fileconf) {
   (void) fprintf(stdout, "%s: output path = %s\n", __FILE__, data->conf->output_path);
 
   /** month_begin **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "output", "setting", "month_begin");
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "month_begin");
   val = xml_get_setting(conf, path);
   if (val != NULL)
     data->conf->output_month_begin = xmlXPathCastStringToNumber(val);
@@ -357,9 +272,11 @@ int load_conf(data_struct *data, char *fileconf) {
 
   data->conf->obs_var = (var_struct *) malloc(sizeof(var_struct));
   if (data->conf->obs_var == NULL) alloc_error(__FILE__, __LINE__);
+  data->conf->obs_var->proj = (proj_struct *) malloc(sizeof(proj_struct));
+  if (data->conf->obs_var->proj == NULL) alloc_error(__FILE__, __LINE__);
 
   /** number_of_variables **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "observations", "setting", "number_of_variables");
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations", "number_of_variables");
   val = xml_get_setting(conf, path);
   if (val != NULL) {
     data->conf->obs_var->nobs_var = (int) xmlXPathCastStringToNumber(val);
@@ -435,7 +352,7 @@ int load_conf(data_struct *data, char *fileconf) {
   }
 
   /** Data frequency **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "observations", "setting", "frequency");
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations", "frequency");
   val = xml_get_setting(conf, path);
   if (val != NULL)
     data->conf->obs_var->frequency = strdup((char *) val);
@@ -444,8 +361,19 @@ int load_conf(data_struct *data, char *fileconf) {
     return -1;
   }
 
+  /** template **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations", "template");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->obs_var->template = strdup((char *) val);
+  else {
+    (void) fprintf(stderr, "%s: Missing or invalid output template setting. Aborting.\n", __FILE__);
+    return -1;
+  }
+  (void) fprintf(stdout, "%s: output template = %s\n", __FILE__, data->conf->obs_var->template);
+
   /** Number of digits for year in data filename **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "observations", "setting", "year_digits");
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations", "year_digits");
   val = xml_get_setting(conf, path);
   if (val != NULL) {
     data->conf->obs_var->year_digits = (int) xmlXPathCastStringToNumber(val);
@@ -461,7 +389,7 @@ int load_conf(data_struct *data, char *fileconf) {
   }
 
   /** Data path **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "observations", "setting", "path");
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations", "path");
   val = xml_get_setting(conf, path);
   if (val != NULL)
     data->conf->obs_var->path = strdup((char *) val);
@@ -471,7 +399,7 @@ int load_conf(data_struct *data, char *fileconf) {
   }
 
   /** month_begin **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@name=\"%s\"]", "setting", "observations", "setting", "month_begin");
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations", "month_begin");
   val = xml_get_setting(conf, path);
   if (val != NULL)
     data->conf->obs_var->month_begin = xmlXPathCastStringToNumber(val);
@@ -479,6 +407,51 @@ int load_conf(data_struct *data, char *fileconf) {
     (void) fprintf(stderr, "%s: Missing or invalid observations data month_begin setting. Aborting.\n", __FILE__);
     return -1;
   }
+
+  /** longitude_name **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations", "longitude_name");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->obs_var->lonname = strdup((char *) val);
+  else
+    data->conf->obs_var->lonname = strdup("lon");  
+  (void) fprintf(stdout, "%s: Observations longitude_name = %s\n", __FILE__, data->conf->obs_var->lonname);
+
+  /** latitude_name **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations", "latitude_name");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->obs_var->latname = strdup((char *) val);
+  else
+    data->conf->obs_var->latname = strdup("lat");
+  (void) fprintf(stdout, "%s: Observations latitude_name = %s\n", __FILE__, data->conf->obs_var->latname);
+
+  /** time_name **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations",  "time_name");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->obs_var->timename = strdup((char *) val);
+  else
+    data->conf->obs_var->timename = strdup("time");
+  (void) fprintf(stdout, "%s: Observations time_name = %s\n", __FILE__, data->conf->obs_var->timename);
+
+  /** coords **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations", "coords");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->obs_var->proj->coords = strdup((char *) val);
+  else
+    data->conf->obs_var->proj->coords = strdup("1D");
+  (void) fprintf(stdout, "%s: Observations coords = %s\n", __FILE__, data->conf->obs_var->proj->coords);
+
+  /** coords **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations", "coords");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->obs_var->proj->coords = strdup((char *) val);
+  else
+    data->conf->obs_var->proj->coords = strdup("1D");
+  (void) fprintf(stdout, "%s: Observations coords = %s\n", __FILE__, data->conf->obs_var->proj->coords);
 
   /**** CONTROL-RUN PERIOD CONFIGURATION ****/
 

@@ -148,14 +148,24 @@ void free_main_data(data_struct *data) {
   (void) free(data->reg->latname);
   (void) free(data->reg->ptsname);
 
-  if (data->conf->obs_var->nobs_var > 0)
+  if (data->conf->obs_var->nobs_var > 0) {
     for (i=0; i<data->conf->obs_var->nobs_var; i++) {
-      (void) free(data->conf->obs_var->acronym);
-      (void) free(data->conf->obs_var->netcdfname);
-      (void) free(data->conf->obs_var->name);
-      (void) free(data->conf->obs_var->factor);
-      (void) free(data->conf->obs_var->delta);
+      (void) free(data->conf->obs_var->acronym[i]);
+      (void) free(data->conf->obs_var->netcdfname[i]);
+      (void) free(data->conf->obs_var->name[i]);
     }
+    (void) free(data->conf->obs_var->acronym);
+    (void) free(data->conf->obs_var->netcdfname);
+    (void) free(data->conf->obs_var->name);
+    (void) free(data->conf->obs_var->factor);
+    (void) free(data->conf->obs_var->delta);
+  }
+  (void) free(data->conf->obs_var->template);
+  (void) free(data->conf->obs_var->latname);
+  (void) free(data->conf->obs_var->lonname);
+  (void) free(data->conf->obs_var->timename);
+  (void) free(data->conf->obs_var->proj->coords);
+  (void) free(data->conf->obs_var->proj);
   (void) free(data->conf->obs_var);
   
   (void) free(data->conf->clim_filter_type);
@@ -175,11 +185,6 @@ void free_main_data(data_struct *data) {
   (void) free(data->conf->period);
   (void) free(data->conf->period_ctrl);
   (void) free(data->conf->season);
-
-  (void) free(data->conf->proj->name);
-  (void) free(data->conf->proj->coords);
-  (void) free(data->conf->proj->grid_mapping_name);
-  (void) free(data->conf->proj);
 
   (void) free(data->learning->data);
 
