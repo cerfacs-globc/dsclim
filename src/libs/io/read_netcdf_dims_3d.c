@@ -141,6 +141,8 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   if (varndims != 1) {
     (void) fprintf(stderr, "Error NetCDF type and/or dimensions %d != 1.\n", varndims);
+    istat = ncclose(ncinid);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     return -1;
   }
 
@@ -152,6 +154,8 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
   if (varndims != ndims) {
     (void) fprintf(stderr, "Error NetCDF type and/or dimensions %d != %d.\n", varndims, ndims);
+    istat = ncclose(ncinid);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     return -1;
   }
 
@@ -163,6 +167,8 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
   if (varndims != ndims) {
     (void) fprintf(stderr, "Error NetCDF type and/or dimensions %d != %d.\n", varndims, ndims);
+    istat = ncclose(ncinid);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     return -1;
   }
 
@@ -175,31 +181,32 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
   }
 
   /* Get global attributes */
-  (void) get_attribute_str(&(info->title), ncinid, NC_GLOBAL, "title");
-  (void) get_attribute_str(&(info->title_french), ncinid, NC_GLOBAL, "title_french");
-  (void) get_attribute_str(&(info->summary), ncinid, NC_GLOBAL, "summary");
-  (void) get_attribute_str(&(info->summary_french), ncinid, NC_GLOBAL, "summary_french");
-  (void) get_attribute_str(&(info->keywords), ncinid, NC_GLOBAL, "keywords");
-  (void) get_attribute_str(&(info->processor), ncinid, NC_GLOBAL, "processor");
-  (void) get_attribute_str(&(info->description), ncinid, NC_GLOBAL, "description");
-  (void) get_attribute_str(&(info->institution), ncinid, NC_GLOBAL, "institution");
-  (void) get_attribute_str(&(info->creator_email), ncinid, NC_GLOBAL, "creator_email");
-  (void) get_attribute_str(&(info->creator_url), ncinid, NC_GLOBAL, "creator_url");
-  (void) get_attribute_str(&(info->creator_name), ncinid, NC_GLOBAL, "creator_name");
-  (void) get_attribute_str(&(info->version), ncinid, NC_GLOBAL, "version");
-  (void) get_attribute_str(&(info->scenario), ncinid, NC_GLOBAL, "scenario");
-  (void) get_attribute_str(&(info->scenario_co2), ncinid, NC_GLOBAL, "scenario_co2");
-  (void) get_attribute_str(&(info->model), ncinid, NC_GLOBAL, "model");
-  (void) get_attribute_str(&(info->institution_model), ncinid, NC_GLOBAL, "institution_model");
-  (void) get_attribute_str(&(info->country), ncinid, NC_GLOBAL, "country");
-  (void) get_attribute_str(&(info->member), ncinid, NC_GLOBAL, "member");
-  (void) get_attribute_str(&(info->downscaling_forcing), ncinid, NC_GLOBAL, "downscaling_forcing");
-  (void) get_attribute_str(&(info->timestep), ncinid, NC_GLOBAL, "timestep");
-  (void) get_attribute_str(&(info->member), ncinid, NC_GLOBAL, "member");
-  (void) get_attribute_str(&(info->contact_email), ncinid, NC_GLOBAL, "contact_email");
-  (void) get_attribute_str(&(info->contact_name), ncinid, NC_GLOBAL, "contact_name");
-  (void) get_attribute_str(&(info->other_contact_email), ncinid, NC_GLOBAL, "other_contact_email");
-  (void) get_attribute_str(&(info->other_contact_name), ncinid, NC_GLOBAL, "other_contact_name");
+  if (info->title == NULL) {
+    (void) get_attribute_str(&(info->title), ncinid, NC_GLOBAL, "title");
+    (void) get_attribute_str(&(info->title_french), ncinid, NC_GLOBAL, "title_french");
+    (void) get_attribute_str(&(info->summary), ncinid, NC_GLOBAL, "summary");
+    (void) get_attribute_str(&(info->summary_french), ncinid, NC_GLOBAL, "summary_french");
+    (void) get_attribute_str(&(info->keywords), ncinid, NC_GLOBAL, "keywords");
+    (void) get_attribute_str(&(info->processor), ncinid, NC_GLOBAL, "processor");
+    (void) get_attribute_str(&(info->description), ncinid, NC_GLOBAL, "description");
+    (void) get_attribute_str(&(info->institution), ncinid, NC_GLOBAL, "institution");
+    (void) get_attribute_str(&(info->creator_email), ncinid, NC_GLOBAL, "creator_email");
+    (void) get_attribute_str(&(info->creator_url), ncinid, NC_GLOBAL, "creator_url");
+    (void) get_attribute_str(&(info->creator_name), ncinid, NC_GLOBAL, "creator_name");
+    (void) get_attribute_str(&(info->version), ncinid, NC_GLOBAL, "version");
+    (void) get_attribute_str(&(info->scenario), ncinid, NC_GLOBAL, "scenario");
+    (void) get_attribute_str(&(info->scenario_co2), ncinid, NC_GLOBAL, "scenario_co2");
+    (void) get_attribute_str(&(info->model), ncinid, NC_GLOBAL, "model");
+    (void) get_attribute_str(&(info->institution_model), ncinid, NC_GLOBAL, "institution_model");
+    (void) get_attribute_str(&(info->country), ncinid, NC_GLOBAL, "country");
+    (void) get_attribute_str(&(info->member), ncinid, NC_GLOBAL, "member");
+    (void) get_attribute_str(&(info->downscaling_forcing), ncinid, NC_GLOBAL, "downscaling_forcing");
+    (void) get_attribute_str(&(info->timestep), ncinid, NC_GLOBAL, "timestep");
+    (void) get_attribute_str(&(info->contact_email), ncinid, NC_GLOBAL, "contact_email");
+    (void) get_attribute_str(&(info->contact_name), ncinid, NC_GLOBAL, "contact_name");
+    (void) get_attribute_str(&(info->other_contact_email), ncinid, NC_GLOBAL, "other_contact_email");
+    (void) get_attribute_str(&(info->other_contact_name), ncinid, NC_GLOBAL, "other_contact_name");
+  }
 
   /** Read dimensions variables **/
   if ( !strcmp(coords, "1D") ) {
@@ -293,6 +300,10 @@ int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal
     for (t=0; t<(*ntime); t++)
       (*timeval)[t] = (double) t;
   }
+
+  /* Close NetCDF file */
+  istat = ncclose(ncinid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Success status */
   return 0;

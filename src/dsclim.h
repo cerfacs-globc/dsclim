@@ -67,10 +67,13 @@
 /** Data structure var_struct for observation database variables. */
 typedef struct {
   int nobs_var; /**< Number of observation variables. */
-  char *lonname; /**< Longitude dimension name for observation files. */
-  char *latname; /**< Latitude dimension name for observation files. */
+  char *lonname; /**< Longitude variable name for observation files. */
+  char *latname; /**< Latitude variable name for observation files. */
   char *timename; /**< Time dimension name for observation files. */
   proj_struct *proj; /**< Projection information of large scale fields. */
+  char *dimxname; /**< X dimension name for observation files. */
+  char *dimyname; /**< Y dimension name for observation files. */
+  char *dimcoords; /**< Coordinates for X and Y dimensions (1D or 2D). */
   char *frequency; /**< Frequency of observation data. */
   char *path; /**< Directory where observation data is stored: the template is of the form path/acronym_YYYYYYYY.nc where YYYYYYYY are the beginning and ending years concatenated. */
   int month_begin; /**< The input year in the database begins at this month number (1-12). */
@@ -273,6 +276,7 @@ typedef struct {
   char *time_units; /**< Base time units for downscaling. */
   char *lonname; /**< Longitude dimension name for downscaling. */
   char *latname; /**< Latitude dimension name for downscaling. */
+  char *coords; /**< Coordinates related to dimensions for downscaling. */
   char *timename; /**< Time dimension name for downscaling. */
   char *lonname_eof; /**< Longitude dimension name (EOF file) for downscaling. */
   char *latname_eof; /**< Latitude dimension name (EOF file) for downscaling. */

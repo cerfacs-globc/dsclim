@@ -22,7 +22,7 @@
 /** Write a 2D field in a 3D NetCDF variable. */
 int write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *filename,
                            char *varname, char *gridname, char *lonname, char *latname, char *timename,
-                           int t, int nlon, int nlat, int ntime) {
+                           int t, int newfile, int outinfo, int nlon, int nlat, int ntime) {
   /**
      @param[in]  buf         3D Field to write
      @param[in]  timein      Time dimension value
@@ -33,7 +33,9 @@ int write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *
      @param[in]  lonname     Longitude name dimension in the NetCDF file
      @param[in]  latname     Latitude name dimension in the NetCDF file
      @param[in]  timename    Time name dimension in the NetCDF file
-     @para,[in]  t           Time index of value to write
+     @param[in]  t           Time index of value to write
+     @param[in]  newfile     TRUE is new NetCDF file, FALSE if not
+     @param[in]  outinfo     TRUE if we want information output, FALSE if not
      @param[in]  nlon        Longitude dimension
      @param[in]  nlat        Latitude dimension
      @param[in]  ntime       Time dimension
@@ -100,7 +102,7 @@ int write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *
   }
 
   /* Go into NetCDF define mode only if first element */
-  if (t == 0) {
+  if (newfile == TRUE) {
     istat = nc_redef(ncoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     
@@ -132,9 +134,16 @@ int write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *
     istat = nc_enddef(ncoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
+  else {
+    /* Get variable ID */
+    istat = nc_inq_varid(ncoutid, varname, &varoutid);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  }
 
   /* Write time dimension variable to NetCDF output file */
   start[0] = ntime_file;
+  start[1] = 0;
+  start[2] = 0;
   count[0] = (size_t) 1;
   count[1] = 0;
   count[2] = 0;
@@ -148,8 +157,9 @@ int write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *
   count[0] = (size_t) 1;
   count[1] = (size_t) nlat;
   count[2] = (size_t) nlon;
-  printf("%s: WRITE %s %s.\n", __FILE__, varname, filename);
-  istat = nc_put_vara_double(ncoutid, varoutid, start, count, &(buf[t*nlat*nlon]));
+  if (outinfo == TRUE)
+    printf("%s: WRITE %s %s.\n", __FILE__, varname, filename);
+  istat = nc_put_vara_double(ncoutid, varoutid, start, count, buf);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Close the output netCDF file. */

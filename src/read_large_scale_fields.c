@@ -80,7 +80,7 @@ int read_large_scale_fields(data_struct *data) {
           return istat;
         }
       }
-      
+
       /* For standard calendar data */
       if ( !strcmp(cal_type, "gregorian") || !strcmp(cal_type, "standard") ) {
         
@@ -201,15 +201,28 @@ int read_large_scale_fields(data_struct *data) {
         (void) free(buf);
       }
     }
+    /* Free memory */
+    if (lat != NULL) {
+      (void) free(lat);
+      lat = NULL;
+    }
+    if (lon != NULL) {
+      (void) free(lon);
+      lon = NULL;
+    }
+    if (time_ls != NULL) {
+      (void) free(time_ls);
+      time_ls = NULL;
+    }
+    if (time_units != NULL) {
+      (void) free(time_units);
+      time_units = NULL;
+    }
+    if (cal_type != NULL) {
+      (void) free(cal_type);
+      cal_type = NULL;
+    }
   }
-  
-  /* Free memory */
-  (void) free(lat);
-  (void) free(lon);
-  
-  (void) free(time_ls);
-  (void) free(time_units);
-  (void) free(cal_type);
 
   /* Diagnostic status */
   return 0;

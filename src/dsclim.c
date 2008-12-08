@@ -100,9 +100,6 @@ int main(int argc, char **argv)
   /* Free main data structure */
   (void) free_main_data(data);
   
-  /* Free memory */
-  (void) free(data);
-
   /* Print END banner */
   (void) banner(basename(argv[0]), "OK", "END");
 

@@ -21,7 +21,7 @@
 
 /** Read a 2D field from a 3D variable in a NetCDF file, and return information in info_field_struct structure and proj_struct. */
 int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
-                          char *lonname, char *latname, char *timename, int t, int *nlon, int *nlat, int *ntime) {
+                          char *lonname, char *latname, char *timename, int t, int outinfo, int *nlon, int *nlat, int *ntime) {
   /**
      @param[out]  buf        2D variable
      @param[out]  info_field Information about the output variable
@@ -32,6 +32,7 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
      @param[in]   latname    Latitude dimension name
      @param[in]   timename   Time dimension name
      @param[in]   t          Time index to retrieve
+     @param[in]   outinfo    TRUE if we want information output, FALSE if not
      @param[out]  nlon       Longitude dimension length
      @param[out]  nlat       Latitude dimension length
      @param[out]  ntime      Time dimension length
@@ -70,11 +71,10 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
   /* Read data in NetCDF file */
 
   /* Open NetCDF file for reading */
-  printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
+  if (outinfo == TRUE)
+    printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-
-  printf("%s: READ %s %s.\n", __FILE__, varname, filename);
 
   /* Get dimensions length */
   istat = nc_inq_dimid(ncinid, timename, &timediminid);  /* get ID for time dimension */
@@ -89,6 +89,9 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
     (void) fprintf(stderr, "%s: Invalid timestep provided: %d. Maximum value is %d\n", __FILE__, t, *ntime);
     return -1;
   }
+
+  if (outinfo == TRUE)
+    printf("%s: READ %s %s time=%d %d.\n", __FILE__, varname, filename, t, *ntime);
 
   istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -249,8 +252,8 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
   }
 
   /* Allocate memory and set start and count */
-  start[0] = 0;
-  start[1] = t; /* Timestep to retrieve */
+  start[0] = t;
+  start[1] = 0; /* Timestep to retrieve */
   start[2] = 0;
   count[0] = 1; /* Only get one timestep */
   count[1] = (size_t) *nlat;

@@ -24,7 +24,7 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
                          char *grid_mapping_name, double latin1, double latin2,
                          double lonc, double lat0, double false_easting, double false_northing,
                          char *lonname, char *latname, char *timename,
-                         char *filename) {
+                         char *filename, int outinfo) {
   /**
      @param[in]  lon                Lontitude field
      @param[in]  lat                Latitude field
@@ -48,6 +48,7 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
      @param[in]  lonname            Longitude name dimension in the NetCDF file
      @param[in]  latname            Latitude name dimension in the NetCDF file
      @param[in]  timename           Time name dimension in the NetCDF file
+     @param[in]  outinfo            TRUE if we want information output, FALSE if not
      
      \return                        Status.
   */
@@ -83,7 +84,8 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Open NetCDF file */
-  printf("%s: Writing info from NetCDF output file %s.\n", __FILE__, filename);
+  if (outinfo == TRUE)
+    printf("%s: Writing info from NetCDF output file %s.\n", __FILE__, filename);
   istat = nc_open(filename, NC_WRITE, &ncoutid);  /* open NetCDF file */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
@@ -231,7 +233,7 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
 
   if ( !strcmp(gridname, "Lambert_Conformal")) {
     
-    istat = nc_put_att_text(ncoutid, projoutid, "grid_mapping_name", strlen(grid_mapping_name), grid_mapping_name);
+    istat = nc_put_att_text(ncoutid, projoutid, "grid_mapping_name", strlen(gridname), gridname);
     
     proj_latin = (float *) malloc(2 * sizeof(float));
     if (proj_latin == NULL) alloc_error(__FILE__, __LINE__);

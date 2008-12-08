@@ -116,6 +116,8 @@ int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
   if (varndims != ndims) {
     (void) fprintf(stderr, "Error NetCDF type and/or dimensions %d != %d.\n", varndims, ndims);
+    istat = ncclose(ncinid);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     return -1;
   }
   istat = nc_inq_varid(ncinid, lonname, &loninid);  /* get ID for lon variable */
@@ -125,6 +127,8 @@ int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
   if (varndims != ndims) {
     (void) fprintf(stderr, "Error NetCDF type and/or dimensions %d != %d.\n", varndims, ndims);
+    istat = ncclose(ncinid);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     return -1;
   }
 
@@ -200,6 +204,9 @@ int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *
     istat = nc_get_vara_double(ncinid, loninid, start, count, (*lon));
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
+
+  istat = ncclose(ncinid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Success status */
   return 0;

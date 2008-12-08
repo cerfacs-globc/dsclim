@@ -9,6 +9,6 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 noinst_LTLIBRARIES = libio.la
-libio_la_SOURCES = io.h read_netcdf_dims_3d.c read_netcdf_var_3d.c read_netcdf_var_3d_2d.c read_netcdf_var_2d.c read_netcdf_var_1d.c read_netcdf_var_generic_val.c handle_netcdf_error.c create_netcdf.c write_netcdf_dims_3d.c write_netcdf_var_3d.c write_netcdf_var_3d_2d.c get_attribute_str.c get_time_attributes.c get_time_info.c compute_time_info.c read_netcdf_dims_eof.c
+libio_la_SOURCES = io.h read_netcdf_dims_3d.c read_netcdf_latlon.c read_netcdf_var_3d.c read_netcdf_var_3d_2d.c read_netcdf_var_2d.c read_netcdf_var_1d.c read_netcdf_var_generic_val.c handle_netcdf_error.c create_netcdf.c write_netcdf_dims_3d.c write_netcdf_var_3d.c write_netcdf_var_3d_2d.c get_attribute_str.c get_time_attributes.c get_time_info.c compute_time_info.c read_netcdf_dims_eof.c
 libio_la_CPPFLAGS = -I${top_srcdir}/src/libs/utils $(NCDF_CPPFLAGS)
 libio_la_LIBADD = ${top_srcdir}/src/libs/utils/libutils.la $(NCDF_LIBS)

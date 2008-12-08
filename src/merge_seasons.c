@@ -42,8 +42,11 @@ int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog
     analog_days_merged.year_s[curindex_merged] = analog_days.year_s[t];
     analog_days_merged.month_s[curindex_merged] = analog_days.month_s[t];
     analog_days_merged.day_s[curindex_merged] = analog_days.day_s[t];
+
   }
   
+  analog_days_merged.ntime = ntimes;
+
   /* Success status */
   return 0;
 }

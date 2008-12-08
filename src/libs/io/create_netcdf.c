@@ -26,7 +26,7 @@ int create_netcdf(char *title, char *title_french, char *summary, char *summary_
                   char *version, char *scenario, char *scenario_co2, char *model,
                   char *institution_model, char *country, char *member, char *downscaling_forcing,
                   char *contact_email, char *contact_name, char *other_contact_email, char *other_contact_name,
-                  char *filename) {
+                  char *filename, int outinfo) {
   /**
      @param[in]  title                Title (english)
      @param[in]  title_french         Title (french)
@@ -52,6 +52,7 @@ int create_netcdf(char *title, char *title_french, char *summary, char *summary_
      @param[in]  other_contact_email  Other contact email
      @param[in]  other_contact_name   Other contact name
      @param[in]  filename             NetCDF output filename
+     @param[in]  outinfo              TRUE if we want information output, FALSE if not
      
      \return           Status.
   */
@@ -60,7 +61,8 @@ int create_netcdf(char *title, char *title_french, char *summary, char *summary_
   int ncoutid; /* NetCDF output file handle ID */
   char *tmpstr = NULL; /* Temporary string */
 
-  (void) fprintf(stdout, "%s: Creating NetCDF file %s.\n", __FILE__, filename);
+  if (outinfo == TRUE)
+    (void) fprintf(stdout, "%s: Creating NetCDF file %s.\n", __FILE__, filename);
 
   /* Allocate memory */
   tmpstr = (char *) malloc(5000 * sizeof(char));

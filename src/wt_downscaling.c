@@ -229,8 +229,6 @@ int wt_downscaling(data_struct *data) {
     /* Loop over secondary large-scale fields */
     for (i=0; i<data->field[cat].n_ls; i++) {
       /* Compute spatial mean of secondary large-scale fields */
-      data->field[cat].data[i].down->smean = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
-      if (data->field[cat].data[i].down->smean == NULL) alloc_error(__FILE__, __LINE__);
       (void) mean_field_spatial(data->field[cat].data[i].down->smean, data->field[cat].data[i].field_ls,
                                 data->field[cat].nlon_ls, data->field[cat].nlat_ls, data->field[cat].ntime_ls);
     }

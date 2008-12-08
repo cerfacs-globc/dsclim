@@ -15,6 +15,11 @@
   <!-- Calendar-output parameters -->
   <setting name="base_time_units">days since 1900-01-01 12:00:00</setting>
   <setting name="base_calendar_type">gregorian</setting>
+
+  <!-- Grid-output information -->
+  <setting name="longitude_name">lon</setting>
+  <setting name="latitude_name">lat</setting>
+  <setting name="coordinates">2D</setting>
   
   <!-- Output information -->
   <setting name="output">
@@ -24,13 +29,16 @@
 
   <!-- Observation database for analog days -->
   <setting name="observations">
-    <longitude_name>x</longitude_name>
-    <latitude_name>y</latitude_name>
+    <dimx_name>x</dimx_name>
+    <dimy_name>y</dimy_name>
+    <dim_coordinates>1D</dim_coordinates>
+    <longitude_name>lon</longitude_name>
+    <latitude_name>lat</latitude_name>
+    <coordinates>2D</coordinates>
     <time_name>time</time_name>
-    <coordinates>1D</coordinates>
-    <number_of_variables>7</number_of_variables>
+    <number_of_variables>1</number_of_variables>
     <frequency>daily</frequency>
-    <path>/home/vittel/SAFRAN/netcdf</path>
+    <path>/contrex/Obs/SAFRAN/netcdf</path>
     <month_begin>08</month_begin>
     <year_digits>2</year_digits>
     <!-- ForcT.DAT_france_0102_daily.nc : format as in sprintf -->
@@ -39,12 +47,14 @@
     <template>Forc%s.DAT_france_%02d%02d_daily.nc</template>
     <variables>
       <name id="1" acronym="T" netcdfname="tas" factor="1.0" delta="0.0">Temperature at 2 m</name>
+<!--
       <name id="2" acronym="Q" netcdfname="hus" factor="1.0" delta="0.0">Specific humidity at 2 m</name>
       <name id="3" acronym="PRCP" netcdfname="prr" factor="1.0" delta="0.0">Liquid precipitation at the surface</name>
       <name id="4" acronym="SNOW" netcdfname="prsn" factor="1.0" delta="0.0">Solid precipitation at the surface</name>
       <name id="5" acronym="RAT" netcdfname="rlds" factor="1.0" delta="0.0">Incoming infra-red radiation at the surface</name>
       <name id="6" acronym="GLO" netcdfname="rsds" factor="1.0" delta="0.0">Incoming shortwave radiation at the surface</name>
       <name id="7" acronym="Vu" netcdfname="uvas" factor="1.0" delta="0.0">Wind speed module at 10 m</name>
+-->
     </variables>
   </setting>
 

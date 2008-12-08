@@ -125,7 +125,7 @@ int remove_clim(data_struct *data) {
       
         
         /* If we want to save climatology in NetCDF output file for further use */
-        if (data->field[cat].data[i].clim_info->clim_save == 1) {        
+        if (data->field[cat].data[i].clim_info->clim_save == 1) {
           istat = create_netcdf("Computed climatology", "Climatologie calculee", "Computed climatology", "Climatologie calculee",
                                 "climatologie,climatology", "C language", "Computed climatology", data->info->institution,
                                 data->info->creator_email, data->info->creator_url, data->info->creator_name,
@@ -133,7 +133,7 @@ int remove_clim(data_struct *data) {
                                 data->info->institution_model, data->info->country, data->info->member,
                                 data->info->downscaling_forcing, data->info->contact_email, data->info->contact_name,
                                 data->info->other_contact_email, data->info->other_contact_name,
-                                data->field[cat].data[i].clim_info->clim_fileout_ls);
+                                data->field[cat].data[i].clim_info->clim_fileout_ls, TRUE);
           if (istat != 0) {
             /* In case of failure */
             (void) free(bufnoclim);
@@ -150,7 +150,7 @@ int remove_clim(data_struct *data) {
                                        data->field[cat].proj[i].latin2, data->field[cat].proj[i].lonc, data->field[cat].proj[i].lat0,
                                        data->field[cat].proj[i].false_easting, data->field[cat].proj[i].false_northing,
                                        data->conf->lonname, data->conf->latname, data->conf->timename,
-                                       data->field[cat].data[i].clim_info->clim_fileout_ls);
+                                       data->field[cat].data[i].clim_info->clim_fileout_ls, TRUE);
           if (istat != 0) {
             /* In case of failure */
             (void) free(bufnoclim);

@@ -38,7 +38,9 @@ int read_large_scale_eof(data_struct *data) {
   int nlat_file; /* Latitude dimension for main large-scale fields in input file */
   int neof_file; /* EOF dimension for main large-scale fields in input file */
   proj_struct proj_eof; /* EOF spatial projection structure */
-  info_field_struct info_field_eof; /* EOF field information structure */
+
+  proj_eof.eof_coords = (char *) NULL;
+  proj_eof.name = (char *) NULL;
 
   /* Loop over large-scale field categories (control and model run) */
   for (cat=0; cat<2; cat++)
@@ -82,6 +84,10 @@ int read_large_scale_eof(data_struct *data) {
           (void) free(buf);
           (void) free(lon);
           (void) free(lat);
+          if (proj_eof.eof_coords != NULL)
+            (void) free(proj_eof.eof_coords);
+          if (proj_eof.name != NULL)
+            (void) free(proj_eof.name);
           return istat;
         }
       
@@ -111,7 +117,7 @@ int read_large_scale_eof(data_struct *data) {
         printf("%s: EOF missing_value = %lf\n", __FILE__, (double) data->field[cat].data[i].eof_info->info->fillvalue);
       
         /* Read Singular Values */
-        istat = read_netcdf_var_1d(&(data->field[cat].data[i].eof_data->sing_ls), &info_field_eof,
+        istat = read_netcdf_var_1d(&(data->field[cat].data[i].eof_data->sing_ls), (info_field_struct *) NULL,
                                    data->field[cat].data[i].eof_info->eof_filein_ls, data->field[cat].data[i].eof_data->sing_nomvar_ls,
                                    data->conf->eofname, &neof_file);
         if (data->field[cat].data[i].eof_info->neof_ls != neof_file) {
@@ -123,15 +129,29 @@ int read_large_scale_eof(data_struct *data) {
           /* In case of failure */
           (void) free(lon);
           (void) free(lat);
+          if (proj_eof.eof_coords != NULL)
+            (void) free(proj_eof.eof_coords);
+          if (proj_eof.name != NULL)
+            (void) free(proj_eof.name);
           return istat;
         }
       }
+      /* Free memory if needed */
+      if (lon != NULL) (void) free(lon);
+      lon = NULL;
+      if (lat != NULL) (void) free(lat);
+      lat = NULL;
+
+      if (proj_eof.eof_coords != NULL) {
+        (void) free(proj_eof.eof_coords);
+        proj_eof.eof_coords = (char *) NULL;
+      }
+      if (proj_eof.name != NULL) {
+        (void) free(proj_eof.name);
+        proj_eof.name = (char *) NULL;
+      }
     }
-
-  /* Free memory if needed */
-  if (lon != NULL) (void) free(lon);
-  if (lat != NULL) (void) free(lat);
-
+  
   /* Diagnostic status */
   return 0;
 }
