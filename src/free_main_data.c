@@ -63,6 +63,7 @@ void free_main_data(data_struct *data) {
       if (data->field[i].data[j].eof_info->eof_project == 1)
         if (i == 0 || i == 1) {
           (void) free(data->field[i].data[j].eof_info->info->units);
+          (void) free(data->field[i].data[j].eof_info->info->height);
           (void) free(data->field[i].data[j].eof_info->info->coordinates);
           (void) free(data->field[i].data[j].eof_info->info->grid_mapping);
           (void) free(data->field[i].data[j].eof_info->info->long_name);
@@ -74,6 +75,7 @@ void free_main_data(data_struct *data) {
       (void) free(data->field[i].data[j].info->coordinates);
       (void) free(data->field[i].data[j].info->grid_mapping);
       (void) free(data->field[i].data[j].info->units);
+      (void) free(data->field[i].data[j].info->height);
       (void) free(data->field[i].data[j].info->long_name);
 
       (void) free(data->field[i].data[j].info);

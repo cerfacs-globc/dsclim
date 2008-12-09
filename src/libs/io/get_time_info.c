@@ -20,7 +20,7 @@
 
 /** Get time information in a NetCDF file. */
 int get_time_info(time_struct *time_s, double **timeval, char **time_units, char **cal_type, int *ntime, char *filename,
-                  char *varname) {
+                  char *varname, int outinfo) {
   /**
      @param[out]  time_s        Time information in a time structure
      @param[out]  timeval       Time field
@@ -29,6 +29,7 @@ int get_time_info(time_struct *time_s, double **timeval, char **time_units, char
      @param[out]  ntime         Time dimension
      @param[in]   filename      NetCDF input filename
      @param[in]   varname       Variable name
+     @param[in]   outinfo       TRUE if we want information output, FALSE if not
      
      \return           Status.
   */
@@ -56,7 +57,8 @@ int get_time_info(time_struct *time_s, double **timeval, char **time_units, char
   /* Read data in NetCDF file */
 
   /* Open NetCDF file for reading */
-  printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
+  if (outinfo == TRUE)
+    printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 

@@ -20,7 +20,7 @@
 
 /** Read a 2D variable in a NetCDF file, and return information in info_field_struct structure and proj_struct. */
 int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
-                       char *lonname, char *latname, int *nlon, int *nlat) {
+                       char *lonname, char *latname, int *nlon, int *nlat, int outinfo) {
   /**
      @param[out]  buf        2D variable
      @param[out]  info_field Information about the output variable
@@ -31,6 +31,7 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
      @param[in]   latname    Latitude dimension name
      @param[out]  nlon       Longitude dimension length
      @param[out]  nlat       Latitude dimension length
+     @param[in]   outinfo    TRUE if we want information output, FALSE if not
      
      \return           Status.
   */
@@ -65,11 +66,13 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
   /* Read data in NetCDF file */
 
   /* Open NetCDF file for reading */
-  printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
+  if (outinfo == TRUE)
+    printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  printf("%s: READ %s %s.\n", __FILE__, varname, filename);
+  if (outinfo == TRUE)
+    printf("%s: READ %s %s.\n", __FILE__, varname, filename);
 
   /* Get dimensions length */
   istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
@@ -166,6 +169,22 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
     else
       info_field->units = strdup("unknown");
     
+    /* Get height */
+    istat = nc_inq_attlen(ncinid, varinid, "height", &t_len);
+    if (istat == NC_NOERR) {
+      handle_netcdf_error(istat, __FILE__, __LINE__);
+      istat = nc_get_att_text(ncinid, varinid, "height", tmpstr);
+      if (istat == NC_NOERR) {
+        if (tmpstr[t_len-1] != '\0')
+          tmpstr[t_len] = '\0';
+        info_field->height = strdup(tmpstr);
+      }
+      else
+        info_field->height = strdup("unknown");
+    }
+    else
+      info_field->height = strdup("unknown");
+
     /* Get long name */
     istat = nc_inq_attlen(ncinid, varinid, "long_name", &t_len);
     if (istat == NC_NOERR) {

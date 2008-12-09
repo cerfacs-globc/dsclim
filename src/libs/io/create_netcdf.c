@@ -73,41 +73,6 @@ int create_netcdf(char *title, char *title_french, char *summary, char *summary_
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Set global attributes */
-  // global attributes:
-  /*                :Conventions = "CF-1.0" ;
-                    :Metadata_Conventions = "Unidata Dataset Discovery v1.0" ;
-                    :title = "Downscaling data from CERFACS" ;
-                    :title_french = "Donnees de desagregation produites par le CERFACS" ;
-                    :summary_french = "Donnees de desagregation produites par le CERFACS" ;
-                    :summary = "Donnees de desagregation produites par le CERFACS" ;
-                    :keywords = "climat,scenarios,desagregation,downscaling,CERFACS" ;
-                    :processor = "IDL/NCL scripts" ;
-                    :description = "Downscaling data from CERFACS" ;
-                    :cdm_datatype = "Grid" ;
-                    :institution = "CERFACS" ;
-                    :creator_email = "globc@cerfacs.fr" ;
-                    :creator_url = "http://www.cerfacs.fr/globc/" ;
-                    :creator_name = "Global Change Team" ;
-                    :time_coverage_start = "2087-08-01T00:00:00Z" ;
-                    :time_coverage_end = "2088-07-31T23:59:59Z" ;
-                    :version = "1.0" ;
-                    :scenario = "SRESA1B" ;
-                    :scenario_co2 = "A1B" ;
-                    :model = "Coupled Model 3" ;
-                    :institution_model = "Centre National de Recherches Meteorologiques" ;
-                    :country = "France" ;
-                    :member = "1" ;
-                    :downscaling_forcing = "SAFRAN 1970-2005" ;
-                    :timestep = "daily" ;
-                    :contact_email = "christian.page@cerfacs.fr" ;
-                    :contact_name = "Christian PAGE" ;
-                    :other_contact_email = "laurent.terray@cerfacs.fr" ;
-                    :other_contact_name = "Laurent TERRAY" ;
-                    :geospatial_lat_max = 51.1215157941104 ;
-                    :geospatial_lat_min = 41.3181733938225 ;
-                    :geospatial_lon_max = 10.7928123474121 ;
-                    :geospatial_lon_min = -5.32915830612183 ; */
-
   (void) strcpy(tmpstr, "CF-1.0");
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "Conventions", strlen(tmpstr), tmpstr);
   (void) strcpy(tmpstr, "Unidata Dataset Discovery v1.0");

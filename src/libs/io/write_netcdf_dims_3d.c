@@ -19,15 +19,17 @@
 #include <io.h>
 
 /** Write NetCDF dimensions and create output file. */
-int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_type, char *time_units,
+int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *timein, char *cal_type, char *time_units,
                          int nlon, int nlat, int ntime, char *timestep, char *gridname, char *coords,
                          char *grid_mapping_name, double latin1, double latin2,
                          double lonc, double lat0, double false_easting, double false_northing,
                          char *lonname, char *latname, char *timename,
                          char *filename, int outinfo) {
   /**
-     @param[in]  lon                Lontitude field
+     @param[in]  lon                Longitude field
      @param[in]  lat                Latitude field
+     @param[in]  x                  X field
+     @param[in]  y                  Y field
      @param[in]  timein             Time field
      @param[in]  cal_type           Calendar-type (udunits)
      @param[in]  time_units         Time units (udunits)
@@ -79,6 +81,12 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
 
   char *tmpstr = NULL;
   double *tmpd = NULL;
+  int *tmpi = NULL;
+
+  double minlat;
+  double maxlat;
+  double minlon;
+  double maxlon;
 
   tmpstr = (char *) malloc(5000 * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
@@ -139,13 +147,17 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
     vardimids[1] = xdimoutid;
     istat = nc_def_var(ncoutid, lonname, NC_DOUBLE, 2, vardimids, &lonoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-    istat = nc_def_var(ncoutid, "x", NC_INT, 2, vardimids, &xoutid);
+    vardimids[0] = xdimoutid;
+    vardimids[1] = 0;
+    istat = nc_def_var(ncoutid, "x", NC_INT, 1, vardimids, &xoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     vardimids[0] = ydimoutid;
     vardimids[1] = xdimoutid;
     istat = nc_def_var(ncoutid, latname, NC_DOUBLE, 2, vardimids, &latoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-    istat = nc_def_var(ncoutid, "y", NC_INT, 2, vardimids, &youtid);
+    vardimids[0] = ydimoutid;
+    vardimids[1] = 0;
+    istat = nc_def_var(ncoutid, "y", NC_INT, 1, vardimids, &youtid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
 
@@ -171,9 +183,16 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
   (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, minutes, (int) seconds);
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_start", strlen(tmpstr), tmpstr);
 
-  istat = utCalendar(timein[ntime-1], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
-  (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, minutes, (int) seconds);
-  istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_end", strlen(tmpstr), tmpstr);
+  if (ntime > 0) {
+    istat = utCalendar(timein[ntime-1], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
+    (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, minutes, (int) seconds);
+    istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_end", strlen(tmpstr), tmpstr);
+  }
+  else {
+    istat = utCalendar(timein[0], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
+    (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, minutes, (int) seconds);
+    istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_end", strlen(tmpstr), tmpstr);
+  }
 
   (void) utTerm();
 
@@ -233,7 +252,7 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
 
   if ( !strcmp(gridname, "Lambert_Conformal")) {
     
-    istat = nc_put_att_text(ncoutid, projoutid, "grid_mapping_name", strlen(gridname), gridname);
+    istat = nc_put_att_text(ncoutid, projoutid, "grid_mapping_name", strlen(grid_mapping_name), grid_mapping_name);
     
     proj_latin = (float *) malloc(2 * sizeof(float));
     if (proj_latin == NULL) alloc_error(__FILE__, __LINE__);
@@ -251,6 +270,24 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
   (void) strcpy(tmpstr, "Grid");
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "cdm_datatype", strlen(tmpstr), tmpstr);
 
+  /* Geographic global attributes */
+  maxlat = -9999.9;
+  minlat = 9999.9;
+  for (i=0; i<(nlat*nlon); i++) {
+    if (lat[i] > maxlat) maxlat = lat[i];
+    if (lat[i] < minlat) minlat = lat[i];
+  }
+  maxlon = -9999.9;
+  minlon = 9999.9;
+  for (i=0; i<(nlat*nlon); i++) {
+    if (lon[i] > maxlon) maxlon = lon[i];
+    if (lon[i] < minlon) minlon = lon[i];
+  }
+  istat = nc_put_att_double(ncoutid, NC_GLOBAL, "geospatial_lat_max", NC_DOUBLE, 1, &maxlat);
+  istat = nc_put_att_double(ncoutid, NC_GLOBAL, "geospatial_lat_min", NC_DOUBLE, 1, &minlat);
+  istat = nc_put_att_double(ncoutid, NC_GLOBAL, "geospatial_lon_max", NC_DOUBLE, 1, &maxlon);
+  istat = nc_put_att_double(ncoutid, NC_GLOBAL, "geospatial_lon_min", NC_DOUBLE, 1, &minlon);
+
   /* End definition mode */
   istat = nc_enddef(ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -263,12 +300,14 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
   }
 
   /* Write dimensions variables to NetCDF output file */
-  start[0] = 0;
-  count[0] = (size_t) ntime;
-  count[1] = 0;
-  count[2] = 0;
-  istat = nc_put_vara_double(ncoutid, timeoutid, start, count, timein);
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  if (ntime > 0) {
+    start[0] = 0;
+    count[0] = (size_t) ntime;
+    count[1] = 0;
+    count[2] = 0;
+    istat = nc_put_vara_double(ncoutid, timeoutid, start, count, timein);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  }
 
   if ( !strcmp(coords, "1D") ) {
     start[0] = 0;
@@ -316,6 +355,35 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *timein, char *cal_typ
     count[2] = 0;
     istat = nc_put_vara_double(ncoutid, lonoutid, start, count, lon);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  }
+
+  if ( !strcmp(gridname, "Lambert_Conformal") && x != NULL && y != NULL) {
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) nlon;
+    count[1] = 0;
+    count[2] = 0;
+    tmpi = (int *) realloc(tmpi, nlon * sizeof(int));
+    if (tmpi == NULL) alloc_error(__FILE__, __LINE__);
+    for (i=0; i<nlon; i++)
+      tmpi[i] = x[i];
+
+    istat = nc_put_vara_int(ncoutid, xoutid, start, count, tmpi);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) nlat;
+    count[1] = 0;
+    count[2] = 0;
+    tmpi = (int *) realloc(tmpi, nlat * sizeof(int));
+    if (tmpi == NULL) alloc_error(__FILE__, __LINE__);
+    for (i=0; i<nlat; i++)
+      tmpi[i] = y[i];
+    istat = nc_put_vara_int(ncoutid, youtid, start, count, tmpi);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    (void) free(tmpi);
   }
 
   /* Close the output netCDF file. */

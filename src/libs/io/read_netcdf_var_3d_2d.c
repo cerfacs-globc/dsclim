@@ -21,7 +21,7 @@
 
 /** Read a 2D field from a 3D variable in a NetCDF file, and return information in info_field_struct structure and proj_struct. */
 int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
-                          char *lonname, char *latname, char *timename, int t, int outinfo, int *nlon, int *nlat, int *ntime) {
+                          char *lonname, char *latname, char *timename, int t, int *nlon, int *nlat, int *ntime, int outinfo) {
   /**
      @param[out]  buf        2D variable
      @param[out]  info_field Information about the output variable
@@ -32,10 +32,10 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
      @param[in]   latname    Latitude dimension name
      @param[in]   timename   Time dimension name
      @param[in]   t          Time index to retrieve
-     @param[in]   outinfo    TRUE if we want information output, FALSE if not
      @param[out]  nlon       Longitude dimension length
      @param[out]  nlat       Latitude dimension length
      @param[out]  ntime      Time dimension length
+     @param[in]   outinfo    TRUE if we want information output, FALSE if not
      
      \return           Status.
   */
@@ -186,6 +186,22 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
     }
     else
       info_field->units = strdup("unknown");
+
+    /* Get height */
+    istat = nc_inq_attlen(ncinid, varinid, "height", &t_len);
+    if (istat == NC_NOERR) {
+      handle_netcdf_error(istat, __FILE__, __LINE__);
+      istat = nc_get_att_text(ncinid, varinid, "height", tmpstr);
+      if (istat == NC_NOERR) {
+        if (tmpstr[t_len-1] != '\0')
+          tmpstr[t_len] = '\0';
+        info_field->height = strdup(tmpstr);
+      }
+      else
+        info_field->height = strdup("unknown");
+    }
+    else
+      info_field->height = strdup("unknown");
 
     /* Get long name */
     istat = nc_inq_attlen(ncinid, varinid, "long_name", &t_len);

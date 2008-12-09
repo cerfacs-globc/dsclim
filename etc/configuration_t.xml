@@ -20,11 +20,34 @@
   <setting name="longitude_name">lon</setting>
   <setting name="latitude_name">lat</setting>
   <setting name="coordinates">2D</setting>
-  
+
   <!-- Output information -->
   <setting name="output">
     <path>/home/page/downscaling/data/results/SRESA1B/v2_new</path>
     <month_begin>08</month_begin>
+    <title>Downscaling data from Cerfacs</title>
+    <title_french>Donnees de desagregation produites par le Cerfacs</title_french>
+    <summary>Downscaling data from Cerfacs</summary>
+    <summary_french>Donnees de desagregation produites par le Cerfacs</summary_french>
+    <description>Downscaling data from Cerfacs</description>
+    <keywords>climat,scenarios,desagregation,downscaling,Cerfacs</keywords>
+    <institution>Cerfacs</institution>
+    <creator_email>globc@cerfacs.fr</creator_email>
+    <creator_url>http://www.cerfacs.fr/globc/</creator_url>
+    <creator_name>Global Change Team</creator_name>
+    <version>1.0</version>
+    <scenario>SRESA1B</scenario>
+    <scenario_co2>A1B</scenario_co2>
+    <model>ARPEGE grille etiree</model>
+    <institution_model>Meteo-France CNRM/GMGEC</institution_model>
+    <country>France</country>
+    <member>1</member>
+    <downscaling_forcing>SAFRAN 1970-2005</downscaling_forcing>
+    <timestep>daily</timestep>
+    <contact_email>christian.page@cerfacs.fr</contact_email>
+    <contact_name>Christian PAGE</contact_name>
+    <other_contact_email>laurent.terray@cerfacs.fr</other_contact_email>
+    <other_contact_name>Laurent TERRAY</other_contact_name>
   </setting>
 
   <!-- Observation database for analog days -->
@@ -36,7 +59,7 @@
     <latitude_name>lat</latitude_name>
     <coordinates>2D</coordinates>
     <time_name>time</time_name>
-    <number_of_variables>7</number_of_variables>
+    <number_of_variables>1</number_of_variables>
     <frequency>daily</frequency>
     <path>/contrex/Obs/SAFRAN/netcdf</path>
     <month_begin>08</month_begin>
@@ -46,13 +69,15 @@
     <!-- If month_begin is 1, only one %d must appear! -->
     <template>Forc%s.DAT_france_%02d%02d_daily.nc</template>
     <variables>
-      <name id="1" acronym="T" netcdfname="tas" factor="1.0" delta="0.0">Temperature at 2 m</name>
+      <name id="1" acronym="T" netcdfname="tas" factor="1.0" delta="0.0">Temperature</name>
+<!--
       <name id="2" acronym="Q" netcdfname="hus" factor="1.0" delta="0.0">Specific humidity at 2 m</name>
       <name id="3" acronym="PRCP" netcdfname="prr" factor="1.0" delta="0.0">Liquid precipitation at the surface</name>
       <name id="4" acronym="SNOW" netcdfname="prsn" factor="1.0" delta="0.0">Solid precipitation at the surface</name>
       <name id="5" acronym="RAT" netcdfname="rlds" factor="1.0" delta="0.0">Incoming infra-red radiation at the surface</name>
       <name id="6" acronym="GLO" netcdfname="rsds" factor="1.0" delta="0.0">Incoming shortwave radiation at the surface</name>
       <name id="7" acronym="Vu" netcdfname="uvas" factor="1.0" delta="0.0">Wind speed module at 10 m</name>
+-->
     </variables>
   </setting>
 

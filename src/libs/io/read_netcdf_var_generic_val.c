@@ -101,6 +101,22 @@ int read_netcdf_var_generic_val(double *buf, info_field_struct *info_field, char
     else
       info_field->units = strdup("unknown");
 
+    /* Get height */
+    istat = nc_inq_attlen(ncinid, varinid, "height", &t_len);
+    if (istat == NC_NOERR) {
+      handle_netcdf_error(istat, __FILE__, __LINE__);
+      istat = nc_get_att_text(ncinid, varinid, "height", tmpstr);
+      if (istat == NC_NOERR) {
+        if (tmpstr[t_len-1] != '\0')
+          tmpstr[t_len] = '\0';
+        info_field->height = strdup(tmpstr);
+      }
+      else
+        info_field->height = strdup("unknown");
+    }
+    else
+      info_field->height = strdup("unknown");
+
     /* Get long name */
     istat = nc_inq_attlen(ncinid, varinid, "long_name", &t_len);
     if (istat == NC_NOERR) {

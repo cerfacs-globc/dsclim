@@ -21,14 +21,18 @@
 
 /** Write a 2D field in a 3D NetCDF variable. */
 int write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *filename,
-                           char *varname, char *gridname, char *lonname, char *latname, char *timename,
-                           int t, int newfile, int outinfo, int nlon, int nlat, int ntime) {
+                           char *varname, char *longname, char *units, char *height,
+                           char *gridname, char *lonname, char *latname, char *timename,
+                           int t, int newfile, int nlon, int nlat, int ntime, int outinfo) {
   /**
      @param[in]  buf         3D Field to write
      @param[in]  timein      Time dimension value
      @param[in]  fillvalue   Missing value
      @param[in]  filename    Output NetCDF filename
      @param[in]  varname     Variable name in the NetCDF file
+     @param[in]  longname    Variable long name in the NetCDF file
+     @param[in]  units       Variable units in the NetCDF file
+     @param[in]  height      Variable height in the NetCDF file
      @param[in]  gridname    Grid type name in the NetCDF file
      @param[in]  lonname     Longitude name dimension in the NetCDF file
      @param[in]  latname     Latitude name dimension in the NetCDF file
@@ -124,8 +128,10 @@ int write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *
     
     tmpstr = (char *) malloc(100 * sizeof(char));
     if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
-    istat = nc_put_att_text(ncoutid, varoutid, "long_name", strlen(varname), varname);
+    istat = nc_put_att_text(ncoutid, varoutid, "long_name", strlen(longname), longname);
     istat = nc_put_att_text(ncoutid, varoutid, "grid_mapping", strlen(gridname), gridname);
+    istat = nc_put_att_text(ncoutid, varoutid, "units", strlen(units), units);
+    istat = nc_put_att_text(ncoutid, varoutid, "height", strlen(height), height);
     istat = sprintf(tmpstr, "lon lat");
     istat = nc_put_att_text(ncoutid, varoutid, "coordinates", strlen(tmpstr), tmpstr);
     (void) free(tmpstr);

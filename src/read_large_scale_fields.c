@@ -88,7 +88,7 @@ int read_large_scale_fields(data_struct *data) {
         istat = read_netcdf_var_3d(&buf, data->field[cat].data[i].info, data->field[cat].proj,
                                    data->field[cat].data[i].filename_ls,
                                    data->field[cat].data[i].nomvar_ls, data->conf->lonname, data->conf->latname, data->conf->timename,
-                                   &nlon_file, &nlat_file, &ntime_file);
+                                   &nlon_file, &nlat_file, &ntime_file, TRUE);
         if (nlon != nlon_file || nlat != nlat_file || ntime != ntime_file) {
           (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d ntime=%d ntime_file=%d\n",
                          __FILE__, nlat, nlat_file, nlon, nlon_file, ntime, ntime_file);
@@ -149,7 +149,7 @@ int read_large_scale_fields(data_struct *data) {
         istat = read_netcdf_var_3d(&(data->field[cat].data[i].field_ls), data->field[cat].data[i].info,
                                    data->field[cat].proj, data->field[cat].data[i].filename_ls,
                                    data->field[cat].data[i].nomvar_ls, data->conf->lonname, data->conf->latname, data->conf->timename,
-                                   &nlon_file, &nlat_file, &ntime_file);
+                                   &nlon_file, &nlat_file, &ntime_file, TRUE);
         if (nlon != nlon_file || nlat != nlat_file || ntime != ntime_file) {
           (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d ntime=%d ntime_file=%d\n",
                          __FILE__, nlat, nlat_file, nlon, nlon_file, ntime, ntime_file);

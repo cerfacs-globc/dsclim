@@ -73,7 +73,7 @@ int read_large_scale_eof(data_struct *data) {
                                    data->field[cat].data[i].eof_info->eof_filein_ls,
                                    data->field[cat].data[i].eof_data->eof_nomvar_ls,
                                    data->conf->lonname_eof, data->conf->latname_eof, data->conf->eofname,
-                                   &nlon_file, &nlat_file, &neof_file);
+                                   &nlon_file, &nlat_file, &neof_file, TRUE);
         if (nlon != nlon_file || nlat != nlat_file || data->field[cat].data[i].eof_info->neof_ls != neof_file) {
           (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d neof=%d neof_file=%d\n",
                          __FILE__, nlat, nlat_file, nlon, nlon_file, data->field[cat].data[i].eof_info->neof_ls, neof_file);
@@ -119,7 +119,7 @@ int read_large_scale_eof(data_struct *data) {
         /* Read Singular Values */
         istat = read_netcdf_var_1d(&(data->field[cat].data[i].eof_data->sing_ls), (info_field_struct *) NULL,
                                    data->field[cat].data[i].eof_info->eof_filein_ls, data->field[cat].data[i].eof_data->sing_nomvar_ls,
-                                   data->conf->eofname, &neof_file);
+                                   data->conf->eofname, &neof_file, TRUE);
         if (data->field[cat].data[i].eof_info->neof_ls != neof_file) {
           (void) fprintf(stderr, "%s: Problems in dimensions! neof=%d neof_file=%d\n",
                          __FILE__, data->field[cat].data[i].eof_info->neof_ls, neof_file);

@@ -29,6 +29,8 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
   double *timeval = NULL; /* Temporary time information buffer */
   double *lat = NULL; /* Temporary latitude buffer */
   double *lon = NULL; /* Temporary longitude buffer */
+  double *y = NULL; /* Temporary Y buffer */
+  double *x = NULL; /* Temporary X buffer */
   char *cal_type = NULL; /* Calendar type (udunits) */
   char *time_units = NULL; /* Time units (udunits) */
   double ctimeval[1]; /* Dummy time info */
@@ -53,6 +55,18 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
   int var; /* Variable counter */
   int istat; /* Diagnostic status */
   int f; /* Loop counter for files */
+
+  int ncoutid;
+  utUnit dataunit;
+
+  int year;
+  int month;
+  int day;
+  int hour;
+  int minutes;
+  float seconds;
+
+  char *tmpstr = NULL;
 
   /*                                         J   F   M   A   M   J   J   A   S   O   N   D    */
   static int days_per_month_reg_year[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
@@ -111,22 +125,10 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
       }
     }
 
-    /* Get time information */
-    time_s = (time_struct *) malloc(sizeof(time_struct));
-    if (time_s == NULL) alloc_error(__FILE__, __LINE__);
-    istat = get_time_info(time_s, &timeval, &time_units, &cal_type, &ntime_obs, infile, data->conf->timename);
-
-    /* Get latitude and longitude coordinates information */
-    istat = read_netcdf_latlon(&lon, &lat, &nlon, &nlat, data->conf->obs_var->dimcoords, data->conf->obs_var->proj->coords,
-                               data->conf->obs_var->proj->grid_mapping_name, data->conf->obs_var->lonname,
-                               data->conf->obs_var->latname, data->conf->obs_var->dimxname,
-                               data->conf->obs_var->dimyname, infile);
-
     /* Process each downscaled day */
     noutf = 0;
     outfiles = NULL;
     for (t=0; t<ntime; t++) {
-
       /* Create output filename for writing data */
       if (analog_days.month_s[t] < data->conf->output_month_begin)
         year1 = analog_days.year_s[t] - 1;
@@ -157,11 +159,9 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
         if (outfiles == NULL) alloc_error(__FILE__, __LINE__);
         outfiles[noutf++] = strdup(outfile);
 
-        /* Create output file if needed */
-        istat = create_netcdf("Downscaling data from CERFACS", "Donnees de desagregation produites par le CERFACS",
-                              "Downscaling data from CERFACS", "Donnees de desagregation produites par le CERFACS",
-                              "climat,scenarios,desagregation,downscaling,CERFACS", "C language", "Downscaling data from CERFACS",
-                              data->info->institution,
+        /* Create output file */
+        istat = create_netcdf(data->info->title, data->info->title_french, data->info->summary, data->info->summary_french,
+                              data->info->keywords, "C language", data->info->description, data->info->institution,
                               data->info->creator_email, data->info->creator_url, data->info->creator_name,
                               data->info->version, data->info->scenario, data->info->scenario_co2, data->info->model,
                               data->info->institution_model, data->info->country, data->info->member,
@@ -177,6 +177,37 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
           if (noutf > 0)
             (void) free(outfiles);
           return istat;
+        }
+
+        /* Complete time metadata time_coverage_end for previous output file */
+        if (noutf > 1 && t > 0) {
+
+          istat = nc_open(outfiles[noutf-2], NC_WRITE, &ncoutid);  /* open NetCDF file */
+          if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+          istat = nc_redef(ncoutid);
+          if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+          if (utIsInit() != TRUE)
+            istat = utInit("");
+
+          istat = utScan(data->conf->time_units,  &dataunit);
+
+          istat = utCalendar(time_ls[t-1], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
+
+          tmpstr = (char *) malloc(5000 * sizeof(char));
+          if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
+
+          (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, minutes, (int) seconds);
+          istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_end", strlen(tmpstr), tmpstr);
+
+          (void) utTerm();
+
+          (void) free(tmpstr);
+
+          /* End definition mode */
+          istat = nc_enddef(ncoutid);
+          if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
         }
       }
 
@@ -215,108 +246,190 @@ int output_downscaled_analog(analog_day_struct analog_days, data_struct *data, d
         }
       }
 
+      /* Get time information for this input file */
+      time_s = (time_struct *) malloc(sizeof(time_struct));
+      if (time_s == NULL) alloc_error(__FILE__, __LINE__);
+      istat = get_time_info(time_s, &timeval, &time_units, &cal_type, &ntime_obs, infile, data->conf->timename, FALSE);
+
       /* Find date in observation database */
       found = FALSE;
       tl = 0;
-      while (tl<(ntime_obs-1)) {
+#if DEBUG > 7
+      (void) printf("Processing %d %d %d %d\n",t,analog_days.year_s[t],analog_days.month_s[t],analog_days.day_s[t]);
+#endif
+      while (tl<ntime_obs && found == FALSE) {
+#if DEBUG > 7
+        (void) printf("%d %d %d %d\n",tl,time_s->year[tl],time_s->month[tl],time_s->day[tl]);
+#endif
         if (analog_days.year[t] == time_s->year[tl] && analog_days.month[t] == time_s->month[tl] &&
             analog_days.day[t] == time_s->day[tl]) {
           found = TRUE;
-          break;
+#if DEBUG > 7
+          (void) printf("Found analog %d %d %d %d\n",tl,analog_days.year[t],analog_days.month[t],analog_days.day[t]);
+#endif
         }
         tl++;
       }
 
-      /* Read data */
-      info = (info_field_struct *) malloc(sizeof(info_field_struct));
-      if (info == NULL) alloc_error(__FILE__, __LINE__);
-      proj = (proj_struct *) malloc(sizeof(proj_struct));
-      if (proj == NULL) alloc_error(__FILE__, __LINE__);
-      istat = read_netcdf_var_3d_2d(&buf, info, proj, infile, data->conf->obs_var->acronym[var],
-                                    data->conf->obs_var->dimxname, data->conf->obs_var->dimyname, data->conf->obs_var->timename,
-                                    tl, FALSE, &nlon, &nlat, &ntime_file);
+      if (found == TRUE) {
 
-      if (data->conf->obs_var->proj->name == NULL) {
-        data->conf->obs_var->proj->name = strdup(proj->name);
-        data->conf->obs_var->proj->grid_mapping_name = strdup(proj->grid_mapping_name);
-        data->conf->obs_var->proj->latin1 = proj->latin1;
-        data->conf->obs_var->proj->latin2 = proj->latin2;
-        data->conf->obs_var->proj->lonc = proj->lonc;
-        data->conf->obs_var->proj->lat0 = proj->lat0;
-        data->conf->obs_var->proj->false_easting = proj->false_easting;
-        data->conf->obs_var->proj->false_northing = proj->false_northing;
-      }
+        tl--;
+        
+        /* Read data */
+        info = (info_field_struct *) malloc(sizeof(info_field_struct));
+        if (info == NULL) alloc_error(__FILE__, __LINE__);
+        proj = (proj_struct *) malloc(sizeof(proj_struct));
+        if (proj == NULL) alloc_error(__FILE__, __LINE__);
+        istat = read_netcdf_var_3d_2d(&buf, info, proj, infile, data->conf->obs_var->acronym[var],
+                                      data->conf->obs_var->dimxname, data->conf->obs_var->dimyname, data->conf->obs_var->timename,
+                                      tl, &nlon, &nlat, &ntime_file, FALSE);
+        
+        if (data->conf->obs_var->proj->name == NULL) {
+          /* Retrieve observation grid parameters if not done already */
+          data->conf->obs_var->proj->name = strdup(proj->name);
+          data->conf->obs_var->proj->grid_mapping_name = strdup(proj->grid_mapping_name);
+          data->conf->obs_var->proj->latin1 = proj->latin1;
+          data->conf->obs_var->proj->latin2 = proj->latin2;
+          data->conf->obs_var->proj->lonc = proj->lonc;
+          data->conf->obs_var->proj->lat0 = proj->lat0;
+          data->conf->obs_var->proj->false_easting = proj->false_easting;
+          data->conf->obs_var->proj->false_northing = proj->false_northing;
 
-      /* Apply modifications to data if needed */
-
-      /* Write dimensions of field in newly-created NetCDF output file */
-      if (found_file == FALSE) {
-        ctimeval[0] = time_ls[0];
-        istat = write_netcdf_dims_3d(lon, lat, ctimeval, data->conf->cal_type,
-                                     data->conf->time_units, nlon, nlat, 1,
-                                     data->info->timestep, data->conf->obs_var->proj->name, data->conf->coords,
-                                     data->conf->obs_var->proj->grid_mapping_name, data->conf->obs_var->proj->latin1,
-                                     data->conf->obs_var->proj->latin2, data->conf->obs_var->proj->lonc, data->conf->obs_var->proj->lat0,
-                                     data->conf->obs_var->proj->false_easting, data->conf->obs_var->proj->false_northing,
-                                     data->conf->lonname, data->conf->latname, data->conf->timename,
-                                     outfile, FALSE);
-        if (istat != 0) {
-          /* In case of failure */
-          (void) free(infile);
-          (void) free(outfile);
-          (void) free(info->grid_mapping);
-          (void) free(info->units);
-          (void) free(info->coordinates);
-          (void) free(info->long_name);
-          (void) free(info);
-          (void) free(proj->name);
-          (void) free(proj->grid_mapping_name);
-          (void) free(proj);
-          for (f=0; f<noutf; f++)
-            (void) free(outfiles[f]);
-          if (noutf > 0)
-            (void) free(outfiles);
-          return istat;
+          /* Get latitude and longitude coordinates information */
+          istat = read_netcdf_latlon(&lon, &lat, &nlon, &nlat, data->conf->obs_var->dimcoords, data->conf->obs_var->proj->coords,
+                                     data->conf->obs_var->proj->name, data->conf->obs_var->lonname,
+                                     data->conf->obs_var->latname, data->conf->obs_var->dimxname,
+                                     data->conf->obs_var->dimyname, infile);
+          istat = read_netcdf_xy(&x, &y, &nlon, &nlat, data->conf->obs_var->dimxname, data->conf->obs_var->dimyname, 
+                                 data->conf->obs_var->dimxname, data->conf->obs_var->dimyname, infile);
         }
-      }
+        
+        /* Apply modifications to data if needed */
+        
+        /* Write dimensions of field in newly-created NetCDF output file */
+        if (found_file == FALSE) {
+          /* We just created output file: we need to write dimensions */
+          ctimeval[0] = time_ls[t];
+          istat = write_netcdf_dims_3d(lon, lat, x, y, ctimeval, data->conf->cal_type,
+                                       data->conf->time_units, nlon, nlat, 0,
+                                       data->info->timestep, data->conf->obs_var->proj->name, data->conf->coords,
+                                       data->conf->obs_var->proj->grid_mapping_name, data->conf->obs_var->proj->latin1,
+                                       data->conf->obs_var->proj->latin2, data->conf->obs_var->proj->lonc, data->conf->obs_var->proj->lat0,
+                                       data->conf->obs_var->proj->false_easting, data->conf->obs_var->proj->false_northing,
+                                       data->conf->lonname, data->conf->latname, data->conf->timename,
+                                       outfile, FALSE);
+          if (istat != 0) {
+            /* In case of failure */
+            (void) free(time_s->year);
+            (void) free(time_s->month);
+            (void) free(time_s->day);
+            (void) free(time_s->hour);
+            (void) free(time_s->minutes);
+            (void) free(time_s->seconds);
+            
+            (void) free(time_s);
+            (void) free(cal_type);
+            (void) free(time_units);
+            (void) free(timeval);
 
-      /* Write data */
-      istat = write_netcdf_var_3d_2d(buf, time_ls, info->fillvalue, outfile, data->conf->obs_var->netcdfname[var],
-                                     data->conf->obs_var->proj->grid_mapping_name,
-                                     data->conf->obs_var->dimxname, data->conf->obs_var->dimyname, data->conf->obs_var->timename,
-                                     t, !found_file, FALSE, nlon, nlat, ntime_file);
-    
-      (void) free(buf);
-      (void) free(info->grid_mapping);
-      (void) free(info->units);
-      (void) free(info->coordinates);
-      (void) free(info->long_name);
-      (void) free(info);
-      (void) free(proj->name);
-      (void) free(proj->grid_mapping_name);
-      (void) free(proj);
+            (void) free(infile);
+            (void) free(outfile);
+            (void) free(info->grid_mapping);
+            (void) free(info->units);
+            (void) free(info->height);
+            (void) free(info->coordinates);
+            (void) free(info->long_name);
+            (void) free(info);
+            (void) free(proj->name);
+            (void) free(proj->grid_mapping_name);
+            (void) free(proj);
+            for (f=0; f<noutf; f++)
+              (void) free(outfiles[f]);
+            if (noutf > 0)
+              (void) free(outfiles);
+            return istat;
+          }
+        }
+        
+        /* Write data */
+        istat = write_netcdf_var_3d_2d(buf, time_ls, info->fillvalue, outfile, data->conf->obs_var->netcdfname[var],
+                                       info->long_name, info->units, info->height, proj->name, 
+                                       data->conf->obs_var->dimxname, data->conf->obs_var->dimyname, data->conf->obs_var->timename,
+                                       t, !found_file, nlon, nlat, ntime_file, FALSE);
+        
+        /* Free allocated memory */
+        (void) free(buf);
+        (void) free(info->grid_mapping);
+        (void) free(info->units);
+        (void) free(info->height);
+        (void) free(info->coordinates);
+        (void) free(info->long_name);
+        (void) free(info);
+        (void) free(proj->name);
+        (void) free(proj->grid_mapping_name);
+        (void) free(proj);
+
+        (void) free(time_s->year);
+        (void) free(time_s->month);
+        (void) free(time_s->day);
+        (void) free(time_s->hour);
+        (void) free(time_s->minutes);
+        (void) free(time_s->seconds);
+        
+        (void) free(time_s);
+        (void) free(cal_type);
+        (void) free(time_units);
+        (void) free(timeval);
+      }
+      else {
+        (void) fprintf(stderr, "%s: Fatal error in algorithm: analog date %d %d %d %d not found in database!!\n", __FILE__, t,
+                       analog_days.year[t],analog_days.month[t],analog_days.day[t]);
+        /* Fatal error */
+        for (f=0; f<noutf; f++)
+          (void) free(outfiles[f]);
+        if (noutf > 0)
+          (void) free(outfiles);
+        
+        (void) free(lat);
+        (void) free(lon);
+                
+        (void) free(x);
+        (void) free(y);
+
+        (void) free(infile);
+        (void) free(outfile);
+        (void) free(format);
+
+        (void) free(time_s->year);
+        (void) free(time_s->month);
+        (void) free(time_s->day);
+        (void) free(time_s->hour);
+        (void) free(time_s->minutes);
+        (void) free(time_s->seconds);
+        
+        (void) free(time_s);
+        (void) free(cal_type);
+        (void) free(time_units);
+        (void) free(timeval);
+
+        return -1;
+      }
     }
+
+    /* Free allocated memory */
     for (f=0; f<noutf; f++)
       (void) free(outfiles[f]);
     if (noutf > 0)
       (void) free(outfiles);
 
+    (void) free(x);
+    (void) free(y);
+
     (void) free(lat);
     (void) free(lon);
-
-    (void) free(time_s->year);
-    (void) free(time_s->month);
-    (void) free(time_s->day);
-    (void) free(time_s->hour);
-    (void) free(time_s->minutes);
-    (void) free(time_s->seconds);
-
-    (void) free(time_s);
-    (void) free(cal_type);
-    (void) free(time_units);
-    (void) free(timeval);
   }
 
+  /* Free allocated memory */
   (void) free(infile);
   (void) free(outfile);
   (void) free(format);

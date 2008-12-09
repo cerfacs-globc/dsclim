@@ -21,7 +21,7 @@
 /** Write a 3D field in a NetCDF output file. */
 int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
                         char *varname, char *gridname, char *lonname, char *latname, char *timename,
-                        int nlon, int nlat, int ntime) {
+                        int nlon, int nlat, int ntime, int outinfo) {
   /**
      @param[in]  buf         3D Field to write
      @param[in]  fillvalue   Missing value
@@ -34,6 +34,7 @@ int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
      @param[in]  nlon        Longitude dimension
      @param[in]  nlat        Latitude dimension
      @param[in]  ntime       Time dimension
+     @param[in]  outinfo     TRUE if we want information output, FALSE if not
      
      \return                 Status.
   */
@@ -132,7 +133,8 @@ int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
   count[0] = (size_t) ntime;
   count[1] = (size_t) nlat;
   count[2] = (size_t) nlon;
-  printf("%s: WRITE %s %s.\n", __FILE__, varname, filename);
+  if (outinfo == TRUE)
+    printf("%s: WRITE %s %s.\n", __FILE__, varname, filename);
   istat = nc_put_vara_double(ncoutid, varoutid, start, count, buf);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 

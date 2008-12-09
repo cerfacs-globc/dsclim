@@ -88,7 +88,7 @@ int remove_clim(data_struct *data) {
           istat = read_netcdf_var_3d(&clim, &clim_info_field, &clim_proj, data->field[cat].data[i].clim_info->clim_filein_ls,
                                      data->field[cat].data[i].clim_info->clim_nomvar_ls,
                                      data->conf->lonname, data->conf->latname, data->conf->timename,
-                                     &nlon_file, &nlat_file, &ntime_file);
+                                     &nlon_file, &nlat_file, &ntime_file, TRUE);
           if (data->field[cat].nlon_ls != nlon_file || data->field[cat].nlat_ls != nlat_file || ntime_clim != ntime_file) {
             (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d ntime=%d ntime_file=%d\n",
                            __FILE__, data->field[cat].nlat_ls, nlat_file, data->field[cat].nlon_ls, nlon_file, ntime_clim, ntime_file);
@@ -143,7 +143,8 @@ int remove_clim(data_struct *data) {
             return istat;
           }
           /* Write dimensions of climatology field in NetCDF output file */
-          istat = write_netcdf_dims_3d(data->field[cat].lon_ls, data->field[cat].lat_ls, timeclim, data->conf->cal_type,
+          istat = write_netcdf_dims_3d(data->field[cat].lon_ls, data->field[cat].lat_ls, (double *) NULL, (double *) NULL,
+                                       timeclim, data->conf->cal_type,
                                        data->conf->time_units, data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_clim,
                                        data->info->timestep, data->field[cat].proj[i].name, data->field[cat].proj[i].coords,
                                        data->field[cat].proj[i].grid_mapping_name, data->field[cat].proj[i].latin1,
@@ -164,7 +165,7 @@ int remove_clim(data_struct *data) {
           istat = write_netcdf_var_3d(clim, fillvalue, data->field[cat].data[i].clim_info->clim_fileout_ls,
                                       data->field[cat].data[i].clim_info->clim_nomvar_ls, data->field[cat].proj[i].name,
                                       data->conf->lonname, data->conf->latname, data->conf->timename,
-                                      data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_clim);
+                                      data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_clim, TRUE);
           if (istat != 0) {
             /* In case of failure */
             (void) free(bufnoclim);

@@ -48,7 +48,6 @@ int load_conf(data_struct *data, char *fileconf) {
   if (data->conf->period_ctrl == NULL) alloc_error(__FILE__, __LINE__);
   data->info = (info_struct *) malloc(sizeof(info_struct));
   if (data->info == NULL) alloc_error(__FILE__, __LINE__);
-  data->info->title = (char *) NULL;
   data->learning = (learning_struct *) malloc(sizeof(learning_struct));
   if (data->learning == NULL) alloc_error(__FILE__, __LINE__);
   data->reg = (reg_struct *) malloc(sizeof(reg_struct));
@@ -319,6 +318,282 @@ int load_conf(data_struct *data, char *fileconf) {
     return -1;
   }
   (void) fprintf(stdout, "%s: output month_begin = %d\n", __FILE__, data->conf->output_month_begin);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** title **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "title");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->title = strdup((char *) val);
+  else {
+    data->info->title = strdup("Downscaling data from Cerfacs");
+  }
+  (void) fprintf(stdout, "%s: output metadata title = %s\n", __FILE__, data->info->title);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** title_french **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "title_french");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->title_french = strdup((char *) val);
+  else {
+    data->info->title_french = strdup("Donnees de desagregation produites par le Cerfacs");
+  }
+  (void) fprintf(stdout, "%s: output metadata title_french = %s\n", __FILE__, data->info->title_french);
+  if (val != NULL)
+    (void) xmlFree(val);    
+  
+  /** summary **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "summary");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->summary = strdup((char *) val);
+  else {
+    data->info->summary = strdup("Downscaling data from Cerfacs");
+  }
+  (void) fprintf(stdout, "%s: output metadata summary = %s\n", __FILE__, data->info->summary);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** summary_french **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "summary_french");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->summary_french = strdup((char *) val);
+  else {
+    data->info->summary_french = strdup("Donnees de desagregation produites par le Cerfacs");
+  }
+  (void) fprintf(stdout, "%s: output metadata summary_french = %s\n", __FILE__, data->info->summary_french);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** description **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "description");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->description = strdup((char *) val);
+  else {
+    data->info->description = strdup("Downscaling data from Cerfacs");
+  }
+  (void) fprintf(stdout, "%s: output metadata description = %s\n", __FILE__, data->info->description);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** keywords **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "keywords");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->keywords = strdup((char *) val);
+  else {
+    data->info->keywords = strdup("climat,scenarios,desagregation,downscaling,Cerfacs");
+  }
+  (void) fprintf(stdout, "%s: output metadata keywords = %s\n", __FILE__, data->info->keywords);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** institution **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "institution");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->institution = strdup((char *) val);
+  else {
+    data->info->institution = strdup("Cerfacs");
+  }
+  (void) fprintf(stdout, "%s: output metadata institution = %s\n", __FILE__, data->info->institution);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** creator_email **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "creator_email");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->creator_email = strdup((char *) val);
+  else {
+    data->info->creator_email = strdup("globc@cerfacs.fr");
+  }
+  (void) fprintf(stdout, "%s: output metadata creator_email = %s\n", __FILE__, data->info->creator_email);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** creator_url **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "creator_url");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->creator_url = strdup((char *) val);
+  else {
+    data->info->creator_url = strdup("http://www.cerfacs.fr/globc/");
+  }
+  (void) fprintf(stdout, "%s: output metadata creator_url = %s\n", __FILE__, data->info->creator_url);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** creator_name **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "creator_name");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->creator_name = strdup((char *) val);
+  else {
+    data->info->creator_name = strdup("Global Change Team");
+  }
+  (void) fprintf(stdout, "%s: output metadata creator_name = %s\n", __FILE__, data->info->creator_name);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** version **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "version");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->version = strdup((char *) val);
+  else {
+    data->info->version = strdup("1.0");
+  }
+  (void) fprintf(stdout, "%s: output metadata version = %s\n", __FILE__, data->info->version);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** scenario **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "scenario");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->scenario = strdup((char *) val);
+  else {
+    data->info->scenario = strdup("SRESA1B");
+  }
+  (void) fprintf(stdout, "%s: output metadata scenario = %s\n", __FILE__, data->info->scenario);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** scenario_co2 **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "scenario_co2");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->scenario_co2 = strdup((char *) val);
+  else {
+    data->info->scenario_co2 = strdup("A1B");
+  }
+  (void) fprintf(stdout, "%s: output metadata scenario_co2 = %s\n", __FILE__, data->info->scenario_co2);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** model **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "model");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->model = strdup((char *) val);
+  else {
+    data->info->model = strdup("ARPEGE grille etiree");
+  }
+  (void) fprintf(stdout, "%s: output metadata model = %s\n", __FILE__, data->info->model);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** institution_model **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "institution_model");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->institution_model = strdup((char *) val);
+  else {
+    data->info->institution_model = strdup("Meteo-France CNRM/GMGEC");
+  }
+  (void) fprintf(stdout, "%s: output metadata institution_model = %s\n", __FILE__, data->info->institution_model);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** country **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "country");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->country = strdup((char *) val);
+  else {
+    data->info->country = strdup("France");
+  }
+  (void) fprintf(stdout, "%s: output metadata country = %s\n", __FILE__, data->info->country);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** member **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "member");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->member = strdup((char *) val);
+  else {
+    data->info->member = strdup("1");
+  }
+  (void) fprintf(stdout, "%s: output metadata member = %s\n", __FILE__, data->info->member);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** downscaling_forcing **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "downscaling_forcing");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->downscaling_forcing = strdup((char *) val);
+  else {
+    data->info->downscaling_forcing = strdup("SAFRAN 1970-2005");
+  }
+  (void) fprintf(stdout, "%s: output metadata downscaling_forcing = %s\n", __FILE__, data->info->downscaling_forcing);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** timestep **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "timestep");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->timestep = strdup((char *) val);
+  else {
+    data->info->timestep = strdup("daily");
+  }
+  (void) fprintf(stdout, "%s: output metadata timestep = %s\n", __FILE__, data->info->timestep);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** contact_email **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "contact_email");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->contact_email = strdup((char *) val);
+  else {
+    data->info->contact_email = strdup("christian.page@cerfacs.fr");
+  }
+  (void) fprintf(stdout, "%s: output metadata contact_email = %s\n", __FILE__, data->info->contact_email);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** contact_name **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "contact_name");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->contact_name = strdup((char *) val);
+  else {
+    data->info->contact_name = strdup("Christian PAGE");
+  }
+  (void) fprintf(stdout, "%s: output metadata contact_name = %s\n", __FILE__, data->info->contact_name);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** other_contact_email **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "other_contact_email");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->other_contact_email = strdup((char *) val);
+  else {
+    data->info->other_contact_email = strdup("laurent.terray@cerfacs.fr");
+  }
+  (void) fprintf(stdout, "%s: output metadata other_contact_email = %s\n", __FILE__, data->info->other_contact_email);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** other_contact_name **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "other_contact_name");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->info->other_contact_name = strdup((char *) val);
+  else {
+    data->info->other_contact_name = strdup("Laurent TERRAY");
+  }
+  (void) fprintf(stdout, "%s: output metadata other_contact_name = %s\n", __FILE__, data->info->other_contact_name);
   if (val != NULL)
     (void) xmlFree(val);    
 

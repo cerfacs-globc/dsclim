@@ -66,7 +66,7 @@ int read_learning_fields(data_struct *data) {
     (void) sprintf(nomvar_time, "%s_%d", data->learning->nomvar_time, i+1);
     istat = get_time_info(data->learning->data[i].time_s, &(data->learning->data[i].time), &time_units, &cal_type,
                           &(data->learning->data[i].ntime),
-                          data->learning->filename_learn, nomvar_time);
+                          data->learning->filename_learn, nomvar_time, TRUE);
     (void) free(cal_type);
     (void) free(time_units);
     if (istat != 0) {
@@ -83,7 +83,7 @@ int read_learning_fields(data_struct *data) {
     (void) sprintf(name, "%s_%d", data->conf->clustname, i+1);
     istat = read_netcdf_var_2d(&(data->learning->data[i].weight), (info_field_struct *) NULL, (proj_struct *) NULL,
                                data->learning->filename_weight, nomvar, data->conf->eofname, name,
-                               &neof_file, &nclusters);
+                               &neof_file, &nclusters, TRUE);
     /* Save EOF dimension for control and model large-scale fields */
     if (data->field[0].n_ls > 0)
       data->field[0].data[0].eof_info->neof_ls = neof_file;
@@ -118,7 +118,7 @@ int read_learning_fields(data_struct *data) {
     istat = read_netcdf_var_2d(&(data->learning->data[i].precip_reg), (info_field_struct *) NULL, (proj_struct *) NULL,
                                data->learning->filename_learn,
                                nomvar, data->conf->ptsname, name,
-                               &npts, &(data->conf->season[i].nreg));
+                               &npts, &(data->conf->season[i].nreg), TRUE);
     /* Verify that points dimension match configuration value */
     if (npts != data->reg->npts) {
       (void) fprintf(stderr, "%s: ERROR: Incorrect number of points in NetCDF file %d vs configuration file %d.\n",
@@ -141,7 +141,7 @@ int read_learning_fields(data_struct *data) {
     /* Read precip_reg_cst data (precipitation regression constant) */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_cst, i+1);
     istat = read_netcdf_var_1d(&(data->learning->data[i].precip_reg_cst), (info_field_struct *) NULL,
-                               data->learning->filename_learn, nomvar, data->conf->ptsname, &npts);
+                               data->learning->filename_learn, nomvar, data->conf->ptsname, &npts, TRUE);
     /* Verify that points dimension match configuration value */
     if (npts != data->reg->npts) {
       (void) fprintf(stderr, "%s: ERROR: Incorrect number of points in NetCDF file %d vs configuration file %d.\n",
@@ -166,7 +166,7 @@ int read_learning_fields(data_struct *data) {
     istat = read_netcdf_var_2d(&(data->learning->data[i].precip_index), (info_field_struct *) NULL, (proj_struct *) NULL,
                                data->learning->filename_learn,
                                nomvar, data->conf->ptsname, nomvar_time,
-                               &npts, &(data->learning->data[i].ntime));
+                               &npts, &(data->learning->data[i].ntime), TRUE);
     /* Verify that points dimension match configuration value */
     if (npts != data->reg->npts) {
       (void) fprintf(stderr, "%s: ERROR: Incorrect number of points in NetCDF file %d vs configuration file %d.\n",
@@ -191,7 +191,7 @@ int read_learning_fields(data_struct *data) {
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_class_clusters, i+1);
     istat = read_netcdf_var_1d(&bufd, (info_field_struct *) NULL,
                                data->learning->filename_clust_learn, nomvar, nomvar_time,
-                               &(data->learning->data[i].ntime));
+                               &(data->learning->data[i].ntime), TRUE);
     if (istat != 0) {
       /* In case of failure */
       (void) free(nomvar);
@@ -211,7 +211,7 @@ int read_learning_fields(data_struct *data) {
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_sup_index, i+1);
     istat = read_netcdf_var_1d(&(data->learning->data[i].sup_index), (info_field_struct *) NULL,
                                data->learning->filename_learn, nomvar, nomvar_time,
-                               &(data->learning->data[i].ntime));
+                               &(data->learning->data[i].ntime), TRUE);
     if (istat != 0) {
       /* In case of failure */
       (void) free(nomvar);
@@ -302,7 +302,7 @@ int read_learning_fields(data_struct *data) {
   /* Read pc_normalized_var data (normalized EOF-projected large-scale field variance for learning period) */
   istat = read_netcdf_var_1d(&(data->learning->pc_normalized_var), (info_field_struct *) NULL,
                              data->learning->filename_learn, data->learning->nomvar_pc_normalized_var, data->conf->eofname,
-                             &neof);
+                             &neof, TRUE);
   if (neof != neof_file) {
     /* Verify that EOF dimension match configuration value */
     (void) fprintf(stderr, "%s: ERROR: Incorrect number of EOFs in NetCDF file %d vs configuration file %d.\n",
