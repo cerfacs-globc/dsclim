@@ -149,24 +149,24 @@ int main(int argc, char **argv)
   /* Generate a double between 0.0 and 1.0 */
   for (i=0; i<neof-1; i++) {
     for (j=0; j<ndays/2; j++) {
-      pc_eof_days[i+j*neof] = gsl_ran_gaussian(rng, 1.0) + 3.0;
+      pc_eof_days[j+i*ndays] = gsl_ran_gaussian(rng, 1.0) + 3.0;
 #if DEBUG >= 9
-      (void) fprintf(stderr, "eof %d day %d pc_eof_days %lf\n", i, j, pc_eof_days[i+j*neof]);
+      (void) fprintf(stderr, "eof %d day %d pc_eof_days %lf\n", i, j, pc_eof_days[j+i*ndays]);
 #endif
     }
     for (j=ndays/2; j<ndays; j++) {
-      pc_eof_days[i+j*neof] = gsl_ran_gaussian(rng, 1.0) + 6.0;
+      pc_eof_days[j+i*ndays] = gsl_ran_gaussian(rng, 1.0) + 6.0;
 #if DEBUG >= 9
-      (void) fprintf(stderr, "eof %d day %d pc_eof_days %lf\n", i, j, pc_eof_days[i+j*neof]);
+      (void) fprintf(stderr, "eof %d day %d pc_eof_days %lf\n", i, j, pc_eof_days[j+i*ndays]);
 #endif
     }
   }
-
+    
   i = neof-1;
   for (j=0; j<ndays; j++) {
-    pc_eof_days[i+j*neof] = gsl_ran_gaussian(rng, 1.0) + 4.5;
+    pc_eof_days[j+i*ndays] = gsl_ran_gaussian(rng, 1.0) + 4.5;
 #if DEBUG >= 9
-    (void) fprintf(stderr, "eof %d day %d pc_eof_days %lf\n", i, j, pc_eof_days[i+j*neof]);
+    (void) fprintf(stderr, "eof %d day %d pc_eof_days %lf\n", i, j, pc_eof_days[j+i*ndays]);
 #endif
   }
 
@@ -180,9 +180,9 @@ int main(int argc, char **argv)
     for (j=0; j<nclusters; j++)
       (void) fprintf(fileoutclust_ptr, "%d %d %lf\n", i, j, clusters[i+j*neof]);
 
-  for (j=0; j<ndays; j++)
-    for (i=0; i<neof; i++)
-      (void) fprintf(fileoutpc_ptr, "%d %d %lf\n", i, j, pc_eof_days[i+j*neof]);
+  for (i=0; i<neof; i++)
+    for (j=0; j<ndays; j++)
+      (void) fprintf(fileoutpc_ptr, "%d %d %lf\n", i, j, pc_eof_days[j+i*ndays]);
 
   (void) fclose(fileoutclust_ptr);
   (void) fclose(fileoutpc_ptr);

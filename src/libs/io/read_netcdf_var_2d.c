@@ -140,7 +140,6 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
     /* Get grid projection */
     istat = nc_inq_attlen(ncinid, varinid, "grid_mapping", &t_len);
     if (istat == NC_NOERR) {
-      handle_netcdf_error(istat, __FILE__, __LINE__);
       istat = nc_get_att_text(ncinid, varinid, "grid_mapping", tmpstr);
       if (istat == NC_NOERR) {
         if (tmpstr[t_len-1] != '\0')
@@ -156,7 +155,6 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
     /* Get units */
     istat = nc_inq_attlen(ncinid, varinid, "units", &t_len);
     if (istat == NC_NOERR) {
-      handle_netcdf_error(istat, __FILE__, __LINE__);
       istat = nc_get_att_text(ncinid, varinid, "units", tmpstr);
       if (istat == NC_NOERR) {
         if (tmpstr[t_len-1] != '\0')
@@ -172,7 +170,6 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
     /* Get height */
     istat = nc_inq_attlen(ncinid, varinid, "height", &t_len);
     if (istat == NC_NOERR) {
-      handle_netcdf_error(istat, __FILE__, __LINE__);
       istat = nc_get_att_text(ncinid, varinid, "height", tmpstr);
       if (istat == NC_NOERR) {
         if (tmpstr[t_len-1] != '\0')
@@ -188,7 +185,6 @@ int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct 
     /* Get long name */
     istat = nc_inq_attlen(ncinid, varinid, "long_name", &t_len);
     if (istat == NC_NOERR) {
-      handle_netcdf_error(istat, __FILE__, __LINE__);
       istat = nc_get_att_text(ncinid, varinid, "long_name", tmpstr);
       if (istat == NC_NOERR) {
         if (tmpstr[t_len-1] != '\0')

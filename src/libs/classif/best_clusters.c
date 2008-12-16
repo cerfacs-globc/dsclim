@@ -56,7 +56,7 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
   (void) fprintf(stdout, "%s:: Generating %d partitions of clusters.\n", __FILE__, npart);
   for (part=0; part<npart; part++) {
 #if DEBUG >= 1
-    (void) fprintf(stdout, "%s:: Generating %d/%d partition of clusters.\n", __FILE__, part, npart);
+    (void) fprintf(stdout, "%s:: Generating %d/%d partition of clusters.\n", __FILE__, part+1, npart);
 #endif
     (void) generate_clusters(tmpcluster, pc_eof_days, type, nclassif, neof, ncluster, ndays);
     for (clust=0; clust<ncluster; clust++)
@@ -72,7 +72,7 @@ void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int n
   (void) fprintf(stdout, "%s:: Computing distance between each partitions of clusters.\n", __FILE__);
   for (part1=0; part1<npart; part1++) {
 #if DEBUG >= 1
-    (void) fprintf(stdout, "%s:: Partition %d/%d.\n", __FILE__, part1, npart);
+    (void) fprintf(stdout, "%s:: Partition %d/%d.\n", __FILE__, part1+1, npart);
 #endif
     meandistval = 0.0;
     for (part2=0; part2<npart; part2++) {

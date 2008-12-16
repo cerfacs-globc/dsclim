@@ -123,6 +123,28 @@ int load_conf(data_struct *data, char *fileconf) {
   if (val != NULL)
     (void) xmlFree(val);
 
+  /** npartitions **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "number_of_partitions");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->npartitions = xmlXPathCastStringToNumber(val);
+  else
+    data->conf->npartitions = 100;
+  (void) fprintf(stdout, "%s: Number of partitions = %d\n", __FILE__, data->conf->npartitions);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** nclassifications **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "number_of_classifications");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->nclassifications = xmlXPathCastStringToNumber(val);
+  else
+    data->conf->nclassifications = 1000;
+  (void) fprintf(stdout, "%s: Number of classifications = %d\n", __FILE__, data->conf->nclassifications);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
   /** base_time_units **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "base_time_units");
   val = xml_get_setting(conf, path);
@@ -893,6 +915,382 @@ int load_conf(data_struct *data, char *fileconf) {
     (void) xmlFree(val);
   }
 
+  /**** LEARNING CONFIGURATION ****/
+
+  /* Whole learning period */
+  data->learning->time_s = (time_struct *) malloc(sizeof(time_struct));
+  if (data->learning->time_s == NULL) alloc_error(__FILE__, __LINE__);
+
+  /** learning_provided **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "learning_provided");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) 
+    data->learning->learning_provided = (int) strtol((char *) val, (char **)NULL, 10);
+  else
+    data->learning->learning_provided = -1;
+  if (data->learning->learning_provided != 0 && data->learning->learning_provided != 1) {
+    (void) fprintf(stderr, "%s: Invalid or missing learning_provided value %s in configuration file. Aborting.\n", __FILE__, val);
+    return -1;
+  }
+  (void) fprintf(stdout, "%s: learning_provided=%d\n", __FILE__, data->learning->learning_provided);
+  if (val != NULL) 
+    (void) xmlFree(val);
+
+  /* If learning data is provided, additional parameters are needed */
+  if (data->learning->learning_provided == 1) {
+
+    /** filename_weight **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "filename_weight");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->learning->filename_weight = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->learning->filename_weight == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->learning->filename_weight, (char *) val);
+      (void) fprintf(stdout, "%s: Learning filename_weight = %s\n", __FILE__, data->learning->filename_weight);
+      (void) xmlFree(val);
+    }
+    else {
+      (void) fprintf(stderr, "%s: Missing learning filename_weight setting. Aborting.\n", __FILE__);
+      (void) xmlFree(val);
+      return -1;
+    }
+
+    /** filename_learn **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "filename_learn");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->learning->filename_learn = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->learning->filename_learn == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->learning->filename_learn, (char *) val);
+      (void) fprintf(stdout, "%s: Learning filename_learn = %s\n", __FILE__, data->learning->filename_learn);
+      (void) xmlFree(val);
+    }
+    else {
+      (void) fprintf(stderr, "%s: Missing learning filename_learn setting. Aborting.\n", __FILE__);
+      (void) xmlFree(val);
+      return -1;
+    }
+
+    /** filename_clust_learn **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "filename_clust_learn");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->learning->filename_clust_learn = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->learning->filename_clust_learn == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->learning->filename_clust_learn, (char *) val);
+      (void) fprintf(stdout, "%s: Learning filename_clust_learn = %s\n", __FILE__, data->learning->filename_clust_learn);
+      (void) xmlFree(val);
+    }
+    else {
+      (void) fprintf(stderr, "%s: Missing learning filename_clust_learn setting. Aborting.\n", __FILE__);
+      (void) xmlFree(val);
+      return -1;
+    }
+  }
+  else {
+
+    data->learning->obs = (learning_eof_struct *) malloc(sizeof(learning_eof_struct));
+    if (data->learning->obs == NULL) alloc_error(__FILE__, __LINE__);
+    data->learning->rea = (learning_eof_struct *) malloc(sizeof(learning_eof_struct));
+    if (data->learning->rea == NULL) alloc_error(__FILE__, __LINE__);
+    
+    data->learning->obs->time_s = (time_struct *) malloc(sizeof(time_struct));
+    if (data->learning->obs->time_s == NULL) alloc_error(__FILE__, __LINE__);
+    data->learning->rea->time_s = (time_struct *) malloc(sizeof(time_struct));
+    if (data->learning->rea->time_s == NULL) alloc_error(__FILE__, __LINE__);
+
+    /** filename_eof **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "filename_obs_eof");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->learning->obs->filename_eof = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->learning->obs->filename_eof == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->learning->obs->filename_eof, (char *) val);
+      (void) fprintf(stdout, "%s: Learning filename_obs_eof = %s\n", __FILE__, data->learning->obs->filename_eof);
+      (void) xmlFree(val);
+    }
+    else {
+      (void) fprintf(stderr, "%s: Missing learning filename_obs_eof setting. Aborting.\n", __FILE__);
+      (void) xmlFree(val);
+      return -1;
+    }
+
+    /** filename_eof **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "filename_rea_eof");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->learning->rea->filename_eof = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->learning->rea->filename_eof == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->learning->rea->filename_eof, (char *) val);
+      (void) fprintf(stdout, "%s: Learning filename_rea_eof = %s\n", __FILE__, data->learning->rea->filename_eof);
+      (void) xmlFree(val);
+    }
+    else {
+      (void) fprintf(stderr, "%s: Missing learning filename_rea_eof setting. Aborting.\n", __FILE__);
+      (void) xmlFree(val);
+      return -1;
+    }
+
+    /** number of EOFs **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "number_of_eofs");
+    val = xml_get_setting(conf, path);
+    if (val != NULL)
+      data->learning->neof = xmlXPathCastStringToNumber(val);
+    else
+      data->learning->neof = 10;
+    (void) fprintf(stdout, "%s: Number of EOF for learning period = %d\n", __FILE__, data->learning->neof);
+    if (val != NULL)
+      (void) xmlFree(val);    
+
+    /** nomvar_obs_eof **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_obs_eof");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->learning->obs->nomvar_eof = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->learning->obs->nomvar_eof == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->learning->obs->nomvar_eof, (char *) val);
+      (void) xmlFree(val);
+    }
+    else {
+      data->learning->obs->nomvar_eof = strdup("pre_pc");
+    }
+    (void) fprintf(stdout, "%s: Learning nomvar_eof = %s\n", __FILE__, data->learning->obs->nomvar_eof);
+    
+    /** nomvar_rea_eof **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_rea_eof");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->learning->rea->nomvar_eof = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->learning->rea->nomvar_eof == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->learning->rea->nomvar_eof, (char *) val);
+      (void) xmlFree(val);
+    }
+    else {
+      data->learning->rea->nomvar_eof = strdup("psl_pc");
+    }
+    (void) fprintf(stdout, "%s: Learning nomvar_eof = %s\n", __FILE__, data->learning->obs->nomvar_eof);
+    
+    /** nomvar_obs_sing **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_obs_sing");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->learning->obs->nomvar_sing = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->learning->obs->nomvar_sing == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->learning->obs->nomvar_sing, (char *) val);
+      (void) xmlFree(val);
+    }
+    else
+      data->learning->obs->nomvar_sing = strdup("pre_sing");
+    (void) fprintf(stdout, "%s: Learning nomvar_obs_sing = %s\n", __FILE__, data->learning->obs->nomvar_sing);
+
+    /** nomvar_rea_sing **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_rea_sing");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->learning->rea->nomvar_sing = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->learning->rea->nomvar_sing == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->learning->rea->nomvar_sing, (char *) val);
+      (void) xmlFree(val);
+    }
+    else
+      data->learning->rea->nomvar_sing = strdup("pre_sing");
+    (void) fprintf(stdout, "%s: Learning nomvar_rea_sing = %s\n", __FILE__, data->learning->rea->nomvar_sing);
+  }
+
+  /** nomvar_time **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_time");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_time = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_time == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_time, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_time = strdup("time");
+  (void) fprintf(stdout, "%s: Learning nomvar_time = %s\n", __FILE__, data->learning->nomvar_time);
+  
+  /** nomvar_weight **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_weight");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_weight = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_weight == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_weight, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_weight = strdup("poid");
+  (void) fprintf(stdout, "%s: Learning nomvar_weight = %s\n", __FILE__, data->learning->nomvar_weight);
+  
+  /** nomvar_class_clusters **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_class_clusters");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_class_clusters = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_class_clusters == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_class_clusters, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_class_clusters = strdup("clust_learn");
+  (void) fprintf(stdout, "%s: Learning nomvar_class_clusters = %s\n", __FILE__, data->learning->nomvar_class_clusters);
+  
+  /** nomvar_precip_reg **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_reg");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_precip_reg = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_precip_reg == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_precip_reg, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_precip_reg = strdup("reg");
+  (void) fprintf(stdout, "%s: Learning nomvar_precip_reg = %s\n", __FILE__, data->learning->nomvar_precip_reg);
+  
+  /** nomvar_precip_reg_cst **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_reg_cst");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_precip_reg_cst = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_precip_reg_cst == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_precip_reg_cst, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_precip_reg_cst = strdup("cst");
+  (void) fprintf(stdout, "%s: Learning nomvar_precip_reg_cst = %s\n", __FILE__, data->learning->nomvar_precip_reg_cst);
+  
+  /** nomvar_precip_index **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_index");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_precip_index = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_precip_index == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_precip_index, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_precip_index = strdup("rrd");
+  (void) fprintf(stdout, "%s: Learning nomvar_precip_index = %s\n", __FILE__, data->learning->nomvar_precip_index);
+  
+  /** nomvar_sup_index **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_sup_index");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_sup_index = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_sup_index == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_sup_index, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_sup_index = strdup("ta");
+  (void) fprintf(stdout, "%s: Learning nomvar_sup_index = %s\n", __FILE__, data->learning->nomvar_sup_index);
+  
+  /** nomvar_sup_index_mean **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_sup_index_mean");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_sup_index_mean = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_sup_index_mean == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_sup_index_mean, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_sup_index_mean = strdup("tancp_mean");
+  (void) fprintf(stdout, "%s: Learning nomvar_sup_index_mean = %s\n", __FILE__, data->learning->nomvar_sup_index_mean);
+  
+  /** nomvar_sup_index_var **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_sup_index_var");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_sup_index_var = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_sup_index_var == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_sup_index_var, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_sup_index_var = strdup("tancp_var");
+  (void) fprintf(stdout, "%s: Learning nomvar_sup_index_var = %s\n", __FILE__, data->learning->nomvar_sup_index_var);
+  
+  /** nomvar_pc_normalized_var **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_pc_normalized_var");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_pc_normalized_var = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_pc_normalized_var == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_pc_normalized_var, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_pc_normalized_var = strdup("eca_pc_learn");
+  (void) fprintf(stdout, "%s: Learning nomvar_pc_normalized_var = %s\n", __FILE__, data->learning->nomvar_pc_normalized_var);
+  
+
+  /**** REGRESSION CONFIGURATION ****/
+  /** filename **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "filename");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->reg->filename = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->reg->filename == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->reg->filename, (char *) val);
+    (void) fprintf(stdout, "%s: Regression points filename = %s\n", __FILE__, data->reg->filename);
+    (void) xmlFree(val);
+  }
+  else {
+    (void) fprintf(stderr, "%s: Missing regression points filename setting. Aborting.\n", __FILE__);
+    (void) xmlFree(val);
+    return -1;
+  }
+  /** lonname **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "lonname");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->reg->lonname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->reg->lonname == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->reg->lonname, (char *) val);
+    (void) fprintf(stdout, "%s: Regression points lonname = %s\n", __FILE__, data->reg->lonname);
+    (void) xmlFree(val);
+  }
+  else {
+    (void) fprintf(stderr, "%s: Missing regression points lonname setting. Aborting.\n", __FILE__);
+    (void) xmlFree(val);
+    return -1;
+  }
+  /** latname **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "latname");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->reg->latname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->reg->latname == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->reg->latname, (char *) val);
+    (void) fprintf(stdout, "%s: Regression points latname = %s\n", __FILE__, data->reg->latname);
+    (void) xmlFree(val);
+  }
+  else {
+    (void) fprintf(stderr, "%s: Missing regression points latname setting. Aborting.\n", __FILE__);
+    (void) xmlFree(val);
+    return -1;
+  }
+  /** ptsname **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "ptsname");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->reg->ptsname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->reg->ptsname == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->reg->ptsname, (char *) val);
+    (void) fprintf(stdout, "%s: Regression points ptsname = %s\n", __FILE__, data->reg->ptsname);
+    (void) xmlFree(val);
+  }
+  else {
+    (void) fprintf(stderr, "%s: Missing regression points ptsname setting. Aborting.\n", __FILE__);
+    (void) xmlFree(val);
+    return -1;
+  }
+
+
   /**** PERIODS CONFIGURATION ****/
 
   /** number_of_periods **/
@@ -1241,6 +1639,12 @@ int load_conf(data_struct *data, char *fileconf) {
         val = xml_get_setting(conf, path);
         if (val != NULL) {
           data->field[cat].data[i].eof_info->neof_ls = (int) xmlXPathCastStringToNumber(val);
+          if (data->field[cat].data[i].eof_info->neof_ls != data->learning->neof) {
+            (void) fprintf(stderr,
+                           "%s: Fatal error in configuration. The number of eof for field #%d of category %d is %d and the corresponding learning number of eof is %d. They should be equal!! Aborting.\n",
+                           __FILE__, i, cat, data->field[cat].data[i].eof_info->neof_ls, data->learning->neof);
+            return -1;
+          }
           (void) fprintf(stdout, "%s: number_of_eofs = %d\n", __FILE__, data->field[cat].data[i].eof_info->neof_ls);
           (void) xmlFree(val);
         }
@@ -1570,271 +1974,6 @@ int load_conf(data_struct *data, char *fileconf) {
     return -1;
   }
 
-  /**** LEARNING CONFIGURATION ****/
-
-  /* Whole learning period */
-  data->learning->time_s = (time_struct *) malloc(sizeof(time_struct));
-  if (data->learning->time_s == NULL) alloc_error(__FILE__, __LINE__);
-
-  /** learning_provided **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "learning_provided");
-  val = xml_get_setting(conf, path);
-  if (val != NULL) 
-    data->learning->learning_provided = (int) strtol((char *) val, (char **)NULL, 10);
-  else
-    data->learning->learning_provided = -1;
-  if (data->learning->learning_provided != 0 && data->learning->learning_provided != 1) {
-    (void) fprintf(stderr, "%s: Invalid or missing learning_provided value %s in configuration file. Aborting.\n", __FILE__, val);
-    return -1;
-  }
-  (void) fprintf(stdout, "%s: learning_provided=%d\n", __FILE__, data->learning->learning_provided);
-  if (val != NULL) 
-    (void) xmlFree(val);
-
-  /* If learning data is provided, additional parameters are needed */
-  if (data->learning->learning_provided == 1) {
-
-    /** filename_weight **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "filename_weight");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->filename_weight = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->filename_weight == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->filename_weight, (char *) val);
-      (void) fprintf(stdout, "%s: Learning filename_weight = %s\n", __FILE__, data->learning->filename_weight);
-      (void) xmlFree(val);
-    }
-    else {
-      (void) fprintf(stderr, "%s: Missing learning filename_weight setting. Aborting.\n", __FILE__);
-      (void) xmlFree(val);
-      return -1;
-    }
-
-    /** filename_learn **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "filename_learn");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->filename_learn = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->filename_learn == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->filename_learn, (char *) val);
-      (void) fprintf(stdout, "%s: Learning filename_learn = %s\n", __FILE__, data->learning->filename_learn);
-      (void) xmlFree(val);
-    }
-    else {
-      (void) fprintf(stderr, "%s: Missing learning filename_learn setting. Aborting.\n", __FILE__);
-      (void) xmlFree(val);
-      return -1;
-    }
-
-    /** filename_clust_learn **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "filename_clust_learn");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->filename_clust_learn = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->filename_clust_learn == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->filename_clust_learn, (char *) val);
-      (void) fprintf(stdout, "%s: Learning filename_clust_learn = %s\n", __FILE__, data->learning->filename_clust_learn);
-      (void) xmlFree(val);
-    }
-    else {
-      (void) fprintf(stderr, "%s: Missing learning filename_clust_learn setting. Aborting.\n", __FILE__);
-      (void) xmlFree(val);
-      return -1;
-    }
-
-    /** nomvar_time **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_time");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->nomvar_time = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->nomvar_time == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->nomvar_time, (char *) val);
-      (void) xmlFree(val);
-    }
-    else
-      data->learning->nomvar_time = strdup("time");
-    (void) fprintf(stdout, "%s: Learning nomvar_time = %s\n", __FILE__, data->learning->nomvar_time);
-
-    /** nomvar_weight **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_weight");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->nomvar_weight = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->nomvar_weight == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->nomvar_weight, (char *) val);
-      (void) xmlFree(val);
-    }
-    else
-      data->learning->nomvar_weight = strdup("poid");
-    (void) fprintf(stdout, "%s: Learning nomvar_weight = %s\n", __FILE__, data->learning->nomvar_weight);
-
-    /** nomvar_class_clusters **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_class_clusters");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->nomvar_class_clusters = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->nomvar_class_clusters == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->nomvar_class_clusters, (char *) val);
-      (void) xmlFree(val);
-    }
-    else
-      data->learning->nomvar_class_clusters = strdup("clust_learn");
-    (void) fprintf(stdout, "%s: Learning nomvar_class_clusters = %s\n", __FILE__, data->learning->nomvar_class_clusters);
-
-    /** nomvar_precip_reg **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_reg");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->nomvar_precip_reg = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->nomvar_precip_reg == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->nomvar_precip_reg, (char *) val);
-      (void) xmlFree(val);
-    }
-    else
-      data->learning->nomvar_precip_reg = strdup("reg");
-    (void) fprintf(stdout, "%s: Learning nomvar_precip_reg = %s\n", __FILE__, data->learning->nomvar_precip_reg);
-
-    /** nomvar_precip_reg_cst **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_reg_cst");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->nomvar_precip_reg_cst = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->nomvar_precip_reg_cst == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->nomvar_precip_reg_cst, (char *) val);
-      (void) xmlFree(val);
-    }
-    else
-      data->learning->nomvar_precip_reg_cst = strdup("cst");
-    (void) fprintf(stdout, "%s: Learning nomvar_precip_reg_cst = %s\n", __FILE__, data->learning->nomvar_precip_reg_cst);
-
-    /** nomvar_precip_index **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_index");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->nomvar_precip_index = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->nomvar_precip_index == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->nomvar_precip_index, (char *) val);
-      (void) xmlFree(val);
-    }
-    else
-      data->learning->nomvar_precip_index = strdup("rrd");
-    (void) fprintf(stdout, "%s: Learning nomvar_precip_index = %s\n", __FILE__, data->learning->nomvar_precip_index);
-
-    /** nomvar_sup_index **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_sup_index");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->nomvar_sup_index = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->nomvar_sup_index == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->nomvar_sup_index, (char *) val);
-      (void) xmlFree(val);
-    }
-    else
-      data->learning->nomvar_sup_index = strdup("ta");
-    (void) fprintf(stdout, "%s: Learning nomvar_sup_index = %s\n", __FILE__, data->learning->nomvar_sup_index);
-
-    /** nomvar_sup_index_mean **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_sup_index_mean");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->nomvar_sup_index_mean = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->nomvar_sup_index_mean == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->nomvar_sup_index_mean, (char *) val);
-      (void) xmlFree(val);
-    }
-    else
-      data->learning->nomvar_sup_index_mean = strdup("tancp_mean");
-    (void) fprintf(stdout, "%s: Learning nomvar_sup_index_mean = %s\n", __FILE__, data->learning->nomvar_sup_index_mean);
-
-    /** nomvar_sup_index_var **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_sup_index_var");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->nomvar_sup_index_var = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->nomvar_sup_index_var == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->nomvar_sup_index_var, (char *) val);
-      (void) xmlFree(val);
-    }
-    else
-      data->learning->nomvar_sup_index_var = strdup("tancp_var");
-    (void) fprintf(stdout, "%s: Learning nomvar_sup_index_var = %s\n", __FILE__, data->learning->nomvar_sup_index_var);
-
-    /** nomvar_pc_normalized_var **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_pc_normalized_var");
-    val = xml_get_setting(conf, path);
-    if (val != NULL) {
-      data->learning->nomvar_pc_normalized_var = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->learning->nomvar_pc_normalized_var == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->learning->nomvar_pc_normalized_var, (char *) val);
-      (void) xmlFree(val);
-    }
-    else
-      data->learning->nomvar_pc_normalized_var = strdup("eca_pc_learn");
-    (void) fprintf(stdout, "%s: Learning nomvar_pc_normalized_var = %s\n", __FILE__, data->learning->nomvar_pc_normalized_var);
-
-  }
-
-  /**** REGRESSION CONFIGURATION ****/
-  /** filename **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "filename");
-  val = xml_get_setting(conf, path);
-  if (val != NULL) {
-    data->reg->filename = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-    if (data->reg->filename == NULL) alloc_error(__FILE__, __LINE__);
-    (void) strcpy(data->reg->filename, (char *) val);
-    (void) fprintf(stdout, "%s: Regression points filename = %s\n", __FILE__, data->reg->filename);
-    (void) xmlFree(val);
-  }
-  else {
-    (void) fprintf(stderr, "%s: Missing regression points filename setting. Aborting.\n", __FILE__);
-    (void) xmlFree(val);
-    return -1;
-  }
-  /** lonname **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "lonname");
-  val = xml_get_setting(conf, path);
-  if (val != NULL) {
-    data->reg->lonname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-    if (data->reg->lonname == NULL) alloc_error(__FILE__, __LINE__);
-    (void) strcpy(data->reg->lonname, (char *) val);
-    (void) fprintf(stdout, "%s: Regression points lonname = %s\n", __FILE__, data->reg->lonname);
-    (void) xmlFree(val);
-  }
-  else {
-    (void) fprintf(stderr, "%s: Missing regression points lonname setting. Aborting.\n", __FILE__);
-    (void) xmlFree(val);
-    return -1;
-  }
-  /** latname **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "latname");
-  val = xml_get_setting(conf, path);
-  if (val != NULL) {
-    data->reg->latname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-    if (data->reg->latname == NULL) alloc_error(__FILE__, __LINE__);
-    (void) strcpy(data->reg->latname, (char *) val);
-    (void) fprintf(stdout, "%s: Regression points latname = %s\n", __FILE__, data->reg->latname);
-    (void) xmlFree(val);
-  }
-  else {
-    (void) fprintf(stderr, "%s: Missing regression points latname setting. Aborting.\n", __FILE__);
-    (void) xmlFree(val);
-    return -1;
-  }
-  /** ptsname **/
-  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "ptsname");
-  val = xml_get_setting(conf, path);
-  if (val != NULL) {
-    data->reg->ptsname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-    if (data->reg->ptsname == NULL) alloc_error(__FILE__, __LINE__);
-    (void) strcpy(data->reg->ptsname, (char *) val);
-    (void) fprintf(stdout, "%s: Regression points ptsname = %s\n", __FILE__, data->reg->ptsname);
-    (void) xmlFree(val);
-  }
-  else {
-    (void) fprintf(stderr, "%s: Missing regression points ptsname setting. Aborting.\n", __FILE__);
-    (void) xmlFree(val);
-    return -1;
-  }
 
   /* Free memory */
   (void) xml_free_config(conf);

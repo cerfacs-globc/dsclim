@@ -336,7 +336,7 @@ DX_RTF_FEATURE(OFF)
 DX_XML_FEATURE(OFF)
 DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
-DX_INIT_DOXYGEN(dsclim, doxygen.cfg)
+DX_INIT_DOXYGEN(dsclim, doxygen.cfg, doc)
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 
@@ -346,7 +346,6 @@ AC_DISABLE_SHARED
 AC_CONFIG_FILES([
    Makefile
    README
-   doc/Makefile
    m4/Makefile 
    src/libs/Makefile
    src/libs/utils/Makefile

@@ -38,10 +38,10 @@ void dist_clusters_normctrl(double *dist_pc, double *pc, double *clusters, doubl
     for (nt=0; nt<ntime; nt++) {
       sum = 0.0;
       for (eof=0; eof<neof; eof++) {
-        val = (pc[nt+eof*ntime] / sqrt(var_pc_norm_all[eof])) - (clusters[eof+clust*neof] / var_pc[eof]);
+        val = (pc[nt+eof*ntime] / var_pc_norm_all[eof]) - (clusters[eof+clust*neof] / var_pc[eof]);
         sum += (val * val);
         //        if (nt == (ntime-5)) {
-        //          printf("dist_val %d %d %d %lf %lf %lf %lf %lf\n",clust,nt,eof,val,pc[nt+eof*ntime],sqrt(var_pc_norm_all[eof]),clusters[eof+clust*neof],var_pc[eof]);
+        //          printf("dist_val %d %d %d %lf %lf %lf %lf %lf\n",clust,nt,eof,val,pc[nt+eof*ntime],var_pc_norm_all[eof],clusters[eof+clust*neof],var_pc[eof]);
         //        }
       }
       dist_pc[nt+clust*ntime] = ( (sqrt(sum) - mean_ctrl[clust]) / sqrt(var_ctrl[clust]) );

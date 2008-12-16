@@ -51,11 +51,9 @@ int wt_downscaling(data_struct *data) {
     if (ntime_sub[cat] == NULL) alloc_error(__FILE__, __LINE__);
   }
   
-
   /** Step 1: Read large-scale fields **/
   istat = read_large_scale_fields(data);
   if (istat != 0) return istat;
-
 
   /** Step 2: Compute climatologies and remove them from selected large scale fields **/
   istat = remove_clim(data);

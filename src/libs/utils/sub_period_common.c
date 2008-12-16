@@ -40,11 +40,11 @@ void sub_period_common(double **buf_sub, int *ntime_sub, double *bufin, int *yea
 
   /* Initialize number of common times */
   *ntime_sub = 0;
-  
+
   /* Loop over first time vector and find common day/month/year and store time indexes for these common times */
   for (t=0; t<ntime; t++)
     /* Search in all second time vector times for matching date */
-    for (tt=0; tt<ntime_learn; tt++)
+    for (tt=0; tt<ntime_learn; tt++) {
       if (year[t]  == year_learn[tt] &&
           month[t] == month_learn[tt] &&
           day[t]   == day_learn[tt]) {
@@ -53,6 +53,7 @@ void sub_period_common(double **buf_sub, int *ntime_sub, double *bufin, int *yea
         if (buf_sub_i == NULL) alloc_error(__FILE__, __LINE__);
         buf_sub_i[(*ntime_sub)++] = t;
       }
+    }
   
   (void) printf("%s: Sub-period: %d %d %d %d %d %d. Indexes: %d %d\n",__FILE__, year[buf_sub_i[0]], month[buf_sub_i[0]],
                 day[buf_sub_i[0]], year[buf_sub_i[(*ntime_sub)-1]],month[buf_sub_i[(*ntime_sub)-1]],

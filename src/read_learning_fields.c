@@ -321,6 +321,9 @@ int read_learning_fields(data_struct *data) {
     (void) free(name);
     return istat;
   }
+  /* Save as square root of variance */
+  for (i=0; i<neof; i++)
+    data->learning->pc_normalized_var[i] = sqrt(data->learning->pc_normalized_var[i]);
 
   /* Free memory */
   (void) free(nomvar);

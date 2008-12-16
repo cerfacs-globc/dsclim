@@ -211,6 +211,17 @@ typedef struct {
   double sup_index_var; /**< Variance of secondary field index. */
 } learning_data_struct;
 
+/** Data structure for EOF-related learning data learning_eof_struct. */
+typedef struct {
+  double *eof;
+  double *sing;
+  time_struct *time_s;
+  int ntime; /**< Number of times. */
+  char *filename_eof;
+  char *nomvar_eof;
+  char *nomvar_sing;
+} learning_eof_struct;
+
 /** Data structure for learning data learning_struct. */
 typedef struct {
   int learning_provided; /**< If learning data is already available. */
@@ -230,6 +241,9 @@ typedef struct {
   double *pc_normalized_var; /**< Variance of EOF-projected large-scale fields after normalization with the first one. */
   int ntime; /**< Number of times. */
   time_struct *time_s; /**< Time structure of the whole learning period. */
+  int neof;
+  learning_eof_struct *obs;
+  learning_eof_struct *rea;
   learning_data_struct *data; /**< Learning data. */
 } learning_struct;
 
@@ -298,6 +312,8 @@ typedef struct {
   int downscale; /**< Downscale or not control-run period. */
   int npts_reg; /**< Number of points for the regression. */
   char *classif_type; /**< Classification type (euclidian only for now). */
+  int nclassifications; /**< Maximum number of classifications. */
+  int npartitions; /**< Number of partitions. */
   var_struct *obs_var; /**< Structure for observation variables information. */
 } conf_struct;
 
@@ -316,6 +332,8 @@ int wt_downscaling(data_struct *data);
 int wt_learning(data_struct *data);
 int read_large_scale_fields(data_struct *data);
 int read_large_scale_eof(data_struct *data);
+int read_learning_obs_eof(data_struct *data);
+int read_learning_rea_eof(data_struct *data);
 int read_learning_fields(data_struct *data);
 int remove_clim(data_struct *data);
 int read_regression_points(reg_struct *reg);

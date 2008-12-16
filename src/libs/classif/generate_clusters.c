@@ -75,12 +75,12 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   
   /* Initialize cluster PC array randomly */
   (void) fprintf(stdout, "%s:: Initializing cluster array.\n", __FILE__);
-  for (clust=0; clust<ncluster; clust++)
-    for (eof=0; eof<neof; eof++) {
-      eof_days_cluster[eof+clust*neof] = pc_eof_days[eof+random_num[clust]*neof];
+  for (eof=0; eof<neof; eof++)
+    for (clust=0; clust<ncluster; clust++) {
+      eof_days_cluster[eof+clust*neof] = pc_eof_days[random_num[clust]+eof*ndays];
 
 #if DEBUG >= 7
-      /*      (void) fprintf(stderr, "eof=%d cluster=%d eof_days_cluster=%lf\n", eof, clust, eof_days_cluster[eof+clust*neof]);*/
+      (void) fprintf(stderr, "eof=%d cluster=%d eof_days_cluster=%lf\n", eof, clust, eof_days_cluster[eof+clust*neof]);
 #endif
     }
 
@@ -115,7 +115,7 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
         /* Compute the mean (PC-space) of all the days of the current cluster */
         for (day=0; day<ndays; day++)
           if (days_class_cluster[day] == clust) {
-            mean_days += pc_eof_days[eof+day*neof];
+            mean_days += pc_eof_days[day+eof*ndays];
             ndays_cluster++;
           }
 
@@ -133,7 +133,7 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
           /* Compute the difference between the new cluster center position and the previous one */
           ndiff_cluster_bary = fabs(mean_days - eof_days_cluster[eof+clust*neof]);
 
-          /* If this new cluster center position is further away than the other EOF's ones, chosse this new cluster center */
+          /* If this new cluster center position is further away than the other EOF's ones, choose this new cluster center */
           if ( ndiff_cluster_bary > cluster_bary )
             cluster_bary = mean_days;
 

@@ -13,8 +13,8 @@ include $(top_srcdir)/doxygen-include.am
 ACLOCAL_AMFLAGS = -I m4
 
 #EXTRA_DIST = reconf configure $(DX_CONFIG) doc/html
-EXTRA_DIST = reconf configure $(DX_CONFIG) doc/html
-SUBDIRS = src/libs src doc tests .
+EXTRA_DIST = reconf configure $(DX_CONFIG)
+SUBDIRS = src/libs src tests .
 
 MOSTLYCLEANFILES = $(DX_CLEANFILES)
 

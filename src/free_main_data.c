@@ -190,6 +190,38 @@ void free_main_data(data_struct *data) {
       (void) free(data->learning->data[s].precip_index);
       (void) free(data->learning->data[s].sup_index);
     }
+    else {
+      (void) free(data->learning->obs->filename_eof);
+      (void) free(data->learning->obs->nomvar_eof);
+      (void) free(data->learning->obs->nomvar_sing);
+      (void) free(data->learning->obs->eof);
+      (void) free(data->learning->obs->sing);
+
+      (void) free(data->learning->obs->time_s->year);
+      (void) free(data->learning->obs->time_s->month);
+      (void) free(data->learning->obs->time_s->day);
+      (void) free(data->learning->obs->time_s->hour);
+      (void) free(data->learning->obs->time_s->minutes);
+      (void) free(data->learning->obs->time_s->seconds);      
+      (void) free(data->learning->obs->time_s);
+
+      (void) free(data->learning->rea->time_s->year);
+      (void) free(data->learning->rea->time_s->month);
+      (void) free(data->learning->rea->time_s->day);
+      (void) free(data->learning->rea->time_s->hour);
+      (void) free(data->learning->rea->time_s->minutes);
+      (void) free(data->learning->rea->time_s->seconds);      
+      (void) free(data->learning->rea->time_s);
+
+      (void) free(data->learning->rea->filename_eof);
+      (void) free(data->learning->rea->nomvar_eof);
+      (void) free(data->learning->rea->nomvar_sing);
+      (void) free(data->learning->rea->eof);
+      (void) free(data->learning->rea->sing);
+
+      (void) free(data->learning->obs);
+      (void) free(data->learning->rea);
+    }
   }
 
   (void) free(data->learning->time_s->year);

@@ -11,6 +11,8 @@
 
   <!-- Cluster classification distance type -->
   <setting name="classif_type">euclidian</setting>
+  <setting name="number_of_partitions">30</setting>
+  <setting name="number_of_classifications">1000</setting>
 
   <!-- Calendar-output parameters -->
   <setting name="base_time_units">days since 1900-01-01 12:00:00</setting>
@@ -58,10 +60,18 @@
 
   <!-- Learning data -->
   <setting name="learning">
-    <learning_provided>1</learning_provided>
+    <learning_provided>0</learning_provided>
     <filename_weight>/home/page/codes/src/dsclim/trunk/tests/Poid_down.nc</filename_weight>
     <filename_learn>/home/page/codes/src/dsclim/trunk/tests/learning_data_NCEP.nc</filename_learn>
     <filename_clust_learn>/home/page/codes/src/dsclim/trunk/tests/clust_learn.nc</filename_clust_learn>
+    <filename_obs_eof>/home/page/codes/src/dsclim/trunk/tests/ForcPRE.DAT_france_8105_cat_aseason_EOF_test.nc</filename_obs_eof>
+    <filename_rea_eof>/home/page/codes/src/dsclim/trunk/tests/psl_1d_19480101_20060331_NCP_aseason_EOF_test.nc</filename_rea_eof>
+    <number_of_eofs>10</number_of_eofs>
+    <nomvar_obs_eof>pre_pc</nomvar_obs_eof>
+    <nomvar_rea_eof>psl_pc</nomvar_rea_eof>
+    <!-- NetCDF variable name for singular values -->
+    <nomvar_obs_sing>pre_sing</nomvar_obs_sing>
+    <nomvar_rea_sing>psl_sing</nomvar_rea_sing>
   </setting>
 
   <!-- Regression parameters -->
