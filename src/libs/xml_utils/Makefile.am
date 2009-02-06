@@ -10,5 +10,5 @@
 
 noinst_LTLIBRARIES = libxml_utils.la
 libxml_utils_la_SOURCES = xml_utils.h xml_free_config.c xml_get_node_by_xpath.c xml_get_setting.c xml_load_config.c xml_print_setting.c
-libxml_utils_la_CPPFLAGS = -I${top_srcdir}/src/libs/utils $(XML_CPPFLAGS)
-libxml_utils_la_LIBADD = ${top_srcdir}/src/libs/utils/libutils.la $(XML_LIBS) -ludunits -lm
+libxml_utils_la_CPPFLAGS = -I${top_srcdir}/src/libs/misc $(XML_CPPFLAGS)
+libxml_utils_la_LIBADD = ${top_srcdir}/src/libs/misc/libmisc.la $(XML_LIBS) -ludunits -lm

@@ -40,7 +40,7 @@
 #include <gsl/gsl_statistics.h>
 
 /* Local dependent includes */
-#include <utils.h>
+#include <misc.h>
 
 /* Prototypes */
 void class_days_pc_clusters(int *days_class_cluster, double *pc_eof_days, double *eof_days_cluster, char *type,

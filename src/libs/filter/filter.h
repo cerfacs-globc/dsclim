@@ -27,7 +27,7 @@
 #endif
 
 /* Local dependent includes */
-#include <utils.h>
+#include <misc.h>
 
 /* Prototypes */
 void filter(double *bufferf, double *buffer, char *type, int width, int ni, int nj, int nt);

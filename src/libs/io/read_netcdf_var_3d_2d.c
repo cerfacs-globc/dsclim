@@ -63,6 +63,8 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
   size_t t_len; /* Length of string attribute */
 
   float *proj_latin = NULL; /* Parallel latitudes of projection */
+  int npts = 0; /* Number of points for 1D variables */
+  char *grid_mapping = NULL;
 
   /* Allocate memory */
   tmpstr = (char *) malloc(5000 * sizeof(char));
@@ -72,7 +74,7 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
 
   /* Open NetCDF file for reading */
   if (outinfo == TRUE)
-    printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
+    printf("%s: Opening for reading NetCDF input file %s\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
@@ -115,13 +117,25 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
   istat = nc_inq_var(ncinid, varinid, (char *) NULL, &vartype_main, &varndims, vardimids, (int *) NULL);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  /* Verify that variable is really 3D */
-  if (varndims != 3) {
+  /* Verify that variable is really 3D or 2D */
+  if (varndims != 3 && varndims != 2) {
     (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions nlon %d nlat %d.\n", __FILE__, *nlon, *nlat);
     (void) free(tmpstr);
     istat = ncclose(ncinid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     return -1;
+  }
+
+  if (varndims == 2) {
+    if ((*nlat) != (*nlon)) {
+      (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions nlon %d nlat %d.\n", __FILE__, *nlon, *nlat);
+      (void) free(tmpstr);
+      istat = ncclose(ncinid);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      return -1;
+    }
+    npts = *nlon;
+    *nlat = 0;
   }
 
   /* If info_field si not NULL, get some information about the read variable */
@@ -222,17 +236,22 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
 
   /* if proj is not NULL, retrieve informations about the horizontal projection parameters */
   if (proj != NULL) {
+    if (info_field == NULL)
+      grid_mapping = strdup("unknown");
+    else
+      grid_mapping = strdup(info_field->grid_mapping);
     /* Get projection variable ID */
-    if ( !strcmp(info_field->grid_mapping, "Lambert_Conformal") ) {
-      istat = nc_inq_varid(ncinid, info_field->grid_mapping, &projinid); /* get projection variable ID */
+    if ( !strcmp(grid_mapping, "Lambert_Conformal") ) {
+      istat = nc_inq_varid(ncinid, grid_mapping, &projinid); /* get projection variable ID */
       if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     }
-    if ( (strcmp(info_field->grid_mapping, "Lambert_Conformal") && strcmp(info_field->grid_mapping, "Latitude_Longitude")) &&
-         ( !strcmp(proj->name, "Latitude_Longitude") || !strcmp(proj->name, "Lambert_Conformal") ) ) {
-      (void) free(info_field->grid_mapping);
-      info_field->grid_mapping = strdup(proj->name);
-    }
-    if ( !strcmp(info_field->grid_mapping, "Lambert_Conformal") ) {
+    if (proj->name != NULL)
+      if ( (strcmp(grid_mapping, "Lambert_Conformal") && strcmp(grid_mapping, "Latitude_Longitude")) &&
+           ( !strcmp(proj->name, "Latitude_Longitude") || !strcmp(proj->name, "Lambert_Conformal") ) ) {
+        (void) free(grid_mapping);
+        grid_mapping = strdup(proj->name);
+      }
+    if ( !strcmp(grid_mapping, "Lambert_Conformal") ) {
       /*              int Lambert_Conformal ;
                       Lambert_Conformal:grid_mapping_name = "lambert_conformal_conic" ;
                       Lambert_Conformal:standard_parallel = 45.89892f, 47.69601f ;
@@ -243,7 +262,7 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
       */
       istat = nc_get_var1_int(ncinid, projinid, 0, &vali);
       if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
-      proj->name = strdup(info_field->grid_mapping);
+      proj->name = strdup(grid_mapping);
       istat = get_attribute_str(&(proj->grid_mapping_name), ncinid, projinid, "grid_mapping_name");
     
       proj_latin = (float *) malloc(2 * sizeof(float));
@@ -259,24 +278,65 @@ int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_stru
       istat = nc_get_att_double(ncinid, projinid, "false_northing", &(proj->false_northing));
     
     }
-    else if ( !strcmp(info_field->grid_mapping, "Latitude_Longitude") )
-      proj->name = strdup(info_field->grid_mapping);      
-    else {
-      fprintf(stderr, "%s: WARNING: No projection parameter available for %s.\n", __FILE__, info_field->grid_mapping);
-      proj->name = strdup("Latitude_Longitude");      
+    else if ( !strcmp(grid_mapping, "Latitude_Longitude") ) {
+      proj->name = strdup(grid_mapping);
+      proj->grid_mapping_name = strdup("Latitude_Longitude");
+      proj->latin1 = 0.0;
+      proj->latin2 = 0.0;
+      proj->lonc = 0.0;
+      proj->lat0 = 0.0;
+      proj->false_easting = 0.0;
+      proj->false_northing = 0.0;
     }
+    else if ( !strcmp(grid_mapping, "list") ) {
+      proj->name = strdup(grid_mapping);
+      proj->grid_mapping_name = strdup("list");
+      proj->latin1 = 0.0;
+      proj->latin2 = 0.0;
+      proj->lonc = 0.0;
+      proj->lat0 = 0.0;
+      proj->false_easting = 0.0;
+      proj->false_northing = 0.0;
+    }
+    else {
+      (void) fprintf(stderr, "%s: WARNING: No projection parameter available for %s.\n", __FILE__, grid_mapping);
+      (void) fprintf(stderr, "%s: WARNING: Assuming list of longitude and latitude points.\n", __FILE__);
+      proj->name = strdup("list");
+      proj->grid_mapping_name = strdup("list");
+      proj->latin1 = 0.0;
+      proj->latin2 = 0.0;
+      proj->lonc = 0.0;
+      proj->lat0 = 0.0;
+      proj->false_easting = 0.0;
+      proj->false_northing = 0.0;
+    }
+    (void) free(grid_mapping);
   }
 
-  /* Allocate memory and set start and count */
-  start[0] = t;
-  start[1] = 0; /* Timestep to retrieve */
-  start[2] = 0;
-  count[0] = 1; /* Only get one timestep */
-  count[1] = (size_t) *nlat;
-  count[2] = (size_t) *nlon;
-  /* Allocate memory */
-  (*buf) = (double *) malloc((*nlat)*(*nlon) * sizeof(double));
-  if ((*buf) == NULL) alloc_error(__FILE__, __LINE__);
+  if (varndims == 3) {
+    /* Allocate memory and set start and count */
+    start[0] = t;
+    start[1] = 0; /* Timestep to retrieve */
+    start[2] = 0;
+    count[0] = 1; /* Only get one timestep */
+    count[1] = (size_t) *nlat;
+    count[2] = (size_t) *nlon;
+    /* Allocate memory */
+    (*buf) = (double *) malloc((*nlat)*(*nlon) * sizeof(double));
+    if ((*buf) == NULL) alloc_error(__FILE__, __LINE__);
+  }
+  else if (varndims == 2) {
+    /* Allocate memory and set start and count */
+    start[0] = t;
+    start[1] = 0; /* Timestep to retrieve */
+    start[2] = 0;
+    count[0] = 1; /* Only get one timestep */
+    count[1] = (size_t) npts; /* List of latitude+longitude points only */
+    count[2] = 0;
+    /* Allocate memory */
+    (*buf) = (double *) malloc(npts * sizeof(double));
+    if ((*buf) == NULL) alloc_error(__FILE__, __LINE__);
+  }
 
   /* Read values from netCDF variable */
   istat = nc_get_vara_double(ncinid, varinid, start, count, *buf);

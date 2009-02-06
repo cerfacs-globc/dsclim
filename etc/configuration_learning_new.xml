@@ -60,11 +60,11 @@
 
   <!-- Learning data -->
   <setting name="learning">
-    <learning_provided>0</learning_provided>
-    <learning_save>1</learning_save>
-    <filename_open_weight>/home/page/codes/src/dsclim/trunk/tests/Poid_down.nc</filename_open_weight>
-    <filename_open_learn>/home/page/codes/src/dsclim/trunk/tests/learning_data_NCEP.nc</filename_open_learn>
-    <filename_open_clust_learn>/home/page/codes/src/dsclim/trunk/tests/clust_learn.nc</filename_open_clust_learn>
+    <learning_provided>1</learning_provided>
+    <learning_save>0</learning_save>
+    <filename_open_weight>/home/page/codes/src/dsclim/trunk/tests/Poid_down_test.nc</filename_open_weight>
+    <filename_open_learn>/home/page/codes/src/dsclim/trunk/tests/learning_data_NCEP_test.nc</filename_open_learn>
+    <filename_open_clust_learn>/home/page/codes/src/dsclim/trunk/tests/clust_learn_test.nc</filename_open_clust_learn>
     <filename_save_weight>/home/page/codes/src/dsclim/trunk/tests/Poid_down_test.nc</filename_save_weight>
     <filename_save_learn>/home/page/codes/src/dsclim/trunk/tests/learning_data_NCEP_test.nc</filename_save_learn>
     <filename_save_clust_learn>/home/page/codes/src/dsclim/trunk/tests/clust_learn_test.nc</filename_save_clust_learn>

@@ -68,7 +68,7 @@ int read_large_scale_fields(data_struct *data) {
       if (data->field[cat].time_ls == NULL) {
         istat = read_netcdf_dims_3d(&lon, &lat, &time_ls, &cal_type, &time_units, &nlon, &nlat, &ntime,
                                     data->info, data->field[cat].proj[i].coords, data->field[cat].proj[i].name,
-                                    data->conf->lonname, data->conf->latname, data->conf->timename,
+                                    data->field[cat].data[i].lonname, data->field[cat].data[i].latname, data->field[cat].data[i].timename,
                                     data->field[cat].data[i].filename_ls);
         if (istat != 0) {
           /* In case of failure */
@@ -87,7 +87,8 @@ int read_large_scale_fields(data_struct *data) {
         /* Read data */
         istat = read_netcdf_var_3d(&buf, data->field[cat].data[i].info, data->field[cat].proj,
                                    data->field[cat].data[i].filename_ls,
-                                   data->field[cat].data[i].nomvar_ls, data->conf->lonname, data->conf->latname, data->conf->timename,
+                                   data->field[cat].data[i].nomvar_ls,
+                                   data->field[cat].data[i].lonname, data->field[cat].data[i].latname, data->field[cat].data[i].timename,
                                    &nlon_file, &nlat_file, &ntime_file, TRUE);
         if (nlon != nlon_file || nlat != nlat_file || ntime != ntime_file) {
           (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d ntime=%d ntime_file=%d\n",
@@ -148,7 +149,8 @@ int read_large_scale_fields(data_struct *data) {
         /* Read data and fix calendar */
         istat = read_netcdf_var_3d(&(data->field[cat].data[i].field_ls), data->field[cat].data[i].info,
                                    data->field[cat].proj, data->field[cat].data[i].filename_ls,
-                                   data->field[cat].data[i].nomvar_ls, data->conf->lonname, data->conf->latname, data->conf->timename,
+                                   data->field[cat].data[i].nomvar_ls,
+                                   data->field[cat].data[i].lonname, data->field[cat].data[i].latname, data->field[cat].data[i].timename,
                                    &nlon_file, &nlat_file, &ntime_file, TRUE);
         if (nlon != nlon_file || nlat != nlat_file || ntime != ntime_file) {
           (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d ntime=%d ntime_file=%d\n",

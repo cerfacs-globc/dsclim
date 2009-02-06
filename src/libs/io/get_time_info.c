@@ -58,7 +58,7 @@ int get_time_info(time_struct *time_s, double **timeval, char **time_units, char
 
   /* Open NetCDF file for reading */
   if (outinfo == TRUE)
-    printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
+    printf("%s: Opening for reading time information in NetCDF input file %s\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
@@ -154,7 +154,7 @@ int get_time_info(time_struct *time_s, double **timeval, char **time_units, char
   for (t=0; t<(*ntime); t++) {
     istat = utCalendar_cal((*timeval)[t], &dataunits, &(time_s->year[t]), &(time_s->month[t]), &(time_s->day[t]),
                            &(time_s->hour[t]), &(time_s->minutes[t]), &(time_s->seconds[t]), *cal_type);
-    //    printf("%d %d %lf %d\n",t,time_s->year[t],(*timeval)[t],*ntime);
+    //    printf("%d %d %d %d %lf\n",t,time_s->year[t],time_s->month[t],time_s->day[t],(*timeval)[t]);
   }
 
   (void) utTerm();

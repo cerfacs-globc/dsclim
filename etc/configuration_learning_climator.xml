@@ -15,59 +15,49 @@
   <setting name="number_of_classifications">1000</setting>
 
   <!-- Calendar-output parameters -->
-  <setting name="base_time_units">days since 1900-01-01 00:00:00</setting>
+  <setting name="base_time_units">hours since 1900-01-01 00:00:00</setting>
   <setting name="base_calendar_type">gregorian</setting>
 
-  <!-- Grid-output information -->
-  <setting name="longitude_name">lon</setting>
-  <setting name="latitude_name">lat</setting>
-  <setting name="coordinates">2D</setting>
-  
   <!-- Output information -->
   <setting name="output">
-    <path>/home/page/downscaling/data/results/SRESA1B/v2_new</path>
+    <path>/home/page/downscaling/data/results/SRESA1B/v2_climator</path>
     <month_begin>08</month_begin>
   </setting>
 
   <!-- Observation database for analog days -->
   <setting name="observations">
-    <dimx_name>x</dimx_name>
-    <dimy_name>y</dimy_name>
+    <dimx_name>lon</dimx_name>
+    <dimy_name>lat</dimy_name>
     <dim_coordinates>1D</dim_coordinates>
     <longitude_name>lon</longitude_name>
     <latitude_name>lat</latitude_name>
-    <coordinates>2D</coordinates>
+    <coordinates>1D</coordinates>
     <time_name>time</time_name>
-    <number_of_variables>7</number_of_variables>
+    <number_of_variables>6</number_of_variables>
     <frequency>daily</frequency>
-    <path>/contrex/Obs/SAFRAN/netcdf</path>
+    <path>/home/page/downscaling/climator</path>
     <month_begin>08</month_begin>
-    <year_digits>2</year_digits>
-    <!-- ForcT.DAT_france_0102_daily.nc : format as in sprintf -->
+    <year_digits>4</year_digits>
+    <!-- TX_1d_19960801_19970731.nc : format as in sprintf -->
     <!-- Must be consistent with the number of year_digits and month_begin. -->
     <!-- If month_begin is 1, only one %d must appear! -->
-    <template>Forc%s.DAT_france_%02d%02d_daily.nc</template>
+    <template>%s_1d_%04d0801_%04d0731.nc</template>
     <variables>
-      <name id="1" acronym="T" netcdfname="tas" factor="1.0" delta="0.0">Temperature at 2 m</name>
-      <name id="2" acronym="Q" netcdfname="hus" factor="1.0" delta="0.0">Specific humidity at 2 m</name>
-      <name id="3" acronym="PRCP" netcdfname="prr" factor="1.0" delta="0.0">Liquid precipitation at the surface</name>
-      <name id="4" acronym="SNOW" netcdfname="prsn" factor="1.0" delta="0.0">Solid precipitation at the surface</name>
-      <name id="5" acronym="RAT" netcdfname="rlds" factor="1.0" delta="0.0">Incoming infra-red radiation at the surface</name>
-      <name id="6" acronym="GLO" netcdfname="rsds" factor="1.0" delta="0.0">Incoming shortwave radiation at the surface</name>
-      <name id="7" acronym="Vu" netcdfname="uvas" factor="1.0" delta="0.0">Wind speed module at 10 m</name>
+      <name id="1" acronym="TX" netcdfname="tasmax" factor="1.0" delta="0.0">Maximum Temperature at 2 m</name>
+      <name id="2" acronym="TN" netcdfname="tasmin" factor="1.0" delta="0.0">Minimum Temperature at 2 m</name>
+      <name id="3" acronym="HR" netcdfname="hur" factor="1.0" delta="0.0">Relative humidity at 2 m</name>
+      <name id="4" acronym="RR" netcdfname="prtot" factor="1.0" delta="0.0">Total precipitation at the surface</name>
+      <name id="5" acronym="RG" netcdfname="rsds" factor="1.0" delta="0.0">Incoming shortwave radiation at the surface</name>
+      <name id="6" acronym="VE" netcdfname="uvas" factor="1.0" delta="0.0">Wind speed module at 10 m</name>
     </variables>
   </setting>
 
   <!-- Learning data -->
   <setting name="learning">
-    <learning_provided>0</learning_provided>
-    <learning_save>1</learning_save>
+    <learning_provided>1</learning_provided>
     <filename_open_weight>/home/page/codes/src/dsclim/trunk/tests/Poid_down.nc</filename_open_weight>
     <filename_open_learn>/home/page/codes/src/dsclim/trunk/tests/learning_data_NCEP.nc</filename_open_learn>
     <filename_open_clust_learn>/home/page/codes/src/dsclim/trunk/tests/clust_learn.nc</filename_open_clust_learn>
-    <filename_save_weight>/home/page/codes/src/dsclim/trunk/tests/Poid_down_test.nc</filename_save_weight>
-    <filename_save_learn>/home/page/codes/src/dsclim/trunk/tests/learning_data_NCEP_test.nc</filename_save_learn>
-    <filename_save_clust_learn>/home/page/codes/src/dsclim/trunk/tests/clust_learn_test.nc</filename_save_clust_learn>
     <filename_obs_eof>/home/page/codes/src/dsclim/trunk/tests/ForcPRE.DAT_france_8105_cat_aseason_EOF_test.nc</filename_obs_eof>
     <filename_rea_eof>/home/page/codes/src/dsclim/trunk/tests/psl_1d_19480101_20060331_NCP_aseason_EOF_test.nc</filename_rea_eof>
     <filename_rea_sup>/home/page/codes/src/dsclim/trunk/tests/tas_1d_19480101_20070331_NCP.nc</filename_rea_sup>
@@ -171,6 +161,10 @@
     <projection id="1">Latitude_Longitude</projection>
     <!-- Coordinates number of dimensions -->
     <coordinates id="1">2D</coordinates>
+    <!-- Latitude dimension name -->
+    <latname id="1">lat</latname>
+    <!-- Longitude dimension name -->
+    <lonname id="1">lon</lonname>
 
     <!-- Climatology parameters -->
     <!-- Remove climatology or not -->
@@ -222,6 +216,10 @@
     <projection id="1">Latitude_Longitude</projection>
     <!-- Coordinates number of dimensions -->
     <coordinates id="1">2D</coordinates>
+    <!-- Latitude dimension name -->
+    <latname id="1">lat</latname>
+    <!-- Longitude dimension name -->
+    <lonname id="1">lon</lonname>
 
   </setting>
 

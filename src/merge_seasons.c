@@ -1,16 +1,16 @@
 /* ***************************************************** */
-/* Merge seasonal data.                                  */
+/* Merge seasonal analog date data.                      */
 /* merge_seasons.c                                       */
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
 /*! \file merge_seasons.c
-    \brief Merge seasonal data.
+    \brief Merge seasonal analog date data.
 */
 
 #include <dsclim.h>
 
-/** Merge seasonal data */
+/** Merge seasonal analog date data */
 int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int ntimes_merged, int ntimes) {
   /**
      @param[out]  analog_days_merged    Analog days time indexes and dates with corresponding dates being downscaled, all seasons merged

@@ -49,7 +49,7 @@
 
 #include <gsl/gsl_statistics.h>
 
-#include <utils.h>
+#include <misc.h>
 #include <filter.h>
 #include <clim.h>
 

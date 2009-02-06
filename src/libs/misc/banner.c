@@ -8,7 +8,7 @@
     \brief Show banners for execution of a program.
 */
 
-#include <utils.h>
+#include <misc.h>
 
 /** Output banner on terminal for BEGIN and END of programs. */
 void banner(char *pgm, char *verstat, char *type)

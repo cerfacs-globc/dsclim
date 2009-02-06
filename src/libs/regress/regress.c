@@ -119,7 +119,9 @@ int regress(double *coef, double *x, double *y, double *cte, double *yreg, doubl
   *cte = gsl_vector_get(ccoef, 0);
 
   /* Reconstruct vector using regression coefficients, and calculate error */
+#if DEBUG >= 7
   (void) fprintf(stdout, "%s: Vector reconstruction\n", __FILE__);
+#endif
   for (pts=0; pts<npts; pts++) {
     row = gsl_matrix_row(xx, pts);
     istat = gsl_multifit_linear_est(&row.vector, ccoef, cov, &(yreg[pts]), &(yerr[pts]));

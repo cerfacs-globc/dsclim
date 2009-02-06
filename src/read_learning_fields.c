@@ -66,7 +66,7 @@ int read_learning_fields(data_struct *data) {
     (void) sprintf(nomvar_time, "%s_%d", data->learning->nomvar_time, i+1);
     istat = get_time_info(data->learning->data[i].time_s, &(data->learning->data[i].time), &time_units, &cal_type,
                           &(data->learning->data[i].ntime),
-                          data->learning->filename_learn, nomvar_time, TRUE);
+                          data->learning->filename_open_learn, nomvar_time, TRUE);
     (void) free(cal_type);
     (void) free(time_units);
     if (istat != 0) {
@@ -82,7 +82,7 @@ int read_learning_fields(data_struct *data) {
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_weight, i+1);
     (void) sprintf(name, "%s_%d", data->conf->clustname, i+1);
     istat = read_netcdf_var_2d(&(data->learning->data[i].weight), (info_field_struct *) NULL, (proj_struct *) NULL,
-                               data->learning->filename_weight, nomvar, data->conf->eofname, name,
+                               data->learning->filename_open_weight, nomvar, data->conf->eofname, name,
                                &neof_file, &nclusters, TRUE);
     /* Save EOF dimension for control and model large-scale fields */
     if (data->field[0].n_ls > 0)
@@ -116,7 +116,7 @@ int read_learning_fields(data_struct *data) {
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg, i+1);
     (void) sprintf(name, "%s_%d", data->conf->clustname, i+1);
     istat = read_netcdf_var_2d(&(data->learning->data[i].precip_reg), (info_field_struct *) NULL, (proj_struct *) NULL,
-                               data->learning->filename_learn,
+                               data->learning->filename_open_learn,
                                nomvar, data->conf->ptsname, name,
                                &npts, &(data->conf->season[i].nreg), TRUE);
     /* Verify that points dimension match configuration value */
@@ -141,7 +141,7 @@ int read_learning_fields(data_struct *data) {
     /* Read precip_reg_cst data (precipitation regression constant) */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_cst, i+1);
     istat = read_netcdf_var_1d(&(data->learning->data[i].precip_reg_cst), (info_field_struct *) NULL,
-                               data->learning->filename_learn, nomvar, data->conf->ptsname, &npts, TRUE);
+                               data->learning->filename_open_learn, nomvar, data->conf->ptsname, &npts, TRUE);
     /* Verify that points dimension match configuration value */
     if (npts != data->reg->npts) {
       (void) fprintf(stderr, "%s: ERROR: Incorrect number of points in NetCDF file %d vs configuration file %d.\n",
@@ -164,7 +164,7 @@ int read_learning_fields(data_struct *data) {
     /* Read precip_index data (precipitation index for learning period over all regression points) */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_index, i+1);
     istat = read_netcdf_var_2d(&(data->learning->data[i].precip_index), (info_field_struct *) NULL, (proj_struct *) NULL,
-                               data->learning->filename_learn,
+                               data->learning->filename_open_learn,
                                nomvar, data->conf->ptsname, nomvar_time,
                                &npts, &(data->learning->data[i].ntime), TRUE);
     /* Verify that points dimension match configuration value */
@@ -190,7 +190,7 @@ int read_learning_fields(data_struct *data) {
     bufd = NULL;
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_class_clusters, i+1);
     istat = read_netcdf_var_1d(&bufd, (info_field_struct *) NULL,
-                               data->learning->filename_clust_learn, nomvar, nomvar_time,
+                               data->learning->filename_open_clust_learn, nomvar, nomvar_time,
                                &(data->learning->data[i].ntime), TRUE);
     if (istat != 0) {
       /* In case of failure */
@@ -210,7 +210,7 @@ int read_learning_fields(data_struct *data) {
     /* Read sup_index data (secondary large-scale field index for learning period) */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_sup_index, i+1);
     istat = read_netcdf_var_1d(&(data->learning->data[i].sup_index), (info_field_struct *) NULL,
-                               data->learning->filename_learn, nomvar, nomvar_time,
+                               data->learning->filename_open_learn, nomvar, nomvar_time,
                                &(data->learning->data[i].ntime), TRUE);
     if (istat != 0) {
       /* In case of failure */
@@ -223,7 +223,7 @@ int read_learning_fields(data_struct *data) {
 
     /* Read sup_index_mean data (secondary large-scale field index spatial mean for learning period) */
     istat = read_netcdf_var_generic_val(&(data->learning->data[i].sup_index_mean), (info_field_struct *) NULL,
-                                        data->learning->filename_learn, data->learning->nomvar_sup_index_mean, i);
+                                        data->learning->filename_open_learn, data->learning->nomvar_sup_index_mean, i);
     if (istat != 0) {
       /* In case of failure */
       (void) free(nomvar);
@@ -235,7 +235,7 @@ int read_learning_fields(data_struct *data) {
   
     /* Read sup_index_var data (secondary large-scale field index spatial variance for learning period) */
     istat = read_netcdf_var_generic_val(&(data->learning->data[i].sup_index_var), (info_field_struct *) NULL,
-                                        data->learning->filename_learn, data->learning->nomvar_sup_index_var, i);
+                                        data->learning->filename_open_learn, data->learning->nomvar_sup_index_var, i);
     if (istat != 0) {
       /* In case of failure */
       (void) free(nomvar);
@@ -301,7 +301,7 @@ int read_learning_fields(data_struct *data) {
 
   /* Read pc_normalized_var data (normalized EOF-projected large-scale field variance for learning period) */
   istat = read_netcdf_var_1d(&(data->learning->pc_normalized_var), (info_field_struct *) NULL,
-                             data->learning->filename_learn, data->learning->nomvar_pc_normalized_var, data->conf->eofname,
+                             data->learning->filename_open_learn, data->learning->nomvar_pc_normalized_var, data->conf->eofname,
                              &neof, TRUE);
   if (neof != neof_file) {
     /* Verify that EOF dimension match configuration value */
@@ -321,9 +321,9 @@ int read_learning_fields(data_struct *data) {
     (void) free(name);
     return istat;
   }
-  /* Save as square root of variance */
-  for (i=0; i<neof; i++)
-    data->learning->pc_normalized_var[i] = sqrt(data->learning->pc_normalized_var[i]);
+  /* The square-root of variance is stored: convert back to variance */
+  for (ii=0; ii<neof; ii++)
+    data->learning->pc_normalized_var[ii] = data->learning->pc_normalized_var[ii] * data->learning->pc_normalized_var[ii];
 
   /* Free memory */
   (void) free(nomvar);

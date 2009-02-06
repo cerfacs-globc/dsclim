@@ -59,12 +59,12 @@ int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filena
 
   /* Open NetCDF file for reading */
   if (outinfo == TRUE)
-    printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
+    printf("%s: Opening for reading NetCDF input file %s\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   if (outinfo == TRUE)
-    printf("%s: READ %s %s.\n", __FILE__, varname, filename);
+    printf("%s: READ %s %s\n", __FILE__, varname, filename);
 
   /* Get dimension length */
   istat = nc_inq_dimid(ncinid, dimname, &diminid);  /* get ID for dimension */

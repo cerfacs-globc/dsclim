@@ -348,6 +348,7 @@ AC_CONFIG_FILES([
    README
    m4/Makefile 
    src/libs/Makefile
+   src/libs/misc/Makefile
    src/libs/utils/Makefile
    src/libs/filter/Makefile
    src/libs/classif/Makefile

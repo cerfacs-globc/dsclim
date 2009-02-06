@@ -88,9 +88,17 @@ int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
   nlon_file = (int) dimval;
 
   /* Verify that they match the provided ones in parameters */
-  if ( (ntime_file != ntime) || (nlat_file != nlat) || (nlon_file != nlon) ) {
-    (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions.\n", __FILE__);
-    return -1;
+  if ( !strcmp(gridname, "list") ) {
+    if ( (ntime_file != ntime) || (nlat_file != nlon) || (nlon_file != nlon) ) {
+      (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions.\n", __FILE__);
+      return -1;
+    }
+  }
+  else {
+    if ( (ntime_file != ntime) || (nlat_file != nlat) || (nlon_file != nlon) ) {
+      (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions.\n", __FILE__);
+      return -1;
+    }
   }
 
   /* Go into NetCDF define mode */
@@ -99,9 +107,15 @@ int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
 
   /* Define main output variable */
   vardimids[0] = timedimoutid;
-  vardimids[1] = latdimoutid;
-  vardimids[2] = londimoutid;
-  istat = nc_def_var(ncoutid, varname, NC_DOUBLE, 3, vardimids, &varoutid);  
+  if ( !strcmp(gridname, "list") ) {
+    vardimids[1] = londimoutid;
+    istat = nc_def_var(ncoutid, varname, NC_DOUBLE, 2, vardimids, &varoutid);  
+  }
+  else {
+    vardimids[1] = latdimoutid;
+    vardimids[2] = londimoutid;
+    istat = nc_def_var(ncoutid, varname, NC_DOUBLE, 3, vardimids, &varoutid);  
+  }
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Set main variable attributes */
@@ -131,10 +145,16 @@ int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
   start[1] = 0;
   start[2] = 0;
   count[0] = (size_t) ntime;
-  count[1] = (size_t) nlat;
-  count[2] = (size_t) nlon;
+  if ( !strcmp(gridname, "list") ) {
+    count[1] = (size_t) nlon;
+    count[2] = 0;
+  }
+  else {
+    count[1] = (size_t) nlat;
+    count[2] = (size_t) nlon;
+  }
   if (outinfo == TRUE)
-    printf("%s: WRITE %s %s.\n", __FILE__, varname, filename);
+    printf("%s: WRITE %s %s\n", __FILE__, varname, filename);
   istat = nc_put_vara_double(ncoutid, varoutid, start, count, buf);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 

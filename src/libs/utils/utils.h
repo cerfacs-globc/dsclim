@@ -49,6 +49,9 @@
 
 #include "utCalendar_cal.h"
 
+/* Local dependent includes */
+#include <misc.h>
+
 /** TRUE value macro is 1. */
 #define TRUE 1
 /** FALSE value macro is 0. */
@@ -64,8 +67,6 @@ typedef struct {
   float sec; /**< Second (0-59). */
 } tstruct;
 
-void alloc_error(char *filename, int line);
-void banner(char *pgm, char *verstat, char *type);
 void alloc_mmap_shortint(short int **map, int *fd, size_t *byte_size, char *filename, size_t page_size, int size);
 void alloc_mmap_longint(long int **map, int *fd, size_t *byte_size, char *filename, size_t page_size, int size);
 void alloc_mmap_int(int **map, int *fd, size_t *byte_size, char *filename, size_t page_size, int size);
@@ -87,7 +88,12 @@ void extract_subdomain(double **buf_sub, double **lon_sub, double **lat_sub, int
                        int nlon, int nlat, int ndim);
 void extract_subperiod_months(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
                               int *smonths, int timedim, int ndima, int ndimb, int ntime, int nmonths);
+void mask_region(double *buffer, double missing_value, double *lon, double *lat,
+                 double minlon, double maxlon, double minlat, double maxlat,
+                 int nlon, int nlat, int ndim);
 void normalize_field(double *nbuf, double *buf, double mean, double var, int ndima, int ndimb, int ntime);
 int comparf(const void *a, const void *b);
+double distance_point(double lon1, double lat1, double lon2, double lat2);
+int find_str_value(char *str, char **str_vect, int nelem);
 
 #endif

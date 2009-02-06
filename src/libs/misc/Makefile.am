@@ -8,4 +8,5 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-SUBDIRS=misc utils filter classif clim regress xml_utils io pceof .
+noinst_LTLIBRARIES = libmisc.la
+libmisc_la_SOURCES = misc.h alloc_error.c banner.c

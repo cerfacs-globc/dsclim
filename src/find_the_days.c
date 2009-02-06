@@ -57,9 +57,10 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
   int learn_dayofy; /* Learning day of year being processed */
   int diff_day_learn; /* Difference in terms of day of year between downscaled day of year and learning one */
 
-  double max_metric; /* Maximum metric value. The metric is the value used to compare days (cluster distance, index distance, etc.) */
-  double max_metric_sup; /* Maximum metric value for secondary large-scale field metric. */
-  double min_metric; /* Minimum metric */
+  double max_metric = 0.0; /* Maximum metric value. The metric is the value used to compare days
+                              (cluster distance, index distance, etc.) */
+  double max_metric_sup = 0.0; /* Maximum metric value for secondary large-scale field metric. */
+  double min_metric = 0.0; /* Minimum metric */
 
   double precip_diff; /* Squared sum of regressed precipitation difference (between downscaled and learning day) over all points. */
   double diff_precip_pt; /* Regressed precipitation difference (between downscaled and learning day) for 1 point. */
@@ -161,6 +162,9 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
             printf("%d %d %lf %lf %lf %lf\n",t,pts,precip_diff,diff_precip_pt,precip_index[pts+t*npts],precip_index_learn[pts+tl*npts]);
             }
           */
+          /*          if (t == 4595)
+                      printf("%d %d %lf %lf %lf %lf\n",t,pts,precip_diff,diff_precip_pt,precip_index[pts+t*npts],precip_index_learn[pts+tl*npts]);*/
+            
         }
         metric[ntime_days] = sqrt(precip_diff);
         //        if (t == (ntime_sub-1))
@@ -188,12 +192,12 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
           /* Store the maximum value and its index */
           if (metric_sup[ntime_days] > max_metric_sup)
             max_metric_sup = metric_sup[ntime_days];
-          /*
-            if (t >= (ntime_sub-5))
-            if (year_learn[buf_learn_sub_i[tl]] == 2005 && month_learn[buf_learn_sub_i[tl]] == 5 && day_learn[buf_learn_sub_i[tl]] == 29) {
-            printf("%d %lf %lf %lf %lf %lf %lf\n",ntime_days,max_metric_sup,metric_sup[ntime_days],sup_field_index[t],sup_field_index_learn[buf_learn_sub_i[tl]],metric[ntime_days],precip_diff);
-            }
-          */
+          
+          //            if (t >= (ntime_sub-5))
+              // if (year_learn[buf_learn_sub_i[tl]] == 2005 && month_learn[buf_learn_sub_i[tl]] == 5 && day_learn[buf_learn_sub_i[tl]] == 29) {
+          //            printf("%d %lf %lf %lf %lf %lf %lf\n",ntime_days,max_metric_sup,metric_sup[ntime_days],sup_field_index[t],sup_field_index_learn[buf_learn_sub_i[tl]],metric[ntime_days],precip_diff);
+            //  }
+          
         }
 
         /* Compute cluster difference */
@@ -265,14 +269,20 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
               }
             */
             metric_sup_norm[tl] = (metric_sup[tl] - varmean_sup) / varstd_sup;
-            metric_norm[tl] = ((metric[tl] - varmean) / varstd) + metric_sup[tl];
+            metric_norm[tl] = ((metric[tl] - varmean) / varstd) + metric_sup_norm[tl];
+
             /*
+            if (t >= (ntime_sub-5))
+              printf("!! %d %lf %lf %lf\n",tl,metric_norm[tl],varmean,varstd);
               if (year_learn[ntime_days_learn[tl]] == 2005 && month_learn[ntime_days_learn[tl]] == 5 && day_learn[ntime_days_learn[tl]] == 29)
               if (clust_diff[tl] == 0)
               printf("%lf\n",metric[tl]);
             */
           }
         }
+        else
+          for (tl=0; tl<ntime_days; tl++)
+            metric_norm[tl] = (metric[tl] - varmean) / varstd;
       }
       else
         for (tl=0; tl<ntime_days; tl++)
@@ -315,12 +325,14 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
               min_metric_index = metric_index[ii];
               min_metric = metric_sup[metric_index[ii]];
             }
-            /*
-            if (t >= (ntime_sub-5)) {
-              printf("SUP %d %d %lf %lf %d ",ii,ndayschoices,metric_sup[metric_index[ii]],metric_norm[metric_index[ii]]*2.0,min_metric,metric_index[ii]);
+            
+            /*            if (t >= (ntime_sub-5)) {
+              printf("!!! %d %d %d %d %lf\n",ii,t,tl,(int)metric_index[ii],metric_norm[metric_index[ii]]);
+              printf("SUP %d %d %lf %lf %lf %d ",ii,ndayschoices,metric_sup[metric_index[ii]],metric_norm[metric_index[ii]]*2.0,min_metric,(int)metric_index[ii]);
               printf("%d %d %d\n",year_learn[ntime_days_learn[metric_index[ii]]],month_learn[ntime_days_learn[metric_index[ii]]],day_learn[ntime_days_learn[metric_index[ii]]]);
-            }
-            */
+              printf("%d %d\n",sup,sup_choice);
+              }*/
+            
           }
         }
         else {
@@ -365,9 +377,9 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
       (void) free(ntime_days_learn);
       ntime_days_learn = NULL;
     }
-    //    if (year[buf_sub_i[t]] == 1999 && month[buf_sub_i[t]] == 5 && day[buf_sub_i[t]] == 31)
-    //    if (month[buf_sub_i[t]] == 3 || month[buf_sub_i[t]] == 4 || month[buf_sub_i[t]] == 5)
-    //    printf("Time downscaled %d: %d %d %d. Analog day: %d %d %d %lf\n", t, year[buf_sub_i[t]], month[buf_sub_i[t]], day[buf_sub_i[t]], year_learn[analog_days[t]], month_learn[analog_days[t]], day_learn[analog_days[t]], min_metric);
+    if (year[buf_sub_i[t]] == 1999 && month[buf_sub_i[t]] == 5)
+      if (month[buf_sub_i[t]] == 3 || month[buf_sub_i[t]] == 4 || month[buf_sub_i[t]] == 5)
+        printf("Time downscaled %d: %d %d %d. Analog day: %d %d %d %lf\n", t, year[buf_sub_i[t]], month[buf_sub_i[t]], day[buf_sub_i[t]], year_learn[analog_days.tindex[t]], month_learn[analog_days.tindex[t]], day_learn[analog_days.tindex[t]], min_metric);
     
   }
 

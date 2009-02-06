@@ -46,6 +46,7 @@ int main(int argc, char **argv)
   if (data == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Get command-line arguments and set appropriate variables */
+  (void) printf("\n**** PROCESS COMMAND-LINE ARGUMENTS ****\n\n");
   if (argc <= 1) {
     (void) show_usage(basename(argv[0]));
     (void) banner(basename(argv[0]), "ABORT", "END");
@@ -66,6 +67,7 @@ int main(int argc, char **argv)
 
   /* Read and store configuration file in memory */
   /* Allocate memory for main data structures */
+  (void) printf("\n**** LOADING CONFIGURATION ****\n\n");
   istat = load_conf(data, fileconf);
   if (istat != 0) {
     (void) fprintf(stderr, "%s: Error in loading configuration file. Aborting.\n", __FILE__);
@@ -74,6 +76,7 @@ int main(int argc, char **argv)
   }
 
   /* Read regression points positions */
+  (void) printf("\n**** READING REGRESSION POSITIONS ****\n\n");
   istat = read_regression_points(data->reg);
   if (istat != 0) {
     (void) fprintf(stderr, "%s: Error in reading regression points positions. Aborting.\n", __FILE__);
@@ -82,6 +85,7 @@ int main(int argc, char **argv)
   }
 
   /* If wanted, generate learning data */
+  (void) printf("\n**** LEARNING ****\n\n");
   istat = wt_learning(data);
   if (istat != 0) {
     (void) fprintf(stderr, "%s: Error in computing or reading learning data needed for downscaling. Aborting.\n", __FILE__);
@@ -90,6 +94,7 @@ int main(int argc, char **argv)
   }
 
   /* Perform downscaling */
+  (void) printf("\n**** DOWNSCALING ****\n\n");
   istat = wt_downscaling(data);
   if (istat != 0) {
     (void) fprintf(stderr, "%s: Error in performing downscaling. Aborting.\n", __FILE__);
@@ -98,8 +103,10 @@ int main(int argc, char **argv)
   }
 
   /* Free main data structure */
+  (void) printf("\n**** FREE MEMORY ****\n\n");
   (void) free_main_data(data);
-  
+  (void) free(data);
+
   /* Print END banner */
   (void) banner(basename(argv[0]), "OK", "END");
 

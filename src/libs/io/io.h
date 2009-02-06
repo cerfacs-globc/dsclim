@@ -118,6 +118,7 @@ typedef struct {
 #include <udunits.h>
 
 /* Dependent local includes. */
+#include <misc.h>
 #include <utils.h>
 
 /* Prototypes */

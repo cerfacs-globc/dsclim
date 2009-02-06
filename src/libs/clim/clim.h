@@ -27,6 +27,7 @@
 #endif
 
 /* Local dependent includes */
+#include <misc.h>
 #include <utils.h>
 #include <filter.h>
 

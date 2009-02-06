@@ -47,7 +47,7 @@
 /** FALSE value macro is 0. */
 #define FALSE 0
 
-#include <utils.h>
+#include <misc.h>
 
 #include <libxml/parser.h>
 #include <libxml/xpath.h>

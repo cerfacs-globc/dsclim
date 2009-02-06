@@ -38,6 +38,8 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   double mean_days; /* Mean of the days (PC-space) for a cluster. */
   double *eof_days_cluster = NULL; /* Vector of clusters' barycenter positions (PC-space). */
   int *days_class_cluster = NULL; /* Vector of classification of days into each cluster. */
+
+  static unsigned long int seed = 0;
   
   (void) fprintf(stdout, "%s:: BEGIN: Find clusters among data points.\n", __FILE__);
 
@@ -52,7 +54,8 @@ void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nc
   rng = gsl_rng_alloc(T);
   /** Warning: we are using time() as the seed. Don't run this subroutine twice with the same time.
       If you do you will get the exact same sequence. **/
-  (void) gsl_rng_set(rng, time(NULL));
+  if (seed == 0) seed = time(NULL);
+  (void) gsl_rng_set(rng, seed++);
   
   /* Generate ncluster random days and initialize cluster PC array */
   random_num = (unsigned long int *) calloc(ncluster, sizeof(unsigned long int));

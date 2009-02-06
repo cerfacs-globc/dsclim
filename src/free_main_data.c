@@ -81,6 +81,9 @@ void free_main_data(data_struct *data) {
       (void) free(data->field[i].data[j].info);
       (void) free(data->field[i].data[j].nomvar_ls);
       (void) free(data->field[i].data[j].filename_ls);
+      (void) free(data->field[i].data[j].latname);
+      (void) free(data->field[i].data[j].lonname);
+      (void) free(data->field[i].data[j].timename);
 
       (void) free(data->field[i].proj[j].name);
       (void) free(data->field[i].proj[j].coords);      
@@ -108,6 +111,7 @@ void free_main_data(data_struct *data) {
         for (s=0; s<data->conf->nseasons; s++)
           (void) free(data->field[i].data[j].down->delta[s]);
         (void) free(data->field[i].data[j].down->delta);
+        (void) free(data->field[i].data[j].down->delta_all);
       }
 
       (void) free(data->field[i].data[j].down);
@@ -182,46 +186,57 @@ void free_main_data(data_struct *data) {
     (void) free(data->learning->data[s].class_clusters);
     if (data->conf->season[s].nmonths > 0)
       (void) free(data->conf->season[s].month);
+
+    (void) free(data->learning->data[s].weight);
+    (void) free(data->learning->data[s].precip_reg);
+    (void) free(data->learning->data[s].precip_reg_cst);
+    (void) free(data->learning->data[s].precip_index);
+    (void) free(data->learning->data[s].sup_index);
+  }
+  
+  if (data->learning->learning_provided == 0) {
+    (void) free(data->learning->obs->filename_eof);
+    (void) free(data->learning->obs->nomvar_eof);
+    (void) free(data->learning->obs->nomvar_sing);
+    (void) free(data->learning->obs->eof);
+    (void) free(data->learning->obs->sing);
     
-    if (data->learning->learning_provided == 1) {
-      (void) free(data->learning->data[s].weight);
-      (void) free(data->learning->data[s].precip_reg);
-      (void) free(data->learning->data[s].precip_reg_cst);
-      (void) free(data->learning->data[s].precip_index);
-      (void) free(data->learning->data[s].sup_index);
-    }
-    else {
-      (void) free(data->learning->obs->filename_eof);
-      (void) free(data->learning->obs->nomvar_eof);
-      (void) free(data->learning->obs->nomvar_sing);
-      (void) free(data->learning->obs->eof);
-      (void) free(data->learning->obs->sing);
+    (void) free(data->learning->obs->time_s->year);
+    (void) free(data->learning->obs->time_s->month);
+    (void) free(data->learning->obs->time_s->day);
+    (void) free(data->learning->obs->time_s->hour);
+    (void) free(data->learning->obs->time_s->minutes);
+    (void) free(data->learning->obs->time_s->seconds);      
+    (void) free(data->learning->obs->time_s);
+    
+    (void) free(data->learning->rea->time_s->year);
+    (void) free(data->learning->rea->time_s->month);
+    (void) free(data->learning->rea->time_s->day);
+    (void) free(data->learning->rea->time_s->hour);
+    (void) free(data->learning->rea->time_s->minutes);
+    (void) free(data->learning->rea->time_s->seconds);      
+    (void) free(data->learning->rea->time_s);
+    
+    (void) free(data->learning->rea->filename_eof);
+    (void) free(data->learning->rea->nomvar_eof);
+    (void) free(data->learning->rea->nomvar_sing);
+    (void) free(data->learning->rea->eof);
+    (void) free(data->learning->rea->sing);
 
-      (void) free(data->learning->obs->time_s->year);
-      (void) free(data->learning->obs->time_s->month);
-      (void) free(data->learning->obs->time_s->day);
-      (void) free(data->learning->obs->time_s->hour);
-      (void) free(data->learning->obs->time_s->minutes);
-      (void) free(data->learning->obs->time_s->seconds);      
-      (void) free(data->learning->obs->time_s);
+    (void) free(data->learning->obs);
+    (void) free(data->learning->rea);
 
-      (void) free(data->learning->rea->time_s->year);
-      (void) free(data->learning->rea->time_s->month);
-      (void) free(data->learning->rea->time_s->day);
-      (void) free(data->learning->rea->time_s->hour);
-      (void) free(data->learning->rea->time_s->minutes);
-      (void) free(data->learning->rea->time_s->seconds);      
-      (void) free(data->learning->rea->time_s);
+    (void) free(data->learning->nomvar_rea_sup);
+    (void) free(data->learning->filename_rea_sup);
+    (void) free(data->learning->rea_coords);
+    (void) free(data->learning->rea_gridname);
+    (void) free(data->learning->rea_lonname);
+    (void) free(data->learning->rea_latname);
+    (void) free(data->learning->rea_timename);
 
-      (void) free(data->learning->rea->filename_eof);
-      (void) free(data->learning->rea->nomvar_eof);
-      (void) free(data->learning->rea->nomvar_sing);
-      (void) free(data->learning->rea->eof);
-      (void) free(data->learning->rea->sing);
-
-      (void) free(data->learning->obs);
-      (void) free(data->learning->rea);
-    }
+    (void) free(data->learning->obs_lonname);
+    (void) free(data->learning->obs_latname);
+    (void) free(data->learning->obs_timename);
   }
 
   (void) free(data->learning->time_s->year);
@@ -233,21 +248,32 @@ void free_main_data(data_struct *data) {
 
   (void) free(data->learning->time_s);
 
+  (void) free(data->learning->lon);
+  (void) free(data->learning->lat);
+
   if (data->learning->learning_provided == 1) {
-    (void) free(data->learning->filename_weight);
-    (void) free(data->learning->filename_learn);
-    (void) free(data->learning->filename_clust_learn);
-    (void) free(data->learning->nomvar_time);
-    (void) free(data->learning->nomvar_weight);
-    (void) free(data->learning->nomvar_class_clusters);
-    (void) free(data->learning->nomvar_precip_reg);
-    (void) free(data->learning->nomvar_precip_reg_cst);
-    (void) free(data->learning->nomvar_precip_index);
-    (void) free(data->learning->nomvar_sup_index);
-    (void) free(data->learning->nomvar_sup_index_mean);
-    (void) free(data->learning->nomvar_sup_index_var);
-    (void) free(data->learning->nomvar_pc_normalized_var);
-    (void) free(data->learning->pc_normalized_var);
+    (void) free(data->learning->filename_open_weight);
+    (void) free(data->learning->filename_open_learn);
+    (void) free(data->learning->filename_open_clust_learn);
+  }
+
+  (void) free(data->learning->pc_normalized_var);
+
+  (void) free(data->learning->nomvar_time);
+  (void) free(data->learning->nomvar_weight);
+  (void) free(data->learning->nomvar_class_clusters);
+  (void) free(data->learning->nomvar_precip_reg);
+  (void) free(data->learning->nomvar_precip_reg_cst);
+  (void) free(data->learning->nomvar_precip_index);
+  (void) free(data->learning->nomvar_sup_index);
+  (void) free(data->learning->nomvar_sup_index_mean);
+  (void) free(data->learning->nomvar_sup_index_var);
+  (void) free(data->learning->nomvar_pc_normalized_var);
+
+  if (data->learning->learning_save == 1) {
+    (void) free(data->learning->filename_save_weight);
+    (void) free(data->learning->filename_save_learn);
+    (void) free(data->learning->filename_save_clust_learn);
   }
 
   if (data->info->title != NULL) {
@@ -313,13 +339,9 @@ void free_main_data(data_struct *data) {
   (void) free(data->conf->classif_type);
   (void) free(data->conf->time_units);
   (void) free(data->conf->cal_type);
-  (void) free(data->conf->lonname);
-  (void) free(data->conf->latname);
-  (void) free(data->conf->coords);
   (void) free(data->conf->lonname_eof);
   (void) free(data->conf->latname_eof);
   (void) free(data->conf->eofname);
-  (void) free(data->conf->timename);
   (void) free(data->conf->ptsname);
   (void) free(data->conf->clustname);
   (void) free(data->conf->output_path);
@@ -336,6 +358,4 @@ void free_main_data(data_struct *data) {
   (void) free(data->learning);
   (void) free(data->reg);
   (void) free(data->field);
-
-  (void) free(data);
 }

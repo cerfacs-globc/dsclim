@@ -60,11 +60,12 @@ int read_netcdf_latlon(double **lon, double **lat, int *nlon, int *nlat, char *d
   int j; /* Loop counter */
   int ndims; /* Number of dimensions of latitude and longitude variables, 1 or 2 for 1D and 2D respectively */
   int ndims_xy; /* Number of dimensions of X and Y dimensions, 1 or 2 for 1D and 2D respectively */
+  int npts; /* Number of points for list of latitude + longitude points */
 
   /* Read data in NetCDF file */
 
   /* Open NetCDF file for reading */
-  printf("%s: Reading info from NetCDF input file %s.\n", __FILE__, filename);
+  printf("%s: Reading info from NetCDF input file %s\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
@@ -157,7 +158,39 @@ int read_netcdf_latlon(double **lon, double **lat, int *nlon, int *nlat, char *d
   }
 
   /** Read dimensions variables **/
-  if ( !strcmp(coords, "1D") ) {
+  if ( !strcmp(gridname, "list") ) {
+    /* 1D list of lat + lon points */
+    npts = *nlon;
+    *nlat = 0;
+    /* Allocate memory and set start and count */
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) npts;
+    count[1] = 0;
+    count[2] = 0;
+    (*lat) = (double *) malloc(npts * sizeof(double));
+    if ((*lat) == NULL) alloc_error(__FILE__, __LINE__);
+    
+    /* Read values from netCDF variable */
+    istat = nc_get_vara_double(ncinid, latinid, start, count, (*lat));
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    
+    /* Allocate memory and set start and count */
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) npts;
+    count[1] = 0;
+    count[2] = 0;
+    (*lon) = (double *) malloc(npts * sizeof(double));
+    if ((*lon) == NULL) alloc_error(__FILE__, __LINE__);
+    
+    /* Read values from netCDF variable */
+    istat = nc_get_vara_double(ncinid, loninid, start, count, (*lon));
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  }
+  else if ( !strcmp(coords, "1D") ) {
     /* Allocate memory and set start and count */
     start[0] = 0;
     start[1] = 0;

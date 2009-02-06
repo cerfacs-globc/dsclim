@@ -123,6 +123,7 @@ int wt_downscaling(data_struct *data) {
     (void) normalize_pc(data->field[cat].data[i].down->var_pc_norm, &(data->field[cat].data[i].first_variance),
                         buftmpf, buf_sub, data->field[cat].data[i].eof_info->neof_ls,
                         ntime_sub_learn_all);
+    //    for (ii=0; ii<9; ii++) printf("%d %lf\n",ii,sqrt(data->field[cat].data[i].down->var_pc_norm[ii]));
     /* Free temporary buffers */
     (void) free(buf_sub);
     (void) free(buftmpf);
@@ -165,7 +166,7 @@ int wt_downscaling(data_struct *data) {
       printf("Season: %d\n", s);
       for (ii=0; ii<data->conf->season[s].nclusters; ii++)
         (void) printf("%s: Cluster #%d. Mean and variance of distances to clusters: %lf %lf\n", __FILE__, ii,
-                      data->field[cat].data[i].down->mean_dist[s][ii], data->field[cat].data[i].down->var_dist[s][ii]);
+                      data->field[cat].data[i].down->mean_dist[s][ii], sqrt(data->field[cat].data[i].down->var_dist[s][ii]));
 
       /* Free temporary buffer */
       (void) free(buf_sub);
@@ -205,7 +206,7 @@ int wt_downscaling(data_struct *data) {
 
       /* Diagnostic output */
       (void) printf("Season: %d  TAS mean=%lf variance=%lf\n", s, data->field[cat].data[i].down->mean[s],
-                    data->field[cat].data[i].down->var[s]);
+                    sqrt(data->field[cat].data[i].down->var[s]));
 
       /* Free temporary buffer */
       (void) free(buf_sub);
@@ -217,16 +218,14 @@ int wt_downscaling(data_struct *data) {
 
   /** Step 6: Compute mean secondary large-scale fields for the model run **/
 
-  /* Downscale also control run if needed */
-  if (data->conf->period_ctrl->downscale == TRUE)
-    end_cat = CTRL_SEC_FIELD_LS;
-  else
-    end_cat = SEC_FIELD_LS;
-  /* Loop over secondary field categories (model run and optionally control run) */
+  end_cat = SEC_FIELD_LS;
+  /* Loop over secondary field categories (model run) */
   for (cat=SEC_FIELD_LS; cat <= end_cat; cat++)
     /* Loop over secondary large-scale fields */
     for (i=0; i<data->field[cat].n_ls; i++) {
       /* Compute spatial mean of secondary large-scale fields */
+      data->field[cat].data[i].down->smean = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
+      if (data->field[cat].data[i].down->smean == NULL) alloc_error(__FILE__, __LINE__);
       (void) mean_field_spatial(data->field[cat].data[i].down->smean, data->field[cat].data[i].field_ls,
                                 data->field[cat].nlon_ls, data->field[cat].nlat_ls, data->field[cat].ntime_ls);
     }
@@ -270,8 +269,9 @@ int wt_downscaling(data_struct *data) {
           malloc(data->conf->season[s].nclusters*ntime_sub[cat][s] * sizeof(double));
         if (data->field[cat].data[i].down->dist[s] == NULL) alloc_error(__FILE__, __LINE__);
         (void) dist_clusters_normctrl(data->field[cat].data[i].down->dist[s], buf_sub, data->learning->data[s].weight,
-                                      data->learning->pc_normalized_var, data->field[cat].data[i].down->var_pc_norm,
-                                      data->field[cat].data[i].down->mean_dist[s], data->field[cat].data[i].down->var_dist[s],
+                                      data->learning->pc_normalized_var, data->field[CTRL_FIELD_LS].data[i].down->var_pc_norm,
+                                      data->field[CTRL_FIELD_LS].data[i].down->mean_dist[s],
+                                      data->field[CTRL_FIELD_LS].data[i].down->var_dist[s],
                                       data->field[cat].data[i].eof_info->neof_ls, data->conf->season[s].nclusters,
                                       ntime_sub[cat][s]);
         /* Classify each day in the current clusters */
@@ -311,7 +311,7 @@ int wt_downscaling(data_struct *data) {
         data->field[cat].data[i].down->smean_norm[s] = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
         if (data->field[cat].data[i].down->smean_norm[s] == NULL) alloc_error(__FILE__, __LINE__);
         (void) normalize_field(data->field[cat].data[i].down->smean_norm[s], buf_sub,
-                               data->field[cat].data[i].down->mean[s], data->field[cat].data[i].down->var[s],
+                               data->field[CTRL_SEC_FIELD_LS].data[i].down->mean[s], data->field[CTRL_SEC_FIELD_LS].data[i].down->var[s],
                                1, 1, ntime_sub[cat][s]);
         /* Free temporary buffer */
         (void) free(buf_sub);
@@ -456,16 +456,22 @@ int wt_downscaling(data_struct *data) {
       if (data->field[cat].analog_days_year.month_s == NULL) alloc_error(__FILE__, __LINE__);
       data->field[cat].analog_days_year.day_s = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
       if (data->field[cat].analog_days_year.day_s == NULL) alloc_error(__FILE__, __LINE__);
+      data->field[cat+2].data[i].down->delta_all = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
+      if (data->field[cat+2].data[i].down->delta_all == NULL) alloc_error(__FILE__, __LINE__);
       /* Loop over each season */
       for (s=0; s<data->conf->nseasons; s++) {
-        /* Merge all seasons of analog_day data */
+        /* Merge all seasons of analog_day data and supplemental field index */
         printf("Season: %d\n",s);
         istat = merge_seasons(data->field[cat].analog_days_year, data->field[cat].analog_days[s],
                               data->field[cat].ntime_ls, ntime_sub[cat][s]);
+        istat = merge_seasonal_data(data->field[cat+2].data[i].down->delta_all, data->field[cat+2].data[i].down->delta[s],
+                                    data->field[cat].analog_days[s], 1, 1, data->field[cat].ntime_ls, ntime_sub[cat][s]);
         if (istat != 0) return istat;
       }
       /* Process all data */
-      istat = output_downscaled_analog(data->field[cat].analog_days_year, data, data->field[cat].time_ls, data->field[cat].ntime_ls);
+      istat = output_downscaled_analog(data->field[cat].analog_days_year, data->field[cat+2].data[i].down->delta_all,
+                                       data, data->field[cat].time_ls, data->field[cat].ntime_ls);
+      if (istat != 0) return istat;
     }
   }
           

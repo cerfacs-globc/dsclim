@@ -41,7 +41,6 @@ int remove_clim(data_struct *data) {
   int j; /* Loop counter */
   int cat; /* Loop counter for field category */
   info_field_struct clim_info_field; /* Information structure for climatology field */
-  proj_struct clim_proj; /* Spatial projection for climatology field */
   double *timeclim = NULL; /* Time info for climatology field */
 
   /* Remove seasonal cycle:
@@ -85,9 +84,9 @@ int remove_clim(data_struct *data) {
             clim = NULL;
           }
           /* Read climatology from NetCDF file */
-          istat = read_netcdf_var_3d(&clim, &clim_info_field, &clim_proj, data->field[cat].data[i].clim_info->clim_filein_ls,
+          istat = read_netcdf_var_3d(&clim, &clim_info_field, (proj_struct *) NULL, data->field[cat].data[i].clim_info->clim_filein_ls,
                                      data->field[cat].data[i].clim_info->clim_nomvar_ls,
-                                     data->conf->lonname, data->conf->latname, data->conf->timename,
+                                     data->field[cat].data[i].lonname, data->field[cat].data[i].latname, data->field[cat].data[i].timename,
                                      &nlon_file, &nlat_file, &ntime_file, TRUE);
           if (data->field[cat].nlon_ls != nlon_file || data->field[cat].nlat_ls != nlat_file || ntime_clim != ntime_file) {
             (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d ntime=%d ntime_file=%d\n",
@@ -104,6 +103,12 @@ int remove_clim(data_struct *data) {
           }
           /* Get missing value */
           fillvalue = clim_info_field.fillvalue;
+          /* Free memory */
+          (void) free(clim_info_field.height);
+          (void) free(clim_info_field.coordinates);
+          (void) free(clim_info_field.grid_mapping);
+          (void) free(clim_info_field.units);
+          (void) free(clim_info_field.long_name);
         }
         else {
           /* Climatology is not provided: must calculate */
@@ -146,11 +151,12 @@ int remove_clim(data_struct *data) {
           istat = write_netcdf_dims_3d(data->field[cat].lon_ls, data->field[cat].lat_ls, (double *) NULL, (double *) NULL,
                                        timeclim, data->conf->cal_type,
                                        data->conf->time_units, data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_clim,
-                                       data->info->timestep, data->field[cat].proj[i].name, data->field[cat].proj[i].coords,
+                                       "daily", data->field[cat].proj[i].name, data->field[cat].proj[i].coords,
                                        data->field[cat].proj[i].grid_mapping_name, data->field[cat].proj[i].latin1,
                                        data->field[cat].proj[i].latin2, data->field[cat].proj[i].lonc, data->field[cat].proj[i].lat0,
                                        data->field[cat].proj[i].false_easting, data->field[cat].proj[i].false_northing,
-                                       data->conf->lonname, data->conf->latname, data->conf->timename,
+                                       data->field[cat].data[i].lonname, data->field[cat].data[i].latname,
+                                       data->field[cat].data[i].timename,
                                        data->field[cat].data[i].clim_info->clim_fileout_ls, TRUE);
           if (istat != 0) {
             /* In case of failure */
@@ -164,7 +170,8 @@ int remove_clim(data_struct *data) {
           /* Write climatology field in NetCDF output file */
           istat = write_netcdf_var_3d(clim, fillvalue, data->field[cat].data[i].clim_info->clim_fileout_ls,
                                       data->field[cat].data[i].clim_info->clim_nomvar_ls, data->field[cat].proj[i].name,
-                                      data->conf->lonname, data->conf->latname, data->conf->timename,
+                                      data->field[cat].data[i].lonname, data->field[cat].data[i].latname,
+                                      data->field[cat].data[i].timename,
                                       data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_clim, TRUE);
           if (istat != 0) {
             /* In case of failure */

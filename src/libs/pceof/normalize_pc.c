@@ -48,16 +48,16 @@ void normalize_pc(double *norm_all, double *first_variance, double *buf_renorm, 
       /* Normalize with the first variance */
       buf_renorm[nt+eof*ntime] = bufin[nt+eof*ntime] / sqrt(*first_variance);
 
-    //    for (nt=(ntime-5); nt<ntime; nt++)
-    //      printf("bufin %d eof %d %lf\n",nt,eof,bufin[nt+eof*ntime]);
-
-    //    printf("before renorm %d %d %lf %lf %lf ",eof,ntime,bufin[ntime-5+eof*ntime], sqrt(gsl_stats_variance(&(bufin[eof*ntime]), 1, ntime)));
-    //    printf("renorm %lf\n",buf_renorm[ntime-5+eof*ntime]);
+    /*    for (nt=(ntime-5); nt<ntime; nt++)
+      printf("bufin %d eof %d %lf\n",nt,eof,bufin[nt+eof*ntime]);
+    
+    printf("before renorm %d %d %lf %lf ",eof,ntime,bufin[ntime-5+eof*ntime], sqrt(gsl_stats_variance(&(bufin[eof*ntime]), 1, ntime)));
+    printf("renorm %lf\n",buf_renorm[ntime-5+eof*ntime]);*/
 
     /* Recompute the norm for each EOF */
     norm_all[eof] = gsl_stats_variance(&(buf_renorm[eof*ntime]), 1, ntime);
 
-    //    printf("norm_all %d %lf\n",eof,norm_all[eof]);
+    printf("%s: Norm %d %lf\n",__FILE__,eof,sqrt(norm_all[eof]));
 
   }
 }

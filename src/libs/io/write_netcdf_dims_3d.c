@@ -93,7 +93,7 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double 
 
   /* Open NetCDF file */
   if (outinfo == TRUE)
-    printf("%s: Writing info from NetCDF output file %s.\n", __FILE__, filename);
+    printf("%s: Writing info from NetCDF output file %s\n", __FILE__, filename);
   istat = nc_open(filename, NC_WRITE, &ncoutid);  /* open NetCDF file */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
@@ -107,6 +107,12 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double 
     istat = nc_def_dim(ncoutid, lonname, nlon, &xdimoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_def_dim(ncoutid, latname, nlat, &ydimoutid);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  }
+  else if ( !strcmp(gridname, "list")) {
+    istat = nc_def_dim(ncoutid, lonname, nlon, &xdimoutid);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = nc_def_dim(ncoutid, latname, nlon, &ydimoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
   else {
@@ -214,7 +220,7 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double 
   (void) strcpy(tmpstr, "latitude");
   istat = nc_put_att_text(ncoutid, latoutid, "standard_name", strlen(tmpstr), tmpstr);
 
-  if ( strcmp(gridname, "Latitude_Longitude")) {
+  if ( strcmp(gridname, "Latitude_Longitude") && strcmp(gridname, "list")) {
     /* Set x attributes */
     /*          int x(x) ;
                 x:units = "m" ;
@@ -273,15 +279,27 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double 
   /* Geographic global attributes */
   maxlat = -9999.9;
   minlat = 9999.9;
-  for (i=0; i<(nlat*nlon); i++) {
-    if (lat[i] > maxlat) maxlat = lat[i];
-    if (lat[i] < minlat) minlat = lat[i];
-  }
   maxlon = -9999.9;
   minlon = 9999.9;
-  for (i=0; i<(nlat*nlon); i++) {
-    if (lon[i] > maxlon) maxlon = lon[i];
-    if (lon[i] < minlon) minlon = lon[i];
+  if ( !strcmp(gridname, "list") ) {
+    for (i=0; i<(nlon); i++) {
+      if (lat[i] > maxlat) maxlat = lat[i];
+      if (lat[i] < minlat) minlat = lat[i];
+    }
+    for (i=0; i<(nlon); i++) {
+      if (lon[i] > maxlon) maxlon = lon[i];
+      if (lon[i] < minlon) minlon = lon[i];
+    }
+  }
+  else {
+    for (i=0; i<(nlat*nlon); i++) {
+      if (lat[i] > maxlat) maxlat = lat[i];
+      if (lat[i] < minlat) minlat = lat[i];
+    }
+    for (i=0; i<(nlat*nlon); i++) {
+      if (lon[i] > maxlon) maxlon = lon[i];
+      if (lon[i] < minlon) minlon = lon[i];
+    }
   }
   istat = nc_put_att_double(ncoutid, NC_GLOBAL, "geospatial_lat_max", NC_DOUBLE, 1, &maxlat);
   istat = nc_put_att_double(ncoutid, NC_GLOBAL, "geospatial_lat_min", NC_DOUBLE, 1, &minlat);
@@ -309,7 +327,26 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double 
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
 
-  if ( !strcmp(coords, "1D") ) {
+  if ( !strcmp(gridname, "list") ) {
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) nlon;
+    count[1] = 0;
+    count[2] = 0;
+    istat = nc_put_vara_double(ncoutid, latoutid, start, count, lat);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) nlon;
+    count[1] = 0;
+    count[2] = 0;
+    istat = nc_put_vara_double(ncoutid, lonoutid, start, count, lon);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  }
+  else if ( !strcmp(coords, "1D") ) {
     start[0] = 0;
     start[1] = 0;
     start[2] = 0;

@@ -55,11 +55,11 @@ int read_netcdf_var_generic_val(double *buf, info_field_struct *info_field, char
   /* Read data in NetCDF file */
 
   /* Open NetCDF file for reading */
-  printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
+  printf("%s: Opening for reading NetCDF input file %s\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  printf("%s: READ %s %s.\n", __FILE__, varname, filename);
+  printf("%s: READ %s %s\n", __FILE__, varname, filename);
 
   /* Get main variable ID */
   istat = nc_inq_varid(ncinid, varname, &varinid);

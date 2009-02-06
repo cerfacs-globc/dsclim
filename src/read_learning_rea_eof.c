@@ -31,24 +31,34 @@ int read_learning_rea_eof(data_struct *data) {
   int neof; /* EOF dimension for main large-scale fields in input file */
   int ntime; /* Time dimension for main large-scale fields in input file */
   double *time;
-  info_field_struct info_eof;
   char *cal_type = NULL; /* Calendar type (udunits) */
   char *time_units = NULL; /* Time units (udunits) */
+  double *buf = NULL;
+  int t;
+  int eof;
 
   /* Read EOF principal components */
-  istat = read_netcdf_var_2d(&(data->learning->rea->eof), &info_eof, (proj_struct *) NULL,
+  istat = read_netcdf_var_2d(&buf, (info_field_struct *) NULL, (proj_struct *) NULL,
                              data->learning->rea->filename_eof, data->learning->rea->nomvar_eof,
-                             data->conf->eofname, data->conf->timename, &neof, &ntime, TRUE);
+                             data->conf->eofname, data->learning->rea_timename, &neof, &ntime, TRUE);
   if (istat != 0) {
     /* In case of failure */
     return istat;
   }
-  
+  /* Re-order array with time as fastest varying dimension */
+  data->learning->rea->eof = malloc(neof*ntime * sizeof(double));
+  if (data->learning->rea->eof == NULL) alloc_error(__FILE__, __LINE__);
+  for (eof=0; eof<neof; eof++)
+    for (t=0; t<ntime; t++)
+      data->learning->rea->eof[t+eof*ntime] = buf[eof+t*neof];
+  (void) free(buf);
+
   /* Get time information */
   istat = get_time_info(data->learning->rea->time_s, &time, &time_units, &cal_type,
                         &ntime, data->learning->rea->filename_eof, data->learning->nomvar_time, TRUE);
   (void) free(cal_type);
   (void) free(time_units);
+  (void) free(time);
 
   data->learning->rea->ntime = ntime;
 

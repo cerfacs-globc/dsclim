@@ -62,7 +62,7 @@ int create_netcdf(char *title, char *title_french, char *summary, char *summary_
   char *tmpstr = NULL; /* Temporary string */
 
   if (outinfo == TRUE)
-    (void) fprintf(stdout, "%s: Creating NetCDF file %s.\n", __FILE__, filename);
+    (void) fprintf(stdout, "%s: Creating NetCDF file %s\n", __FILE__, filename);
 
   /* Allocate memory */
   tmpstr = (char *) malloc(5000 * sizeof(char));

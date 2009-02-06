@@ -40,7 +40,7 @@ int get_time_attributes(char **time_units, char **cal_type, char *filename, char
   /* Read data in NetCDF file */
 
   /* Open NetCDF file for reading */
-  printf("%s: Opening for reading NetCDF input file %s.\n", __FILE__, filename);
+  printf("%s: Opening for reading time attributes in NetCDF input file %s\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 

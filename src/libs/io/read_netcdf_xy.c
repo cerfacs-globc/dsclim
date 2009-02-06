@@ -55,7 +55,7 @@ int read_netcdf_xy(double **x, double **y, int *nx, int *ny, char *xname, char *
   /* Read data in NetCDF file */
 
   /* Open NetCDF file for reading */
-  printf("%s: Reading info from NetCDF input file %s.\n", __FILE__, filename);
+  printf("%s: Reading info from NetCDF input file %s\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 

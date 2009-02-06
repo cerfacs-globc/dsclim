@@ -9,7 +9,7 @@
     \brief Dump the core of the program (to debug) in the event of a memory allocation error.
 */
 
-#include <utils.h>
+#include <misc.h>
 
 /** Subroutine to dump the core of the program (to debug) in the event of a memory allocation error. */
 void alloc_error(char *filename, int line)
