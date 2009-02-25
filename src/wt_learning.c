@@ -17,10 +17,48 @@
     \brief Compute or read learning data needed for downscaling climate scenarios using weather typing.
 */
 
+/* LICENSE BEGIN
+
+Copyright Cerfacs (Christian Page) (2009)
+
+christian.page@cerfacs.fr
+
+This software is a computer program whose purpose is to downscale climate
+scenarios using a statistical methodology based on weather regimes.
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software. You can use, 
+modify and/ or redistribute the software under the terms of the CeCILL
+license as circulated by CEA, CNRS and INRIA at the following URL
+"http://www.cecill.info". 
+
+As a counterpart to the access to the source code and rights to copy,
+modify and redistribute granted by the license, users are provided only
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited
+liability. 
+
+In this respect, the user's attention is drawn to the risks associated
+with loading, using, modifying and/or developing or reproducing the
+software by the user in light of its specific status of free software,
+that may mean that it is complicated to manipulate, and that also
+therefore means that it is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or 
+data to be ensured and, more generally, to use and operate it in the 
+same conditions as regards security. 
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
+
+LICENSE END */
+
 #include <dsclim.h>
 
 /** Compute or read learning data needed for downscaling climate scenarios using weather typing. */
-int wt_learning(data_struct *data) {
+int
+wt_learning(data_struct *data) {
   /**
      @param[in]  data  MASTER data structure.
      
@@ -69,6 +107,13 @@ int wt_learning(data_struct *data) {
   double *var_dist = NULL;
   double *dist = NULL;
   double dist_pt;
+
+  double *mask_subd = NULL;
+  short int *mask_sub = NULL;
+  int nlon_mask;
+  int nlat_mask;
+  double *lon_mask = NULL;
+  double *lat_mask = NULL;
 
   int ntime_learn_all;
   int *ntime_sub = NULL;
@@ -209,8 +254,8 @@ int wt_learning(data_struct *data) {
     istat = read_field_subdomain_period(&tas_rea, &lon_rea, &lat_rea, &missing_value, data->learning->nomvar_rea_sup,
                                         data->learning->obs->time_s->year, data->learning->obs->time_s->month,
                                         data->learning->obs->time_s->day,
-                                        data->conf->longitude_min, data->conf->longitude_max,
-                                        data->conf->latitude_min, data->conf->latitude_max, 
+                                        data->conf->secondary_longitude_min, data->conf->secondary_longitude_max,
+                                        data->conf->secondary_latitude_min, data->conf->secondary_latitude_max, 
                                         data->learning->rea_coords, data->learning->rea_gridname,
                                         data->learning->rea_lonname, data->learning->rea_latname,
                                         data->learning->rea_timename, data->learning->filename_rea_sup,
@@ -221,8 +266,37 @@ int wt_learning(data_struct *data) {
     /* Perform spatial mean of secondary large-scale fields */
     tas_rea_mean = (double *) malloc(data->learning->obs->ntime * sizeof(double));
     if (tas_rea_mean == NULL) alloc_error(__FILE__, __LINE__);
-    (void) mean_field_spatial(tas_rea_mean, tas_rea, nlon, nlat, data->learning->obs->ntime);
+    /* Prepare mask */
+    if (data->secondary_mask->use_mask == 1) {
+      (void) extract_subdomain(&mask_subd, &lon_mask, &lat_mask, &nlon_mask, &nlat_mask, data->secondary_mask->field,
+                               data->secondary_mask->lon, data->secondary_mask->lat,
+                               data->conf->secondary_longitude_min, data->conf->secondary_longitude_max,
+                               data->conf->secondary_latitude_min, data->conf->secondary_latitude_max, 
+                               data->secondary_mask->nlon, data->secondary_mask->nlat, 1);
+      if (nlon != nlon_mask || nlat != nlat_mask) {
+        (void) fprintf(stderr, "%s: The mask for secondary large-scale fields after selecting subdomain has invalid dimensions: nlon=%d nlat=%d. Expected: nlon=%d nlat=%d\nReverting to no-mask processing.", __FILE__, nlon_mask, nlat_mask, nlon, nlat);
+        mask_sub = (short int *) NULL;
+      }
+      else {
+        mask_sub = (short int *) malloc(nlat*nlon * sizeof(short int));
+        if (mask_sub == NULL) alloc_error(__FILE__, __LINE__);
+        for (i=0; i<nlat*nlon; i++)
+          mask_sub[i] = (short int) mask_subd[i];
+      }
+      (void) free(mask_subd);
+      (void) free(lon_mask);
+      (void) free(lat_mask);
+    }
+    else
+      mask_sub = (short int *) NULL;
+
+    if (mask_sub != NULL)
+      printf("%s: Using a mask for secondary large-scael fields.\n", __FILE__);
+
+    (void) mean_field_spatial(tas_rea_mean, tas_rea, mask_sub, nlon, nlat, data->learning->obs->ntime);
     (void) free(tas_rea);
+    if (mask_sub != NULL)
+      (void) free(mask_sub);
 
     /* Loop over each season */
     (void) printf("Extract data for each season separately and process each season.\n");
@@ -348,7 +422,7 @@ int wt_learning(data_struct *data) {
                                     ntime_sub[s]);
 
       /* Set mean and variance of distances to clusters to 1.0 because we first need to compute distances and */
-      /* we don't have a control run */
+      /* we don't have a control run in learning mode */
       mean_dist = (double *) realloc(mean_dist, data->conf->season[s].nclusters * sizeof(double));
       if (mean_dist == NULL) alloc_error(__FILE__, __LINE__);
       var_dist = (double *) realloc(var_dist, data->conf->season[s].nclusters * sizeof(double));
@@ -456,8 +530,10 @@ int wt_learning(data_struct *data) {
     (void) free(dist);
 
     /* If wanted, write learning data to files for later use */
-    (void) printf("Writing learning fields.\n");
-    istat = write_learning_fields(data);
+    if (data->learning->learning_save == 1) {
+      (void) printf("Writing learning fields.\n");
+      istat = write_learning_fields(data);
+    }
   }
 
   /* Success status */

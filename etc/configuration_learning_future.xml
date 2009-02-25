@@ -78,9 +78,9 @@
   <!-- Regression parameters -->
   <setting name="regression">
     <filename>/home/page/codes/src/dsclim/trunk/tests/reg_pts_france.nc</filename>
-    <latname>lat</latname>
-    <lonname>lon</lonname>
-    <ptsname>pts</ptsname>
+    <latitude_name>lat</latitude_name>
+    <longitude_name>lon</longitude_name>
+    <pts_name>pts</pts_name>
   </setting>
 
   <!-- Large-scale domain bounding box -->
@@ -209,7 +209,7 @@
     <!-- NetCDF variable name -->
     <name id="1">psl</name>
     <!-- Control model run NetCDF file -->
-    <filename id="1">/home/page/codes/src/dsclim/trunk/tests/interpERA40_psl_1d_19500101_19991231_EB2_test.nc</filename>
+    <filename id="1">/home/page/codes/src/dsclim/trunk/tests/interpERA40_psl_1d_20000101_20491231_EA2_test.nc</filename>
     <!-- Projection type CF-1.0 compliant -->
     <projection id="1">Latitude_Longitude</projection>
     <!-- Coordinates number of dimensions -->
@@ -219,15 +219,15 @@
     <!-- Remove climatology or not -->
     <clim_remove id="1">1</clim_remove>
     <!-- Climatology is pre-calculated or not -->
-    <clim_provided id="1">1</clim_provided>
+    <clim_provided id="1">0</clim_provided>
     <!-- NetCDF climatology variable name -->
     <clim_name id="1">psl</clim_name>
     <!-- Save climatology or not -->
     <clim_save id="1">1</clim_save>
     <!-- NetCDF file to open for pre-calculated climatology -->
-    <clim_openfilename id="1">/home/page/codes/src/dsclim/trunk/tests/CLIM_psl_1d_19500101_19991231_EB2_test.nc</clim_openfilename>
+    <clim_openfilename id="1">/home/page/codes/src/dsclim/trunk/tests/CLIM_psl_1d_20000101_20491231_EA2_test.nc</clim_openfilename>
     <!-- NetCDF file to save climatology -->
-    <clim_savefilename id="1">/home/page/codes/src/dsclim/trunk/tests/CLIM_psl_1d_19500101_19991231_EB2_save.nc</clim_savefilename>
+    <clim_savefilename id="1">/home/page/codes/src/dsclim/trunk/tests/CLIM_psl_1d_20000101_20491231_EA2_test.nc</clim_savefilename>
 
     <!-- EOF parameters -->
     <!-- Number of EOFs -->
@@ -277,7 +277,7 @@
     <!-- NetCDF variable name -->
     <name id="1">tas</name>
     <!-- Control model run NetCDF file -->
-    <filename id="1">/home/page/codes/src/dsclim/trunk/tests/interpERA40_tas_1d_19500101_19991231_EB2_test.nc</filename>
+    <filename id="1">/home/page/codes/src/dsclim/trunk/tests/interpERA40_tas_1d_20000101_20491231_EA2_test.nc</filename>
     <!-- Projection type CF-1.0 compliant -->
     <projection id="1">Latitude_Longitude</projection>
     <!-- Coordinates number of dimensions -->

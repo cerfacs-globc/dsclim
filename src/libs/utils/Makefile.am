@@ -10,5 +10,5 @@
 
 noinst_LTLIBRARIES = libutils.la
 libutils_la_SOURCES = utils.h alloc_mmap_float.c alloc_mmap_double.c alloc_mmap_int.c alloc_mmap_longint.c alloc_mmap_shortint.c data_to_gregorian_cal.c utCalendar_cal.h utCalendar_cal.c get_calendar.c get_calendar_ts.c change_date_origin.c mean_variance_field_spatial.c sub_period_common.c extract_subdomain.c extract_subperiod_months.c mask_region.c mean_field_spatial.c normalize_field.c comparf.c distance_point.c find_str_value.c
-libutils_la_CPPFLAGS = -I${top_srcdir}/src/libs/misc -I${top_srcdir}/src/libs/utils $(GSL_CFLAGS)
-libutils_la_LIBADD = ${top_srcdir}/src/libs/misc/libmisc.la ${top_srcdir}/src/libs/utils/libutils.la $(GSL_LIBS) -ludunits -lm
+libutils_la_CPPFLAGS = -I${top_srcdir}/src/libs/misc $(GSL_CFLAGS)
+libutils_la_LIBADD = ../misc/libmisc.la $(GSL_LIBS) -ludunits -lm

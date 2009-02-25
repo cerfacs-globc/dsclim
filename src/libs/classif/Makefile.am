@@ -11,4 +11,4 @@
 noinst_LTLIBRARIES = libclassif.la
 libclassif_la_SOURCES = classif.h class_days_pc_clusters.c generate_clusters.c best_clusters.c mean_variance_dist_clusters.c dist_clusters_normctrl.c
 libclassif_la_CPPFLAGS = -I${top_srcdir}/src/libs/misc $(GSL_CFLAGS)
-libclassif_la_LIBADD = ${top_srcdir}/src/libs/misc/libmisc.la $(GSL_LIBS) -lm
+libclassif_la_LIBADD = ../misc/libmisc.la $(GSL_LIBS) -lm

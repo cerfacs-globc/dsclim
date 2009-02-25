@@ -11,4 +11,4 @@
 noinst_LTLIBRARIES = libfilter.la
 libfilter_la_SOURCES = filter.h filter.c filter_window.c
 libfilter_la_CPPFLAGS = -I${top_srcdir}/src/libs/misc
-libfilter_la_LIBADD = ${top_srcdir}/src/libs/misc/libmisc.la -lm
+libfilter_la_LIBADD = ../misc/libmisc.la -lm

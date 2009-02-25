@@ -17,10 +17,48 @@
     \brief Read large-scale fields data from input files. Currently only NetCDF is implemented.
 */
 
+/* LICENSE BEGIN
+
+Copyright Cerfacs (Christian Page) (2009)
+
+christian.page@cerfacs.fr
+
+This software is a computer program whose purpose is to downscale climate
+scenarios using a statistical methodology based on weather regimes.
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software. You can use, 
+modify and/ or redistribute the software under the terms of the CeCILL
+license as circulated by CEA, CNRS and INRIA at the following URL
+"http://www.cecill.info". 
+
+As a counterpart to the access to the source code and rights to copy,
+modify and redistribute granted by the license, users are provided only
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited
+liability. 
+
+In this respect, the user's attention is drawn to the risks associated
+with loading, using, modifying and/or developing or reproducing the
+software by the user in light of its specific status of free software,
+that may mean that it is complicated to manipulate, and that also
+therefore means that it is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or 
+data to be ensured and, more generally, to use and operate it in the 
+same conditions as regards security. 
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
+
+LICENSE END */
+
 #include <dsclim.h>
 
 /** Read large-scale fields data from input files. Currently only NetCDF is implemented. */
-int read_large_scale_fields(data_struct *data) {
+int
+read_large_scale_fields(data_struct *data) {
   /**
      @param[in]  data  MASTER data structure.
      
@@ -37,6 +75,10 @@ int read_large_scale_fields(data_struct *data) {
   double *lon = NULL; /* Temporary longitude buffer for main large-scale fields */
   char *cal_type = NULL; /* Calendar type (udunits) */
   char *time_units = NULL; /* Time units (udunits) */
+  double longitude_min; /* Domain bounding box minimum longitude */
+  double longitude_max; /* Domain bounding box maximum longitude */
+  double latitude_min; /* Domain bounding box minimum latitude */
+  double latitude_max; /* Domain bounding box maximum latitude */
   int ntime; /* Number of times dimension */
   int nlon; /* Longitude dimension for main large-scale fields */
   int nlat; /* Latitude dimension for main large-scale fields */
@@ -46,6 +88,20 @@ int read_large_scale_fields(data_struct *data) {
 
   /* Loop over all large-scale field categories */
   for (cat=0; cat<NCAT; cat++) {
+
+    /* Select proper domain given large-scale field category */
+    if (cat == 0 || cat == 1) {
+      longitude_min = data->conf->longitude_min;
+      longitude_max = data->conf->longitude_max;
+      latitude_min = data->conf->latitude_min;
+      latitude_max = data->conf->latitude_max;
+    }
+    else {
+      longitude_min = data->conf->secondary_longitude_min;
+      longitude_max = data->conf->secondary_longitude_max;
+      latitude_min = data->conf->secondary_latitude_min;
+      latitude_max = data->conf->secondary_latitude_max;
+    }
 
     /* Free memory for loop and set pointers to NULL for realloc */
     if (data->field[cat].time_ls != NULL) {
@@ -64,7 +120,6 @@ int read_large_scale_fields(data_struct *data) {
     /* Loop over large-scale fields */
     for (i=0; i<data->field[cat].n_ls; i++) {
       /* Retrieve dimensions if time buffer is not already set for this field category */
-      /* (assume same dimensions for all field in the same category) */
       if (data->field[cat].time_ls == NULL) {
         istat = read_netcdf_dims_3d(&lon, &lat, &time_ls, &cal_type, &time_units, &nlon, &nlat, &ntime,
                                     data->info, data->field[cat].proj[i].coords, data->field[cat].proj[i].name,
@@ -85,7 +140,7 @@ int read_large_scale_fields(data_struct *data) {
       if ( !strcmp(cal_type, "gregorian") || !strcmp(cal_type, "standard") ) {
         
         /* Read data */
-        istat = read_netcdf_var_3d(&buf, data->field[cat].data[i].info, data->field[cat].proj,
+        istat = read_netcdf_var_3d(&buf, data->field[cat].data[i].info, &(data->field[cat].proj[i]),
                                    data->field[cat].data[i].filename_ls,
                                    data->field[cat].data[i].nomvar_ls,
                                    data->field[cat].data[i].lonname, data->field[cat].data[i].latname, data->field[cat].data[i].timename,
@@ -105,8 +160,6 @@ int read_large_scale_fields(data_struct *data) {
           (void) free(cal_type);
           return istat;
         }
-        /* Save number of times dimension */
-        data->field[cat].ntime_ls = ntime;
         
         /* Extract subdomain of spatial fields */
         if (data->field[cat].lon_ls != NULL) {
@@ -121,12 +174,14 @@ int read_large_scale_fields(data_struct *data) {
           (void) free(data->field[cat].data[i].field_ls);
           data->field[cat].data[i].field_ls = NULL;
         }
-        /* Extraction */
+        /* Extraction of subdomain */
         (void) extract_subdomain(&(data->field[cat].data[i].field_ls), &(data->field[cat].lat_ls), &(data->field[cat].lon_ls),
                                  &(data->field[cat].nlon_ls), &(data->field[cat].nlat_ls), buf, lon, lat,
-                                 data->conf->longitude_min, data->conf->longitude_max, data->conf->latitude_min, data->conf->latitude_max,
-                                 nlon, nlat, ntime);
+                                 longitude_min, longitude_max, latitude_min, latitude_max, nlon, nlat, ntime);
         (void) free(buf);
+
+        /* Save number of times dimension */
+        data->field[cat].ntime_ls = ntime;
 
         /* If time info not already retrieved for this category, get time information and generate time structure */
         if (data->field[cat].time_ls == NULL) {
@@ -148,7 +203,7 @@ int read_large_scale_fields(data_struct *data) {
 
         /* Read data and fix calendar */
         istat = read_netcdf_var_3d(&(data->field[cat].data[i].field_ls), data->field[cat].data[i].info,
-                                   data->field[cat].proj, data->field[cat].data[i].filename_ls,
+                                   &(data->field[cat].proj[i]), data->field[cat].data[i].filename_ls,
                                    data->field[cat].data[i].nomvar_ls,
                                    data->field[cat].data[i].lonname, data->field[cat].data[i].latname, data->field[cat].data[i].timename,
                                    &nlon_file, &nlat_file, &ntime_file, TRUE);
@@ -183,14 +238,26 @@ int read_large_scale_fields(data_struct *data) {
         /* Extraction */
         (void) extract_subdomain(&buf, &(data->field[cat].lon_ls), &(data->field[cat].lat_ls),
                                  &(data->field[cat].nlon_ls), &(data->field[cat].nlat_ls), data->field[cat].data[i].field_ls, lon, lat,
-                                 data->conf->longitude_min, data->conf->longitude_max, data->conf->latitude_min, data->conf->latitude_max,
-                                 nlon, nlat, ntime);
+                                 longitude_min, longitude_max, latitude_min, latitude_max, nlon, nlat, ntime);
         (void) free(data->field[cat].data[i].field_ls);
 
         /* Adjust calendar to standard calendar */
-        (void) data_to_gregorian_cal_d(&(data->field[cat].data[i].field_ls), &dummy, &(data->field[cat].ntime_ls),
-                                       buf, time_ls, time_units, data->conf->time_units,
-                                       cal_type, data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime);
+        istat = data_to_gregorian_cal_d(&(data->field[cat].data[i].field_ls), &dummy, &(data->field[cat].ntime_ls),
+                                        buf, time_ls, time_units, data->conf->time_units,
+                                        cal_type, data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime);
+        if (istat < 0) {
+          /* In case of failure */
+          (void) free(lon);
+          (void) free(lat);
+          (void) free(time_ls);
+          (void) free(time_units);
+          (void) free(cal_type);
+          (void) free(buf);
+          (void) free(data->field[cat].lon_ls);
+          (void) free(data->field[cat].lat_ls);
+          (void) free(data->field[cat].data[i].field_ls);
+          return istat;
+        }
         if (data->field[cat].time_ls == NULL) {
           data->field[cat].time_ls = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
           if (data->field[cat].time_ls == NULL) alloc_error(__FILE__, __LINE__);

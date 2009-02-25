@@ -2,6 +2,43 @@
 /*! \file dsclim.h
     \brief Include file for main program of downscaling algorithm.
 */
+
+/* LICENSE BEGIN
+
+Copyright Cerfacs (Christian Page) (2009)
+
+christian.page@cerfacs.fr
+
+This software is a computer program whose purpose is to downscale climate
+scenarios using a statistical methodology based on weather regimes.
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software. You can use, 
+modify and/ or redistribute the software under the terms of the CeCILL
+license as circulated by CEA, CNRS and INRIA at the following URL
+"http://www.cecill.info". 
+
+As a counterpart to the access to the source code and rights to copy,
+modify and redistribute granted by the license, users are provided only
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited
+liability. 
+
+In this respect, the user's attention is drawn to the risks associated
+with loading, using, modifying and/or developing or reproducing the
+software by the user in light of its specific status of free software,
+that may mean that it is complicated to manipulate, and that also
+therefore means that it is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or 
+data to be ensured and, more generally, to use and operate it in the 
+same conditions as regards security. 
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
+
+LICENSE END */
 #ifndef DSCLIM_H
 #define DSCLIM_H
 
@@ -38,7 +75,11 @@
 #include <hdf5.h>
 #include <netcdf.h>
 
+#ifdef HAVE_UDUNITS2
+#include <udunits2.h>
+#else
 #include <udunits.h>
+#endif
 
 /* GNU GSL includes */
 #include <gsl/gsl_sort.h>
@@ -119,11 +160,8 @@ typedef struct {
 /* The dimension should be for each independent field, for all categories */
 /* Can be NULL for non-appropriate category. */
   int eof_project; /**< If we want to project a large scale field onto its EOF. */
-  int eof_provided; /**< If EOF is already computed for all large scale fields and available in a file. */
   double eof_scale; /**< Large scale field scaling for projection on EOF. */
-  int eof_save; /**< If we want to save the EOF and singular values in a file. */
   char *eof_filein_ls; /**< EOF and singular values of large-scale fields input filename. */
-  char *eof_fileout_ls; /**< EOF and singular values of large-scale fields input filename. */
   info_field_struct *info; /**< Information (field attributes) about large scale fields EOF. */
   int neof_ls; /**< EOF dimension of large scale fields. */
   char *eof_coords; /**< EOF coordinates NetCDF (1D or 2D). */
@@ -143,11 +181,13 @@ typedef struct {
 
 /** Downscaling data structure. */
 typedef struct {
-  double **mean_dist; /**< Mean of cluster distances. */
-  double **var_dist; /**< Variance of cluster distances. */
-  double **dist; /**< Cluster distances. */
-  double **smean_norm; /**< Normalized spatial mean of secondary large-scale fields. */
-  int **days_class_clusters; /**< Classification of days into clusters. */
+  double **mean_dist; /**< Mean of cluster distances, seasonal-dependent. */
+  double **var_dist; /**< Variance of cluster distances, seasonal-dependent. */
+  double **dist; /**< Cluster distances, seasonal-dependent. */
+  double *dist_all; /**< Cluster distances. */
+  double **smean_norm; /**< Normalized spatial mean of secondary large-scale fields, seasonal-dependent. */
+  int **days_class_clusters; /**< Classification of days into clusters, seasonal-dependent. */
+  int *days_class_clusters_all; /**< Classification of days into clusters. */
   double *smean; /**< Spatial mean of secondary large-scale fields. */
   double *mean; /**< Seasonal mean of spatially-averaged secondary fields. */
   double *var; /**< Seasonal variance of spatially-averaged secondary fields. */
@@ -187,7 +227,7 @@ typedef struct {
   int n_ls; /**< Number of large scale fields. */
   int ntime_ls; /**< Time dimension of large scale fields. */
   double *time_ls; /**< Time vector of large scale fields. */
-  time_struct *time_s; /**< Time structure of large scale fields. */  
+  time_vect_struct *time_s; /**< Time structure of large scale fields. */  
   double *lon_ls; /**< Longitude of gridpoints of large scale fields. */
   double *lat_ls; /**< Latitude of gridpoints of large scale fields. */
   int nlon_ls; /**< X dimension of large scale fields. */
@@ -206,7 +246,7 @@ typedef struct {
 /** Data structure seasonal-dependent learning_data_struct. */
 typedef struct {
   int ntime; /**< Number of times. */
-  time_struct *time_s; /**< Time information in time structure. */
+  time_vect_struct *time_s; /**< Time information in time structure. */
   double *time; /**< Time vector of learning data. */
   double *weight; /**< Weights of learning data. */
   int *class_clusters; /**< Classification clusters learning data. */
@@ -220,13 +260,13 @@ typedef struct {
 
 /** Data structure for EOF-related learning data learning_eof_struct. */
 typedef struct {
-  double *eof;
-  double *sing;
-  time_struct *time_s;
+  double *eof; /**< EOF data. */
+  double *sing; /**< Singular Vectors data. */
+  time_vect_struct *time_s; /**< Time structure for EOF data. */
   int ntime; /**< Number of times. */
-  char *filename_eof;
-  char *nomvar_eof;
-  char *nomvar_sing;
+  char *filename_eof; /**< Filename for EOF data. */
+  char *nomvar_eof; /**< NetCDF variable name for EOF data. */
+  char *nomvar_sing; /**< NetCDF variable name for Singular Vectors data. */
 } learning_eof_struct;
 
 /** Data structure for learning data learning_struct. */
@@ -257,8 +297,8 @@ typedef struct {
   int nlon; /**< Number of longitudes. */
   int nlat; /**< Number of latitudes. */
   int ntime; /**< Number of times. */
-  time_struct *time_s; /**< Time structure of the whole learning period. */
-  int neof;
+  time_vect_struct *time_s; /**< Time structure of the whole learning period. */
+  int neof; /**< Number of EOFs. */
   char *rea_coords; /**< Coordinates for reanalysis data (1D or 2D). */
   char *rea_gridname; /**< Grid name for reanalysis data (1D or 2D). */
   char *rea_lonname; /**< Longitude variable name for reanalysis files. */
@@ -267,8 +307,8 @@ typedef struct {
   char *obs_lonname; /**< Longitude variable name for observations files. */
   char *obs_latname; /**< Latitude variable name for observations files. */
   char *obs_timename; /**< Time dimension name for observations files. */
-  learning_eof_struct *obs;
-  learning_eof_struct *rea;
+  learning_eof_struct *obs; /**< Observation data for learning. */
+  learning_eof_struct *rea; /**< Reanalysis data for learning. */
   learning_data_struct *data; /**< Learning data, seasonal-dependent. */
 } learning_struct;
 
@@ -283,6 +323,25 @@ typedef struct {
   int npts; /**< Number of regression points. */
   double dist; /**< Distance of spatial mean influence for regression points. */
 } reg_struct;
+
+/** Data structure for mask. */
+typedef struct {
+  int use_mask; /**< If we want to use the mask file. */
+  double *field; /**< Mask data. 0 for inactive and 1 for active point. */
+  char *filename; /**< Filename for mask data. */
+  char *maskname; /**< Name of mask variable. */
+  char *lonname; /**< Longitude field name. */
+  char *latname; /**< Latitude field name. */
+  char *coords; /**< Coordinates for latitude and longitude (1D or 2D). */
+  char *proj; /**< Mapping projection type. */
+  char *dimxname; /**< X dimension name for observation files. */
+  char *dimyname; /**< Y dimension name for observation files. */
+  char *dimcoords; /**< Coordinates for X and Y dimensions (1D or 2D). */
+  double *lon; /**< Longitudes. */
+  double *lat; /**< Latitudes. */  
+  int nlon; /**< Number of longitudes. */
+  int nlat; /**< Number of latitudes. */  
+} mask_struct;
 
 /** Seasons definition season_struct */
 typedef struct {
@@ -311,6 +370,9 @@ typedef struct {
 /** General configuration data structure conf_struct. */
 typedef struct {
   int debug; /**< Debugging flag. */
+  int format; /**< Format for NetCDF output files. */
+  int compression; /**< Compression for NetCDF-4 output files. */
+  char *config; /**< Whole configuration file text. */
   int clim_filter_width; /**< Climatology filter width. */
   char *clim_filter_type; /**< Climatology filter type. */
   char *cal_type; /**< Calendar-type for downscaling. */
@@ -320,10 +382,14 @@ typedef struct {
   char *eofname; /**< EOF dimension name for downscaling. */
   char *ptsname; /**< Points dimension name for downscaling. */
   char *clustname; /**< Cluster dimension name. */
-  double longitude_min; /**< Domain minimum longitude. */
-  double longitude_max; /**< Domain maximum longitude. */
-  double latitude_min; /**< Domain minimum latitude. */
-  double latitude_max; /**< Domain maximum latitude. */
+  double longitude_min; /**< Domain minimum longitude for large-scale fields (classification). */
+  double longitude_max; /**< Domain maximum longitude for large-scale fields (classification). */
+  double latitude_min; /**< Domain minimum latitude for large-scale fields (classification). */
+  double latitude_max; /**< Domain maximum latitude for large-scale fields (classification). */
+  double secondary_longitude_min; /**< Domain minimum longitude for secondary large-scale fields. */
+  double secondary_longitude_max; /**< Domain maximum longitude for secondary large-scale fields. */
+  double secondary_latitude_min; /**< Domain minimum latitude for secondary large-scale fields. */
+  double secondary_latitude_max; /**< Domain maximum latitude for secondary large-scale fields. */
   double learning_mask_longitude_min; /**< Learning Mask minimum longitude. */
   double learning_mask_longitude_max; /**< Learning Mask maximum longitude. */
   double learning_mask_latitude_min; /**< Learning Mask minimum latitude. */
@@ -340,6 +406,10 @@ typedef struct {
   int nclassifications; /**< Maximum number of classifications. */
   int npartitions; /**< Number of partitions. */
   var_struct *obs_var; /**< Structure for observation variables information. */
+  int analog_save; /**< If we want to save analog data. */
+  int output_only; /**< If we just want to output downscaled data using only analog data and observation database. */
+  char *analog_file_ctrl; /**< Analog data filename for control run. */
+  char *analog_file_other; /**< Analog data filename for control run. */
 } conf_struct;
 
 /** MASTER data structure data_struct. */
@@ -349,6 +419,7 @@ typedef struct {
   field_struct *field; /**< Data fields structure. */
   learning_struct *learning; /**< Learning data structure. */
   reg_struct *reg; /**< Regression structure. */
+  mask_struct *secondary_mask; /**< Secondary large-scale mask. */
 } data_struct;
 
 /* Prototypes */
@@ -368,6 +439,7 @@ int read_field_subdomain_period(double **buffer, double **lon, double **lat, dou
                                 int *nlon, int *nlat, int ntime);
 int remove_clim(data_struct *data);
 int read_regression_points(reg_struct *reg);
+int read_mask(mask_struct *mask);
 void find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn, double *sup_field_index,
                    double *sup_field_index_learn, int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
                    int *year_learn, int *month_learn, int *day_learn,
@@ -378,8 +450,16 @@ void compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_
 int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int ntimes_merged, int ntimes);
 int merge_seasonal_data(double *buf_merged, double *buf, analog_day_struct analog_days, int dimx, int dimy,
                         int ntimes_merged, int ntimes);
-int output_downscaled_analog(analog_day_struct analog_days, double *delta, data_struct *data, double *time_ls, int ntime);
+int merge_seasonal_data_i(int *buf_merged, int *buf, analog_day_struct analog_days, int dimx, int dimy,
+                          int ntimes_merged, int ntimes);
+int output_downscaled_analog(analog_day_struct analog_days, double *delta, int output_month_begin, char *output_path,
+                             char *config, char *time_units, char *cal_type, int file_format, int file_compression,
+                             info_struct *info, var_struct *obs_var, period_struct *period,
+                             double *time_ls, int ntime);
 int write_learning_fields(data_struct *data);
+void read_analog_data(analog_day_struct *analog_days, double **delta, double **time_ls, char *filename, char *timename);
+void save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int *cluster, double *time_ls,
+                      char *filename, data_struct *data);
 void free_main_data(data_struct *data);
 
 #endif

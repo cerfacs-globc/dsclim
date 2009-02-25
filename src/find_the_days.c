@@ -9,14 +9,52 @@
     \brief Find analog days given cluster, supplemental large-scale field, and precipitation distances.
 */
 
+/* LICENSE BEGIN
+
+Copyright Cerfacs (Christian Page) (2009)
+
+christian.page@cerfacs.fr
+
+This software is a computer program whose purpose is to downscale climate
+scenarios using a statistical methodology based on weather regimes.
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software. You can use, 
+modify and/ or redistribute the software under the terms of the CeCILL
+license as circulated by CEA, CNRS and INRIA at the following URL
+"http://www.cecill.info". 
+
+As a counterpart to the access to the source code and rights to copy,
+modify and redistribute granted by the license, users are provided only
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited
+liability. 
+
+In this respect, the user's attention is drawn to the risks associated
+with loading, using, modifying and/or developing or reproducing the
+software by the user in light of its specific status of free software,
+that may mean that it is complicated to manipulate, and that also
+therefore means that it is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or 
+data to be ensured and, more generally, to use and operate it in the 
+same conditions as regards security. 
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
+
+LICENSE END */
+
 #include <dsclim.h>
 
 /** Find analog days given cluster, supplemental large-scale field, and precipitation distances. */
-void find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn, double *sup_field_index,
-                   double *sup_field_index_learn, int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
-                   int *year_learn, int *month_learn, int *day_learn,
-                   int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
-                   int sup_choice) {
+void
+find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn, double *sup_field_index,
+              double *sup_field_index_learn, int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
+              int *year_learn, int *month_learn, int *day_learn,
+              int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
+              int sup_choice) {
   /**
      @param[out]  analog_days           Analog days time indexes and dates, as well as corresponding downscale dates
      @param[in]   precip_index          Precipitation index of days to downscale
@@ -39,8 +77,8 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
      @param[in]   ndayschoices          number of days to choose in first selection
      @param[in]   npts                  number of regression points of precipitation index
      @param[in]   shuffle               shuffle or not the days of the first selection
-     @param[in]   sup                   if we have or not secondary large-scale fields
-     @param[in]   sup_choice            if we use only the secondary large-scale fields to select the analog day at the last selection step
+     @param[in]   sup                   if we want to use the secondary large-scale field in the final selection of the analog day
+     @param[in]   sup_choice            if we want to use the secondary large-scale field in the first selection of the analog day
   */
   
   int *buf_sub_i = NULL; /* Temporary buffer for time index of subperiod */
@@ -179,7 +217,7 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
         }
 
         /* If we want to also use the secondary large-scale fields in the first selection of days */
-        if (sup == TRUE) {
+        if (sup_choice == TRUE || sup == TRUE) {
           /* Allocate memory */
           metric_sup = (double *) realloc(metric_sup, (ntime_days+1) * sizeof(double));
           if (metric_sup == NULL) alloc_error(__FILE__, __LINE__);
@@ -234,7 +272,7 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
       for (tl=0; tl<ntime_days; tl++) {
         if (clust_diff[tl] != 0) {
           metric[tl] = max_metric;
-          if (sup == TRUE)
+          if (sup_choice == TRUE || sup == TRUE)
             metric_sup[tl] = max_metric_sup;
         }
       }
@@ -251,7 +289,7 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
       /* Compute the standard deviation */
       varmean = gsl_stats_mean(metric, 1, (size_t) ntime_days);
       varstd = gsl_stats_sd_m(metric, 1, (size_t) ntime_days, varmean);
-      if (sup == TRUE) {
+      if (sup_choice == TRUE) {
         /* Do the same if needed for secondary large-scale field */
         varmean_sup = gsl_stats_mean(metric_sup, 1, (size_t) ntime_days);
         varstd_sup = gsl_stats_sd_m(metric_sup, 1, (size_t) ntime_days, varmean_sup);
@@ -366,7 +404,7 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
       (void) free(metric_norm);
       metric = NULL;
       metric_norm = NULL;
-      if (sup == TRUE) {
+      if (sup_choice == TRUE || sup == TRUE) {
         (void) free(metric_sup);
         metric_sup = NULL;
         (void) free(metric_sup_norm);

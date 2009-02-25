@@ -10,7 +10,7 @@
 
 # initial information about the project
 AC_INIT([dsclim],
-        [0.1],
+        [1.0.0],
         [Christian Page christian.page@cerfacs.fr],
         [dsclim])
 
@@ -88,27 +88,45 @@ then
   LDFLAGS="$LDFLAGS -L${udunits_dir}/lib"
 fi
 
-AC_MSG_CHECKING(for udunits)
-AC_MSG_RESULT($udunits_dir)
-AC_CHECK_HEADER(udunits.h,passed=1,passed=0)
-AC_CHECK_LIB(udunits,utInit,passed=1,passed=0,-lm)
-AC_MSG_CHECKING(if udunits support package is complete)
+#AC_MSG_CHECKING(for udunits 2.x)
+#AC_MSG_RESULT($udunits_dir)
+#AC_CHECK_HEADER(udunits2.h,passed=1,passed=0)
+#AC_CHECK_LIB(udunits2,utInit,passed=1,passed=0,-lm)
+#AC_MSG_CHECKING(if udunits 2.x support package is complete)
 
-if test $passed -gt 0
-then
-  UDUNITS_LIBS='-ludunits -lm'
-  AC_SUBST(UDUNITS_LIBS)
-  UDUNITS_CPPFLAGS='-I${udunits_dir}/include'
-  AC_SUBST(UDUNITS_CPPFLAGS)
-  UDUNITS_LDFLAGS='-L${udunits_dir}/lib'
-  AC_SUBST(UDUNITS_CPPFLAGS)
-  AC_DEFINE(HAVE_UDUNITS,1,Define if you have UDUNITS library)
-  AC_MSG_RESULT(yes)
-else
-  AC_MSG_NOTICE([
+#if test $passed -gt 0
+#then
+#  UDUNITS_LIBS='-ludunits2 -lm'
+#  AC_SUBST(UDUNITS_LIBS)
+#  UDUNITS_CPPFLAGS='-I${udunits_dir}/include'
+#  AC_SUBST(UDUNITS_CPPFLAGS)
+#  UDUNITS_LDFLAGS='-L${udunits_dir}/lib'
+#  AC_SUBST(UDUNITS_CPPFLAGS)
+#  AC_DEFINE(HAVE_UDUNITS2,1,Define if you have UDUNITS 2.x library)
+#  AC_MSG_RESULT(yes)
+#else
+#  AC_MSG_RESULT(no)
+  AC_MSG_CHECKING(for udunits 1.x)
+  AC_MSG_RESULT($udunits_dir)
+  AC_CHECK_HEADER(udunits.h,passed=1,passed=0)
+  AC_CHECK_LIB(udunits,utInit,passed=1,passed=0,-lm)
+  AC_MSG_CHECKING(if udunits 1.x support package is complete)
+
+  if test $passed -gt 0
+  then
+    UDUNITS_LIBS='-ludunits -lm'
+    AC_SUBST(UDUNITS_LIBS)
+    UDUNITS_CPPFLAGS='-I${udunits_dir}/include'
+    AC_SUBST(UDUNITS_CPPFLAGS)
+    UDUNITS_LDFLAGS='-L${udunits_dir}/lib'
+    AC_SUBST(UDUNITS_CPPFLAGS)
+    AC_DEFINE(HAVE_UDUNITS,1,Define if you have UDUNITS 1.x library)
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_NOTICE([
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  CONFIGURATION ERROR: UDUNITS required.
+  CONFIGURATION ERROR: UDUNITS 1.x or 2.x required.
   UDUNITS installation is not working or missing.
 
   To fix this problem you have the following options.
@@ -119,9 +137,10 @@ else
   3) Source code for UDUNITS can be found at http://www.unidata.ucar.edu/udunits/.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ])
-  exit
-fi
+        ])
+    exit
+  fi
+#fi
 
 # Check zlib library
 AC_ARG_WITH([zlib],
@@ -258,8 +277,8 @@ AC_ARG_WITH([netcdf],
 
 if test $netcdf_dir != 'system'
 then
-  CPPFLAGS="$CPPFLAGS -I${netcdf_dir}/include"
-  LDFLAGS="$LDFLAGS -L${netcdf_dir}/lib"
+  CPPFLAGS=" -I${netcdf_dir}/include $CPPFLAGS"
+  LDFLAGS=" -L${netcdf_dir}/lib $LDFLAGS"
 fi
 
 AC_MSG_CHECKING(for netcdf)
@@ -328,6 +347,9 @@ AC_SUBST(XML_LIBS)
 #    [disable doc generation])])
 #AM_CONDITIONAL([ENABLE_DOXYGEN], [test "x$enable_doxygen" != xno]) 
 
+# Checks for optional programs.
+AC_PROG_TRY_DOXYGEN
+
 DX_HTML_FEATURE(ON)
 DX_CHM_FEATURE(OFF)
 DX_CHI_FEATURE(OFF)
@@ -362,3 +384,11 @@ AC_CONFIG_FILES([
 ])
 
 AC_OUTPUT
+
+echo "
+  ($PACKAGE_NAME) version $PACKAGE_VERSION
+  Prefix.........: $prefix
+  Debug Build....: $debug
+  C Compiler.....: $CC $CFLAGS $CPPFLAGS
+  Linker.........: $LD $LDFLAGS $LIBS
+"

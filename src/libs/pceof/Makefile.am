@@ -10,5 +10,5 @@
 
 noinst_LTLIBRARIES = libpceof.la
 libpceof_la_SOURCES = pceof.h normalize_pc.c project_field_eof.c
-libpceof_la_CPPFLAGS = -I${top_srcdir}/src/libs/misc -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/filter -I${top_srcdir}/src/libs/clim $(GSL_CFLAGS)
-libpceof_la_LIBADD = ${top_srcdir}/src/libs/misc/libmisc.la ${top_srcdir}/src/libs/utils/libutils.la ${top_srcdir}/src/libs/filter/libfilter.la ${top_srcdir}/src/libs/clim/libclim.la $(GSL_LIBS)
+libpceof_la_CPPFLAGS = -I${top_srcdir}/src/libs/misc $(GSL_CFLAGS)
+libpceof_la_LIBADD = ../misc/libmisc.la $(GSL_LIBS) -lm

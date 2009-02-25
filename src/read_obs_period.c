@@ -8,11 +8,49 @@
     \brief Read observation data for a given period.
 */
 
+/* LICENSE BEGIN
+
+Copyright Cerfacs (Christian Page) (2009)
+
+christian.page@cerfacs.fr
+
+This software is a computer program whose purpose is to downscale climate
+scenarios using a statistical methodology based on weather regimes.
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software. You can use, 
+modify and/ or redistribute the software under the terms of the CeCILL
+license as circulated by CEA, CNRS and INRIA at the following URL
+"http://www.cecill.info". 
+
+As a counterpart to the access to the source code and rights to copy,
+modify and redistribute granted by the license, users are provided only
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited
+liability. 
+
+In this respect, the user's attention is drawn to the risks associated
+with loading, using, modifying and/or developing or reproducing the
+software by the user in light of its specific status of free software,
+that may mean that it is complicated to manipulate, and that also
+therefore means that it is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or 
+data to be ensured and, more generally, to use and operate it in the 
+same conditions as regards security. 
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
+
+LICENSE END */
+
 #include <dsclim.h>
 
 /** Read observation data for a given period. */
-int read_obs_period(double **buffer, double **lon, double **lat, double *missing_value, data_struct *data, char *varname,
-                    int *year, int *month, int *day, int *nlon, int *nlat, int ntime) {
+int
+read_obs_period(double **buffer, double **lon, double **lat, double *missing_value, data_struct *data, char *varname,
+                int *year, int *month, int *day, int *nlon, int *nlat, int ntime) {
   /**
      @param[out]   buffer        Output 2D array
      @param[out]   lon           Output 2D longitude
@@ -40,7 +78,7 @@ int read_obs_period(double **buffer, double **lon, double **lat, double *missing
   char *time_units = NULL; /* Time units (udunits) */
   int ntime_obs; /* Number of times dimension in observation database */
   int found = FALSE; /* Used to tag if we found a specific date */
-  time_struct *time_s = NULL; /* Time structure for observation database */
+  time_vect_struct *time_s = NULL; /* Time structure for observation database */
 
   info_field_struct *info = NULL; /* Temporary field information structure */
   proj_struct *proj = NULL; /* Temporary field projection structure */
@@ -75,7 +113,11 @@ int read_obs_period(double **buffer, double **lon, double **lat, double *missing
   *lat = NULL;
   *lon = NULL;
 
+  if (data->conf->obs_var->proj->name != NULL)
+    (void) free(data->conf->obs_var->proj->name);
   data->conf->obs_var->proj->name = NULL;
+  proj->name = NULL;
+  proj->grid_mapping_name = NULL;
 
   /* Search variable */
   for (var=0; var<data->conf->obs_var->nobs_var; var++) {
@@ -137,10 +179,19 @@ int read_obs_period(double **buffer, double **lon, double **lat, double *missing
             (void) free(timeval);
           }
 
-          time_s = (time_struct *) malloc(sizeof(time_struct));
+          time_s = (time_vect_struct *) malloc(sizeof(time_vect_struct));
           if (time_s == NULL) alloc_error(__FILE__, __LINE__);
 
           istat = get_time_info(time_s, &timeval, &time_units, &cal_type, &ntime_obs, infile, data->conf->obs_var->timename, FALSE);
+          if (istat < 0) {
+            (void) free(time_s);
+            (void) free(infile);
+            (void) free(prev_infile);
+            (void) free(format);
+            (void) free(info);
+            (void) free(proj);
+            return -1;
+          }
         }
         
         /* Find date in observation database */

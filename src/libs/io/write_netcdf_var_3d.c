@@ -16,12 +16,50 @@
     \brief Write a NetCDF variable.
 */
 
+/* LICENSE BEGIN
+
+Copyright Cerfacs (Christian Page) (2009)
+
+christian.page@cerfacs.fr
+
+This software is a computer program whose purpose is to downscale climate
+scenarios using a statistical methodology based on weather regimes.
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software. You can use, 
+modify and/ or redistribute the software under the terms of the CeCILL
+license as circulated by CEA, CNRS and INRIA at the following URL
+"http://www.cecill.info". 
+
+As a counterpart to the access to the source code and rights to copy,
+modify and redistribute granted by the license, users are provided only
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited
+liability. 
+
+In this respect, the user's attention is drawn to the risks associated
+with loading, using, modifying and/or developing or reproducing the
+software by the user in light of its specific status of free software,
+that may mean that it is complicated to manipulate, and that also
+therefore means that it is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or 
+data to be ensured and, more generally, to use and operate it in the 
+same conditions as regards security. 
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
+
+LICENSE END */
+
 #include <io.h>
 
 /** Write a 3D field in a NetCDF output file. */
-int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
-                        char *varname, char *gridname, char *lonname, char *latname, char *timename,
-                        int nlon, int nlat, int ntime, int outinfo) {
+int
+write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
+                    char *varname, char *gridname, char *lonname, char *latname, char *timename,
+                    int nlon, int nlat, int ntime, int outinfo) {
   /**
      @param[in]  buf         3D Field to write
      @param[in]  fillvalue   Missing value
@@ -109,22 +147,22 @@ int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
   vardimids[0] = timedimoutid;
   if ( !strcmp(gridname, "list") ) {
     vardimids[1] = londimoutid;
-    istat = nc_def_var(ncoutid, varname, NC_DOUBLE, 2, vardimids, &varoutid);  
+    istat = nc_def_var(ncoutid, varname, NC_FLOAT, 2, vardimids, &varoutid);  
   }
   else {
     vardimids[1] = latdimoutid;
     vardimids[2] = londimoutid;
-    istat = nc_def_var(ncoutid, varname, NC_DOUBLE, 3, vardimids, &varoutid);  
+    istat = nc_def_var(ncoutid, varname, NC_FLOAT, 3, vardimids, &varoutid);  
   }
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Set main variable attributes */
-  (void) strcpy(attname, "_Fillvalue");
-  istat = nc_put_att_double(ncoutid, varoutid, attname, NC_DOUBLE, 1, &fillvalue);
+  (void) strcpy(attname, "_FillValue");
+  istat = nc_put_att_double(ncoutid, varoutid, attname, NC_FLOAT, 1, &fillvalue);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   (void) strcpy(attname, "missing_value");
-  istat = nc_put_att_double(ncoutid, varoutid, attname, NC_DOUBLE, 1, &fillvalue);
+  istat = nc_put_att_double(ncoutid, varoutid, attname, NC_FLOAT, 1, &fillvalue);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   tmpstr = (char *) malloc(100 * sizeof(char));
