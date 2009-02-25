@@ -65,7 +65,7 @@
 
   <!-- Output information -->
   <setting name="output">
-    <path>/home/page/downscaling/data/results/SRESA1B/v2_arpege1_figdoc</path>
+    <path>/home/page/downscaling/data/results/SRESA1B/v2_arpege1_figdoc3</path>
     <month_begin>08</month_begin>
     <title>Downscaling data from Cerfacs</title>
     <title_french>Donnees de desagregation produites par le Cerfacs</title_french>

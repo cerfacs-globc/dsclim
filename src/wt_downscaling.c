@@ -142,7 +142,7 @@ wt_downscaling(data_struct *data) {
       mask_sub = (short int *) NULL;
 
     if (mask_sub != NULL)
-      printf("%s: Using a mask for secondary large-scael fields.\n", __FILE__);
+      printf("%s: Using a mask for secondary large-scale fields.\n", __FILE__);
 
     /** Step 2: Compute climatologies and remove them from selected large scale fields **/
     istat = remove_clim(data);
@@ -253,7 +253,7 @@ wt_downscaling(data_struct *data) {
         /* Diagnostic output */
         printf("Season: %d\n", s);
         for (ii=0; ii<data->conf->season[s].nclusters; ii++)
-          (void) printf("%s: Cluster #%d. Mean and variance of distances to clusters: %lf %lf\n", __FILE__, ii,
+          (void) printf("%s: Cluster #%d. Mean and variance of distances to clusters for control run: %lf %lf\n", __FILE__, ii,
                         data->field[cat].data[i].down->mean_dist[s][ii], sqrt(data->field[cat].data[i].down->var_dist[s][ii]));
 
         /* Free temporary buffer */
@@ -293,7 +293,7 @@ wt_downscaling(data_struct *data) {
                                            mask_sub, data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_sub_learn);
 
         /* Diagnostic output */
-        (void) printf("Season: %d  TAS mean=%lf variance=%lf cat=%d field=%d\n", s, data->field[cat].data[i].down->mean[s],
+        (void) printf("Control run:: Season: %d  TAS mean=%lf variance=%lf cat=%d field=%d\n", s, data->field[cat].data[i].down->mean[s],
                       sqrt(data->field[cat].data[i].down->var[s]), cat, i);
 
         /* Free temporary buffer */
@@ -316,7 +316,7 @@ wt_downscaling(data_struct *data) {
                                 data->field[cat].nlon_ls, data->field[cat].nlat_ls, data->field[cat].ntime_ls);
     }
     
-    /** Step 7: Compute distance to clusters for the model run **/
+    /** Step 7: Compute distance to clusters (model run and optionally control run) **/
 
     /* Downscale also control run if needed */  
     if (data->conf->period_ctrl->downscale == TRUE)

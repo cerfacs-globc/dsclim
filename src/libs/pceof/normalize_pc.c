@@ -56,7 +56,7 @@ normalize_pc(double *norm_all, double *first_variance, double *buf_renorm, doubl
   /**
      @param[out]     norm_all       New norm vector
      @param[in,out]  first_variance Variance of the first column of the first dimension. Only calculate if not set to -9999.9999
-     @param[out]     buf_renorm     Input 2D field normalized
+     @param[out]     buf_renorm     2D field normalized
      @param[in]      bufin          Input 2D field
      @param[in]      neof           EOF dimension
      @param[in]      ntime          Time dimension

@@ -294,7 +294,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
         /* Complete time metadata time_coverage_end for previous output file and output whole config */
         if (noutf[var] > 1 && t > 0) {
         
-          istat = nc_open(outfiles[var][noutf[var]-2], NC_WRITE, &ncoutid);  /* open NetCDF file */
+          istat = nc_open(outfiles[var][noutf[var]-1], NC_WRITE, &ncoutid);  /* open NetCDF file */
           if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
         
           istat = nc_redef(ncoutid);

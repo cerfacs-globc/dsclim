@@ -65,7 +65,7 @@ remove_clim(data_struct *data) {
   */
 
   double *bufnoclim = NULL; /* Temporary buffer for field with climatology removed */
-  double *clim = NULL; /* Climatology buffer */
+  double **clim = NULL; /* Climatology buffer */
   tstruct *timein_ts = NULL; /* Time info for input field */
   int ntime_clim; /* Number of times for input field */
   int nlon_file; /* Longitude dimension for input field */
@@ -97,8 +97,15 @@ remove_clim(data_struct *data) {
   for (j=0; j<ntime_clim; j++)
     timeclim[j] = (double) (j+1);
 
-  /* Loop over all large-scale field categories to process */
-  for (cat=0; cat<NCAT; cat++) {
+  /* Climatology variable */
+  clim = (double **) malloc(NCAT * sizeof(double *));
+  if (clim == NULL) alloc_error(__FILE__, __LINE__);
+  for (cat=0; cat<NCAT; cat++)
+    clim[cat] = NULL;
+
+  /* Loop over all control-run large-scale field categories to process */
+  /* Always remove climatology from the control run and apply to corresponding fields for other downscaled runs */
+  for (cat=1; cat<NCAT; cat=cat+2) {
 
     /* Loop over all large-scale fields */
     for (i=0; i<data->field[cat].n_ls; i++) {
@@ -116,7 +123,6 @@ remove_clim(data_struct *data) {
         (void) free(timein_ts);
         (void) free(bufnoclim);
         (void) free(timeclim);
-        if (clim != NULL) (void) free(clim);
         return -1;
       }
 
@@ -124,13 +130,9 @@ remove_clim(data_struct *data) {
       if (data->field[cat].data[i].clim_info->clim_remove == 1) {
         /* If climatology field is already provided */
         if (data->field[cat].data[i].clim_info->clim_provided == 1) {
-          /* Free clim buffer before reading data into it */
-          if (clim != NULL) {
-            (void) free(clim);
-            clim = NULL;
-          }
           /* Read climatology from NetCDF file */
-          istat = read_netcdf_var_3d(&clim, &clim_info_field, (proj_struct *) NULL, data->field[cat].data[i].clim_info->clim_filein_ls,
+          istat = read_netcdf_var_3d(&(clim[cat]), &clim_info_field, (proj_struct *) NULL,
+                                     data->field[cat].data[i].clim_info->clim_filein_ls,
                                      data->field[cat].data[i].clim_info->clim_nomvar_ls,
                                      data->field[cat].data[i].lonname, data->field[cat].data[i].latname, data->field[cat].data[i].timename,
                                      &nlon_file, &nlat_file, &ntime_file, TRUE);
@@ -144,7 +146,7 @@ remove_clim(data_struct *data) {
             (void) free(bufnoclim);
             (void) free(timein_ts);
             (void) free(timeclim);
-            if (clim != NULL) (void) free(clim);
+            if (clim[cat] != NULL) (void) free(clim[cat]);
             return istat;
           }
           /* Get missing value */
@@ -158,23 +160,22 @@ remove_clim(data_struct *data) {
         }
         else {
           /* Climatology is not provided: must calculate */
-          if (clim == NULL) {
+          if (clim[cat] == NULL) {
             /* Allocate memory if not already */
-            clim = (double *) malloc(data->field[cat].nlon_ls * data->field[cat].nlat_ls * ntime_clim * sizeof(double));
-            if (clim == NULL) alloc_error(__FILE__, __LINE__);
+            clim[cat] = (double *) malloc(data->field[cat].nlon_ls * data->field[cat].nlat_ls * ntime_clim * sizeof(double));
+            if (clim[cat] == NULL) alloc_error(__FILE__, __LINE__);
           }
           /* Get missing value */
           fillvalue = data->field[cat].data[i].info->fillvalue;
         }
       
         /* Remove seasonal cycle by calculating filtered climatology and substracting from field values */
-        (void) remove_seasonal_cycle(bufnoclim, clim, data->field[cat].data[i].field_ls, timein_ts,
+        (void) remove_seasonal_cycle(bufnoclim, clim[cat], data->field[cat].data[i].field_ls, timein_ts,
                                      data->field[cat].data[i].info->fillvalue,
                                      data->conf->clim_filter_width, data->conf->clim_filter_type,
                                      data->field[cat].data[i].clim_info->clim_provided,
                                      data->field[cat].nlon_ls, data->field[cat].nlat_ls, data->field[cat].ntime_ls);
       
-        
         /* If we want to save climatology in NetCDF output file for further use */
         if (data->field[cat].data[i].clim_info->clim_save == 1) {
           istat = create_netcdf("Computed climatology", "Climatologie calculee", "Computed climatology", "Climatologie calculee",
@@ -190,7 +191,7 @@ remove_clim(data_struct *data) {
             (void) free(bufnoclim);
             (void) free(timein_ts);
             (void) free(timeclim);
-            if (clim != NULL) (void) free(clim);
+            if (clim[cat] != NULL) (void) free(clim[cat]);
             return istat;
           }
           /* Write dimensions of climatology field in NetCDF output file */
@@ -209,12 +210,12 @@ remove_clim(data_struct *data) {
             (void) free(bufnoclim);
             (void) free(timein_ts);
             (void) free(timeclim);
-            if (clim != NULL) (void) free(clim);
+            if (clim[cat] != NULL) (void) free(clim[cat]);
             return istat;
           }
         
           /* Write climatology field in NetCDF output file */
-          istat = write_netcdf_var_3d(clim, fillvalue, data->field[cat].data[i].clim_info->clim_fileout_ls,
+          istat = write_netcdf_var_3d(clim[cat], fillvalue, data->field[cat].data[i].clim_info->clim_fileout_ls,
                                       data->field[cat].data[i].clim_info->clim_nomvar_ls, data->field[cat].proj[i].name,
                                       data->field[cat].data[i].lonname, data->field[cat].data[i].latname,
                                       data->field[cat].data[i].timename,
@@ -224,14 +225,9 @@ remove_clim(data_struct *data) {
             (void) free(bufnoclim);
             (void) free(timein_ts);
             (void) free(timeclim);
-            if (clim != NULL) (void) free(clim);
+            if (clim[cat] != NULL) (void) free(clim[cat]);
             return istat;
           }
-        }
-        /* Free memory if needed */
-        if (clim != NULL) {
-          (void) free(clim);
-          clim = NULL;
         }
 
         /* Copy field with climatology removed to proper variable in data structure */
@@ -243,8 +239,144 @@ remove_clim(data_struct *data) {
       (void) free(timein_ts);
     }
   }
+
+  /* Loop over all non-control-run large-scale field categories to process */
+  /* Always remove climatology calculated with the control run and apply to corresponding fields for other downscaled runs */
+  for (cat=0; cat<NCAT; cat=cat+2) {
+
+    /* Loop over all large-scale fields */
+    for (i=0; i<data->field[cat].n_ls; i++) {
+
+      /* Allocate memory for field with climatology removed */
+      bufnoclim = (double *) malloc(data->field[cat].nlon_ls * data->field[cat].nlat_ls * data->field[cat].ntime_ls * sizeof(double));
+      if (bufnoclim == NULL) alloc_error(__FILE__, __LINE__);
+
+      /* Allocate memory for temporary time structure */
+      timein_ts = (tstruct *) malloc(data->field[cat].ntime_ls * sizeof(tstruct));
+      if (timein_ts == NULL) alloc_error(__FILE__, __LINE__);
+      /* Get time info and calendar units */
+      istat = get_calendar_ts(timein_ts, data->conf->time_units, data->field[cat].time_ls, data->field[cat].ntime_ls);
+      if (istat < 0) {
+        (void) free(timein_ts);
+        (void) free(bufnoclim);
+        (void) free(timeclim);
+        return -1;
+      }
+
+      /* If we need to remove climatology for that field */
+      if (data->field[cat].data[i].clim_info->clim_remove == 1) {
+        /* If climatology field is already provided */
+        if (data->field[cat].data[i].clim_info->clim_provided == 1) {
+          /* Read climatology from NetCDF file */
+          istat = read_netcdf_var_3d(&(clim[cat]), &clim_info_field, (proj_struct *) NULL,
+                                     data->field[cat].data[i].clim_info->clim_filein_ls,
+                                     data->field[cat].data[i].clim_info->clim_nomvar_ls,
+                                     data->field[cat].data[i].lonname, data->field[cat].data[i].latname, data->field[cat].data[i].timename,
+                                     &nlon_file, &nlat_file, &ntime_file, TRUE);
+          if (data->field[cat].nlon_ls != nlon_file || data->field[cat].nlat_ls != nlat_file || ntime_clim != ntime_file) {
+            (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d ntime=%d ntime_file=%d\n",
+                           __FILE__, data->field[cat].nlat_ls, nlat_file, data->field[cat].nlon_ls, nlon_file, ntime_clim, ntime_file);
+            istat = -1;
+          }
+          if (istat != 0) {
+            /* In case of error in reading data */
+            (void) free(bufnoclim);
+            (void) free(timein_ts);
+            (void) free(timeclim);
+            if (clim[cat] != NULL) (void) free(clim[cat]);
+            return istat;
+          }
+          /* Get missing value */
+          fillvalue = clim_info_field.fillvalue;
+          /* Free memory */
+          (void) free(clim_info_field.height);
+          (void) free(clim_info_field.coordinates);
+          (void) free(clim_info_field.grid_mapping);
+          (void) free(clim_info_field.units);
+          (void) free(clim_info_field.long_name);
+        }
+        else {
+          /* Climatology is not provided: must use the one calculated with control-run data */
+          /* Get missing value */
+          fillvalue = data->field[cat].data[i].info->fillvalue;
+        }
+      
+        /* Remove seasonal cycle by substracting control-run climatology from field values (not the clim[cat+1] */
+        (void) remove_seasonal_cycle(bufnoclim, clim[cat+1], data->field[cat].data[i].field_ls, timein_ts,
+                                     data->field[cat].data[i].info->fillvalue,
+                                     data->conf->clim_filter_width, data->conf->clim_filter_type,
+                                     TRUE,
+                                     data->field[cat].nlon_ls, data->field[cat].nlat_ls, data->field[cat].ntime_ls);
+      
+        /* If we want to save climatology in NetCDF output file for further use */
+        if (data->field[cat].data[i].clim_info->clim_save == 1) {
+          istat = create_netcdf("Computed climatology", "Climatologie calculee", "Computed climatology", "Climatologie calculee",
+                                "climatologie,climatology", "C language", "Computed climatology", data->info->institution,
+                                data->info->creator_email, data->info->creator_url, data->info->creator_name,
+                                data->info->version, data->info->scenario, data->info->scenario_co2, data->info->model,
+                                data->info->institution_model, data->info->country, data->info->member,
+                                data->info->downscaling_forcing, data->info->contact_email, data->info->contact_name,
+                                data->info->other_contact_email, data->info->other_contact_name,
+                                data->field[cat].data[i].clim_info->clim_fileout_ls, TRUE, data->conf->format, data->conf->compression);
+          if (istat != 0) {
+            /* In case of failure */
+            (void) free(bufnoclim);
+            (void) free(timein_ts);
+            (void) free(timeclim);
+            if (clim[cat+1] != NULL) (void) free(clim[cat+1]);
+            return istat;
+          }
+          /* Write dimensions of climatology field in NetCDF output file */
+          istat = write_netcdf_dims_3d(data->field[cat].lon_ls, data->field[cat].lat_ls, (double *) NULL, (double *) NULL,
+                                       timeclim, data->conf->cal_type,
+                                       data->conf->time_units, data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_clim,
+                                       "daily", data->field[cat].proj[i].name, data->field[cat].proj[i].coords,
+                                       data->field[cat].proj[i].grid_mapping_name, data->field[cat].proj[i].latin1,
+                                       data->field[cat].proj[i].latin2, data->field[cat].proj[i].lonc, data->field[cat].proj[i].lat0,
+                                       data->field[cat].proj[i].false_easting, data->field[cat].proj[i].false_northing,
+                                       data->field[cat].data[i].lonname, data->field[cat].data[i].latname,
+                                       data->field[cat].data[i].timename,
+                                       data->field[cat].data[i].clim_info->clim_fileout_ls, TRUE);
+          if (istat != 0) {
+            /* In case of failure */
+            (void) free(bufnoclim);
+            (void) free(timein_ts);
+            (void) free(timeclim);
+            if (clim[cat+1] != NULL) (void) free(clim[cat+1]);
+            return istat;
+          }
+        
+          /* Write climatology field in NetCDF output file */
+          istat = write_netcdf_var_3d(clim[cat+1], fillvalue, data->field[cat].data[i].clim_info->clim_fileout_ls,
+                                      data->field[cat].data[i].clim_info->clim_nomvar_ls, data->field[cat].proj[i].name,
+                                      data->field[cat].data[i].lonname, data->field[cat].data[i].latname,
+                                      data->field[cat].data[i].timename,
+                                      data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_clim, TRUE);
+          if (istat != 0) {
+            /* In case of failure */
+            (void) free(bufnoclim);
+            (void) free(timein_ts);
+            (void) free(timeclim);
+            if (clim[cat+1] != NULL) (void) free(clim[cat+1]);
+            return istat;
+          }
+        }
+
+        /* Copy field with climatology removed to proper variable in data structure */
+        for (ii=0; ii<(data->field[cat].nlon_ls * data->field[cat].nlat_ls * data->field[cat].ntime_ls); ii++)
+          data->field[cat].data[i].field_ls[ii] = bufnoclim[ii];
+      }
+      /* Free memory */
+      (void) free(bufnoclim);
+      (void) free(timein_ts);
+    }
+  }
+
   /* Free memory */
   (void) free(timeclim);
+  for (cat=0; cat<NCAT; cat++)
+    if (clim[cat] != NULL) (void) free(clim[cat]);
+  (void) free(clim);
 
   /* Success status */
   return 0;
