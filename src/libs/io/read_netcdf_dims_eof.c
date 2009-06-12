@@ -58,7 +58,7 @@ LICENSE END */
 /** Read dimensions in a NetCDF file for EOF data. */
 int
 read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *neof, char *coords,
-                     char *lonname, char *latname, char *eofname, char *filename) {
+                     char *lonname, char *latname, char *dimxname, char *dimyname, char *eofname, char *filename) {
   /**
      @param[out]  lon      Longitude field
      @param[out]  lat      Latitude field
@@ -66,8 +66,10 @@ read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *neof
      @param[out]  nlat     Latitude dimension
      @param[out]  neof     EOF dimension
      @param[in]   coords   Coordinates arrangement of latitude and longitude data: either 1D or 2D
-     @param[in]   lonname  Longitude dimension name
-     @param[in]   latname  Latitude dimension name
+     @param[in]   lonname  Longitude variable name
+     @param[in]   latname  Latitude variable name
+     @param[in]   dimxname Longitude dimension name
+     @param[in]   dimyname Latitude dimension name
      @param[in]   eofname  EOF dimension name
      @param[in]   filename Input NetCDF filename
      
@@ -109,13 +111,13 @@ read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *neof
     ndims = 1;
 
     /* Get dimensions length */
-    istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
+    istat = nc_inq_dimid(ncinid, dimyname, &latdiminid);  /* get ID for lat dimension */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     *nlat = (int) dimval;
     
-    istat = nc_inq_dimid(ncinid, lonname, &londiminid);  /* get ID for lon dimension */
+    istat = nc_inq_dimid(ncinid, dimxname, &londiminid);  /* get ID for lon dimension */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_inq_dimlen(ncinid, londiminid, &dimval); /* get lon length */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -126,13 +128,13 @@ read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *neof
     ndims = 2;
 
     /* Get dimensions length */
-    istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
+    istat = nc_inq_dimid(ncinid, dimyname, &latdiminid);  /* get ID for lat dimension */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     *nlat = (int) dimval;
     
-    istat = nc_inq_dimid(ncinid, lonname, &londiminid);  /* get ID for lon dimension */
+    istat = nc_inq_dimid(ncinid, dimxname, &londiminid);  /* get ID for lon dimension */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_inq_dimlen(ncinid, londiminid, &dimval); /* get lon length */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);

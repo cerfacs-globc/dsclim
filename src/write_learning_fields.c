@@ -149,7 +149,7 @@ write_learning_fields(data_struct *data) {
   /* Set dimensions */
   istat = nc_def_dim(ncoutid, "season", data->conf->nseasons, &sdimoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  istat = nc_def_dim(ncoutid, data->conf->eofname, data->learning->neof, &eofdimoutid);
+  istat = nc_def_dim(ncoutid, data->conf->eofname, data->learning->rea_neof, &eofdimoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_def_dim(ncoutid, data->conf->ptsname, data->reg->npts, &ptsdimoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -362,12 +362,12 @@ write_learning_fields(data_struct *data) {
   start[0] = 0;
   start[1] = 0;
   start[2] = 0;
-  count[0] = (size_t) data->learning->neof;
+  count[0] = (size_t) data->learning->rea_neof;
   count[1] = 0;
   count[2] = 0;
-  bufd = (double *) malloc(data->learning->neof * sizeof(double));
+  bufd = (double *) malloc(data->learning->rea_neof * sizeof(double));
   if (bufd == NULL) alloc_error(__FILE__, __LINE__);
-  for (ii=0; ii<data->learning->neof; ii++)
+  for (ii=0; ii<data->learning->rea_neof; ii++)
     bufd[ii] = sqrt(data->learning->pc_normalized_var[ii]);
   istat = nc_put_vara_double(ncoutid, pcoutid, start, count, bufd);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -422,7 +422,7 @@ write_learning_fields(data_struct *data) {
   /* Set dimensions */
   istat = nc_def_dim(ncoutid, "season", data->conf->nseasons, &sdimoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  istat = nc_def_dim(ncoutid, data->conf->eofname, data->learning->neof, &eofdimoutid);
+  istat = nc_def_dim(ncoutid, data->conf->eofname, data->learning->rea_neof, &eofdimoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   for (s=0; s<data->conf->nseasons; s++) {
@@ -458,7 +458,7 @@ write_learning_fields(data_struct *data) {
     start[1] = 0;
     start[2] = 0;
     count[0] = (size_t) data->conf->season[s].nclusters;
-    count[1] = (size_t) data->learning->neof;
+    count[1] = (size_t) data->learning->rea_neof;
     count[2] = 0;
     istat = nc_put_vara_double(ncoutid, weightoutid[s], start, count, data->learning->data[s].weight);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -491,7 +491,7 @@ write_learning_fields(data_struct *data) {
   /* Set dimensions */
   istat = nc_def_dim(ncoutid, "season", data->conf->nseasons, &sdimoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  istat = nc_def_dim(ncoutid, data->conf->eofname, data->learning->neof, &eofdimoutid);
+  istat = nc_def_dim(ncoutid, data->conf->eofname, data->learning->rea_neof, &eofdimoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   for (s=0; s<data->conf->nseasons; s++) {

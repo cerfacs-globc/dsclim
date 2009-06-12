@@ -51,6 +51,9 @@
 
 #include <utCalendar_cal.h>
 
+#define TRUE 1
+#define FALSE 0
+
 /* #define DEBUG */
 
 /*                                         J   F   M   A   M   J   J   A   S   O   N   D    */
@@ -69,8 +72,8 @@ static int utCalendar_noleap( double val, utUnit *dataunits, int *year, int *mon
 static int utInvCalendar_noleap_inner( int year, int month, int day, int hour, int minute,
                                        double second, utUnit *unit, double *value, long *days_per_month );
 
-static int shown_proleptic_warning = 0;
-static int shown_julian_warning    = 0;
+static int shown_proleptic_warning = FALSE;
+static int shown_julian_warning    = FALSE;
 static int udu_lib_version = -1;	/* '1' is pre 1.12.9, '2' is >= 1.12.9 or so, don't exact rev this changed */
 
 /******************************************************************************/
@@ -109,8 +112,8 @@ utCalendar_cal( double val, utUnit *dataunits, int *year, int *month, int *day, 
                 int *minute, float *second, char *calendar ) 
 {
   int err;
-  static int have_shown_warning = 0;
-  static int have_initted = 0;
+  static int have_shown_warning = FALSE;
+  static int have_initted = FALSE;
   double zero = 0.0;
   static int ref_year, ref_month, ref_day, ref_hour, ref_minute;
   static float ref_second;
@@ -122,7 +125,7 @@ utCalendar_cal( double val, utUnit *dataunits, int *year, int *month, int *day, 
   printf( "Input value: %lf  Input calendar: %s\n", val, calendar );
 #endif
 
-  if( have_initted == 0 ) {
+  if( have_initted == FALSE ) {
 #if DEBUG > 7
     printf( "utCalendar_cal: initting\n" );
 #endif
@@ -188,7 +191,7 @@ utCalendar_cal( double val, utUnit *dataunits, int *year, int *month, int *day, 
             udu_lib_version );
 #endif
     
-    have_initted = 1;
+    have_initted = TRUE;
   }
   
   if( (calendar == NULL) || (strncasecmp(calendar,"standard",8)==0) || (strncasecmp(calendar,"gregorian",9)==0) ) {
@@ -210,18 +213,18 @@ utCalendar_cal( double val, utUnit *dataunits, int *year, int *month, int *day, 
     return( utCalendar_360( val, dataunits, year, month, day, hour, minute, second ));
   }
   else if( strncasecmp(calendar,"proleptic_gregorian",19)==0) {
-    if( shown_proleptic_warning == 0 ) {
+    if( shown_proleptic_warning == FALSE ) {
       fprintf( stderr, "********************************************************************************\n" );
       fprintf( stderr, "Sorry, proleptic_gregorian calendar not implemented yet; using standard calendar\n" );
       fprintf( stderr, "********************************************************************************\n" );
-      shown_proleptic_warning = 1;
+      shown_proleptic_warning = TRUE;
     }
     return( utCalendar( val, dataunits, year, month, day, hour, minute, second ));
   }
   else if( strncasecmp(calendar,"julian",6)==0) {
-    if( shown_julian_warning == 0 ) {
+    if( shown_julian_warning == FALSE ) {
       fprintf( stderr, "Sorry, julian calendar not implemented yet; using standard calendar\n" );
-      shown_julian_warning = 1;
+      shown_julian_warning = TRUE;
     }
     return( utCalendar( val, dataunits, year, month, day, hour, minute, second ));
   }
@@ -229,7 +232,7 @@ utCalendar_cal( double val, utUnit *dataunits, int *year, int *month, int *day, 
     {
       if( ! have_shown_warning ) {
         fprintf( stderr, "WARNING: unknown calendar: \"%s\". Using standard calendar instead!\n", calendar );
-        have_shown_warning = 1;
+        have_shown_warning = TRUE;
       }
       return( utCalendar( val, dataunits, year, month, day, hour, minute, second ));
     }
@@ -482,10 +485,10 @@ int utInvCalendar_cal( int year, int month, int day, int hour, int minute,
 #if DEBUG > 7
   char	buf[1024];
 #endif
-  static	int have_initted = 0;
+  static	int have_initted = FALSE;
   int	err;
 
-  if( have_initted == 0 ) {
+  if( have_initted == FALSE ) {
 #if DEBUG > 7
     printf( "utInvCalendar_cal: initting\n" );
 #endif
@@ -511,7 +514,7 @@ int utInvCalendar_cal( int year, int month, int day, int hour, int minute,
       return(-1);
     }
 
-    have_initted = 1;
+    have_initted = TRUE;
   }
 
 #if DEBUG > 7

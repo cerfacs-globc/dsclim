@@ -76,7 +76,7 @@ read_mask(mask_struct *mask) {
 
   /* Read mask */
   istat = read_netcdf_var_2d(&(mask->field), (info_field_struct *) NULL, (proj_struct *) NULL, mask->filename, mask->maskname,
-                             mask->lonname, mask->latname, &(mask->nlon), &(mask->nlat), FALSE);
+                             mask->dimxname, mask->dimyname, &(mask->nlon), &(mask->nlat), FALSE);
   if (istat < 0)  {
     (void) fprintf(stdout, "%s: ERROR reading mask file.\n", __FILE__);
     return istat;

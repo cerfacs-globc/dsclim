@@ -84,6 +84,9 @@ LICENSE END */
 /** FALSE value macro is 0. */
 #define FALSE 0
 
+/** Maximum length of paths/filenames strings. */
+#define MAXPATH 5000
+
 /** Data structure for NetCDF metadata info_struct. */
 typedef struct {
   char *title; /**< Title (english). */
@@ -165,18 +168,18 @@ typedef struct {
 /* Prototypes */
 int read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_type, char **time_units,
                         int *nlon, int *nlat, int *ntime, info_struct *info, char *coords, char *gridname,
-                        char *lonname, char *latname, char *timename, char *filename);
+                        char *lonname, char *latname, char *dimxname, char *dimyname, char *timename, char *filename);
 int read_netcdf_latlon(double **lon, double **lat, int *nlon, int *nlat, char *dimcoords, char *coords, char *gridname,
                        char *lonname, char *latname, char *dimxname, char *dimyname, char *filename);
 int read_netcdf_xy(double **y, double **x, int *nx, int *ny, char *xname, char *yname, char *dimxname, char *dimyname, char *filename);
 int read_netcdf_dims_eof(double **lon, double **lat, int *nlon, int *nlat, int *neof, char *coords,
-                               char *lonname, char *latname, char *eofname, char *filename);
+                         char *lonname, char *latname, char *dimxname, char *dimyname, char *eofname, char *filename);
 int read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
-                       char *lonname, char *latname, char *timename, int *nlon, int *nlat, int *ntime, int outinfo);
+                       char *dimxname, char *dimyname, char *timename, int *nlon, int *nlat, int *ntime, int outinfo);
 int read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
-                          char *lonname, char *latname, char *timename, int t, int *nlon, int *nlat, int *ntime, int outinfo);
+                          char *dimxname, char *dimyname, char *timename, int t, int *nlon, int *nlat, int *ntime, int outinfo);
 int read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
-                       char *lonname, char *latname, int *nlon, int *nlat, int outinfo);
+                       char *dimxname, char *dimyname, int *nlon, int *nlat, int outinfo);
 int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filename, char *varname,
                        char *dimname, int *ndim, int outinfo);
 int read_netcdf_var_generic_val(double *buf, info_field_struct *info_field, char *filename, char *varname, int index);

@@ -1,4 +1,4 @@
-
+\
 /*! \file dsclim.h
     \brief Include file for main program of downscaling algorithm.
 */
@@ -98,8 +98,8 @@ LICENSE END */
 /** Large-scale secondary fields category for control-run. */
 #define CTRL_SEC_FIELD_LS 3
 
-/** Kelvin/Celcius constant. */
-#define K_TKELVIN 273.15
+/** Maximum length of paths/filenames strings. */
+#define MAXPATH 5000
 
 /* Local C includes. */
 #include <utils.h>
@@ -123,10 +123,15 @@ typedef struct {
   char *path; /**< Directory where observation data is stored: the template is of the form path/acronym_YYYYYYYY.nc where YYYYYYYY are the beginning and ending years concatenated. */
   int month_begin; /**< The input year in the database begins at this month number (1-12). */
   int year_digits; /**< Number of digits to represent years in observations data filename. */
+  char *altitude; /**< Altitude NetCDF filename. Must be located in path directory. */
+  char *altitudename; /**< Altitude NetCDF variable filename. */
   char *template; /**< Observation datafiles template. */
   char **acronym; /**< Acronym for variable in filename and NetCDF file. */
   char **netcdfname; /**< Standard NetCDF variable acronym. */
   char **name; /**< Long name of observation variable. */
+  char **post; /**< Post-processing attribute. */
+  char **units; /**< Units attribute for post-processing variables. */
+  char **height; /**< Height attribute for post-processing variables. */
   double *delta; /**< Value to add to get SI units. */
   double *factor; /**< Value to multiply to get SI units. */
 } var_struct;
@@ -203,6 +208,8 @@ typedef struct {
   double *field_ls; /**< Large scale fields. */
   char *filename_ls; /**< Large scale field filename. */
   double *field_eof_ls; /**< Large scale fields projected on EOF. */
+  char *dimxname; /**< X Dimension name for large-scale fields. */
+  char *dimyname; /**< Y Dimension name for large-scale fields. */
   char *lonname; /**< Longitude variable name for large-scale fields. */
   char *latname; /**< Latitude variable name for large-scale fields. */
   char *timename; /**< Time variable name for large-scale fields. */
@@ -298,15 +305,21 @@ typedef struct {
   int nlat; /**< Number of latitudes. */
   int ntime; /**< Number of times. */
   time_vect_struct *time_s; /**< Time structure of the whole learning period. */
-  int neof; /**< Number of EOFs. */
+  int obs_neof; /**< Number of EOFs for observation data. */
+  int rea_neof; /**< Number of EOFs reanalysis data. */
   char *rea_coords; /**< Coordinates for reanalysis data (1D or 2D). */
   char *rea_gridname; /**< Grid name for reanalysis data (1D or 2D). */
+  char *rea_dimxname; /**< X Dimension name for reanalysis files. */
+  char *rea_dimyname; /**< Y Dimension name for reanalysis files. */
   char *rea_lonname; /**< Longitude variable name for reanalysis files. */
   char *rea_latname; /**< Latitude variable name for reanalysis files. */
   char *rea_timename; /**< Time dimension name for reanalysis files. */
+  char *obs_dimxname; /**< X Dimension name for observations files. */
+  char *obs_dimyname; /**< Y Dimension name for observations files. */
   char *obs_lonname; /**< Longitude variable name for observations files. */
   char *obs_latname; /**< Latitude variable name for observations files. */
   char *obs_timename; /**< Time dimension name for observations files. */
+  char *obs_eofname; /**< EOF dimension name for observations files. */
   learning_eof_struct *obs; /**< Observation data for learning. */
   learning_eof_struct *rea; /**< Reanalysis data for learning. */
   learning_data_struct *data; /**< Learning data, seasonal-dependent. */
@@ -315,6 +328,8 @@ typedef struct {
 /** Data structure for regression. */
 typedef struct {
   char *filename; /**< Filename for regression points. */
+  char *dimxname; /**< X Dimension name. */
+  char *dimyname; /**< Y Dimension name. */
   char *lonname; /**< Longitude field name. */
   char *latname; /**< Latitude field name. */
   char *ptsname; /**< Points dimension name. */
@@ -372,13 +387,18 @@ typedef struct {
   int debug; /**< Debugging flag. */
   int format; /**< Format for NetCDF output files. */
   int compression; /**< Compression for NetCDF-4 output files. */
+  int fixtime; /**< Fix incorrect time in input climate model file, and use 01/01/year_begin_ctrl as first day for control period, and year_begin_other for other period, and assume daily data since it is required. */
+  int year_begin_ctrl; /**< Use year_begin_ctrl as first day for control period in model file when fixing time units. */
+  int year_begin_other; /**< Use year_begin_other as first day for other period in model file when fixing time units. */
   char *config; /**< Whole configuration file text. */
   int clim_filter_width; /**< Climatology filter width. */
   char *clim_filter_type; /**< Climatology filter type. */
   char *cal_type; /**< Calendar-type for downscaling. */
   char *time_units; /**< Base time units for downscaling. */
-  char *lonname_eof; /**< Longitude dimension name (EOF file) for downscaling. */
-  char *latname_eof; /**< Latitude dimension name (EOF file) for downscaling. */
+  char *dimxname_eof; /**< X Dimension name (EOF file) for downscaling. */
+  char *dimyname_eof; /**< Y Dimension name (EOF file) for downscaling. */
+  char *lonname_eof; /**< Longitude variable name (EOF file) for downscaling. */
+  char *latname_eof; /**< Latitude variable name (EOF file) for downscaling. */
   char *eofname; /**< EOF dimension name for downscaling. */
   char *ptsname; /**< Points dimension name for downscaling. */
   char *clustname; /**< Cluster dimension name. */
@@ -435,8 +455,8 @@ int read_obs_period(double **buffer, double **lon, double **lat, double *missing
                     int *year, int *month, int *day, int *nlon, int *nlat, int ntime);
 int read_field_subdomain_period(double **buffer, double **lon, double **lat, double *missing_value, char *varname,
                                 int *year, int *month, int *day, double lonmin, double lonmax, double latmin, double latmax,
-                                char *coords, char *gridname, char *lonname, char *latname, char *timename, char *filename,
-                                int *nlon, int *nlat, int ntime);
+                                char *coords, char *gridname, char *lonname, char *latname, char *dimxname, char *dimyname, 
+                                char *timename, char *filename, int *nlon, int *nlat, int ntime);
 int remove_clim(data_struct *data);
 int read_regression_points(reg_struct *reg);
 int read_mask(mask_struct *mask);

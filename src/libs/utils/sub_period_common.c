@@ -49,7 +49,7 @@ LICENSE END */
 #include <utils.h>
 
 /** Select a sub period of a vector using a common period over two different time vectors. */
-void
+int
 sub_period_common(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
                   int *year_learn, int *month_learn, int *day_learn, int timedim, int ndima, int ndimb, int ntime, int ntime_learn) {
   /**
@@ -80,7 +80,7 @@ sub_period_common(double **buf_sub, int *ntime_sub, double *bufin, int *year, in
   *ntime_sub = 0;
 
   /* Loop over first time vector and find common day/month/year and store time indexes for these common times */
-  for (t=0; t<ntime; t++)
+  for (t=0; t<ntime; t++) {
     /* Search in all second time vector times for matching date */
     for (tt=0; tt<ntime_learn; tt++) {
       if (year[t]  == year_learn[tt] &&
@@ -92,6 +92,20 @@ sub_period_common(double **buf_sub, int *ntime_sub, double *bufin, int *year, in
         buf_sub_i[(*ntime_sub)++] = t;
       }
     }
+  }
+
+  if ( (*ntime_sub) == 0 ) {
+    (void) fprintf(stderr, "%s: FATAL ERROR: No common subperiod! Maybe a problem in the time representation in the control run file.\nAborting.\n", __FILE__);
+    (void) printf("MODEL TIMES ntime=%d\n", ntime);
+#if DEBUG > 7
+    for (t=0; t<ntime; t++)
+      (void) printf("%d %d %d\n", year[t], month[t], day[t]);
+    (void) printf("LEARNING TIMES ntime=%d\n", ntime_learn);
+    for (t=0; t<ntime_learn; t++)
+      (void) printf("%d %d %d\n", year_learn[t], month_learn[t], day_learn[t]);
+#endif
+    return -1;
+  }
   
   (void) printf("%s: Sub-period: %d %d %d %d %d %d. Indexes: %d %d\n",__FILE__, year[buf_sub_i[0]], month[buf_sub_i[0]],
                 day[buf_sub_i[0]], year[buf_sub_i[(*ntime_sub)-1]],month[buf_sub_i[(*ntime_sub)-1]],
@@ -118,4 +132,7 @@ sub_period_common(double **buf_sub, int *ntime_sub, double *bufin, int *year, in
 
   /* Free memory */
   (void) free(buf_sub_i);
+
+  /* Success */
+  return 0;
 }

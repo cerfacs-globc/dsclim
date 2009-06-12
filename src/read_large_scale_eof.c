@@ -87,15 +87,17 @@ read_large_scale_eof(data_struct *data) {
     for (i=0; i<data->field[cat].n_ls; i++) {
 
       /* Verify that we need to project field onto EOF */
-      if (data->field[cat].data[i].eof_info->eof_project == 1) {
+      if (data->field[cat].data[i].eof_info->eof_project == TRUE) {
       
         if (data->field[cat].lon_eof_ls == NULL) {
           /* Read dimensions for EOF */
           istat = read_netcdf_dims_eof(&lon, &lat, &nlon, &nlat, &(data->field[cat].data[i].eof_info->neof_ls),
                                        data->field[cat].data[i].eof_info->eof_coords,
-                                       data->conf->lonname_eof, data->conf->latname_eof, data->conf->eofname,
+                                       data->conf->lonname_eof, data->conf->latname_eof,
+                                       data->conf->dimxname_eof, data->conf->dimyname_eof,
+                                       data->conf->eofname,
                                        data->field[cat].data[i].eof_info->eof_filein_ls);
-          if (istat != 0) {
+          if (istat < 0) {
             /* In case of failure */
             (void) free(lon);
             (void) free(lat);
@@ -112,8 +114,8 @@ read_large_scale_eof(data_struct *data) {
         istat = read_netcdf_var_3d(&buf, data->field[cat].data[i].eof_info->info, &proj_eof,
                                    data->field[cat].data[i].eof_info->eof_filein_ls,
                                    data->field[cat].data[i].eof_data->eof_nomvar_ls,
-                                   data->conf->lonname_eof, data->conf->latname_eof, data->conf->eofname,
-                                   &nlon_file, &nlat_file, &neof_file, TRUE);
+                                   data->conf->dimxname_eof, data->conf->dimyname_eof,
+                                   data->conf->eofname, &nlon_file, &nlat_file, &neof_file, TRUE);
         if (nlon != nlon_file || nlat != nlat_file || data->field[cat].data[i].eof_info->neof_ls != neof_file) {
           (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d neof=%d neof_file=%d\n",
                          __FILE__, nlat, nlat_file, nlon, nlon_file, data->field[cat].data[i].eof_info->neof_ls, neof_file);

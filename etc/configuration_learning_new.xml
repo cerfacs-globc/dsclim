@@ -82,9 +82,9 @@
   <!-- Regression parameters -->
   <setting name="regression">
     <filename>/home/page/codes/src/dsclim/trunk/tests/reg_pts_france.nc</filename>
-    <latname>lat</latname>
-    <lonname>lon</lonname>
-    <ptsname>pts</ptsname>
+    <latitude_name>lat</latitude_name>
+    <longitude_name>lon</longitude_name>
+    <pts_name>pts</pts_name>
   </setting>
 
   <!-- Large-scale domain bounding box -->

@@ -90,7 +90,7 @@ read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filename, 
   size_t t_len; /* Length of string attribute */
 
   /* Allocate memory */
-  tmpstr = (char *) malloc(5000 * sizeof(char));
+  tmpstr = (char *) malloc(MAXPATH * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Read data in NetCDF file */

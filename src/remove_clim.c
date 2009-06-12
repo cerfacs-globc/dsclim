@@ -127,14 +127,15 @@ remove_clim(data_struct *data) {
       }
 
       /* If we need to remove climatology for that field */
-      if (data->field[cat].data[i].clim_info->clim_remove == 1) {
+      if (data->field[cat].data[i].clim_info->clim_remove == TRUE) {
         /* If climatology field is already provided */
-        if (data->field[cat].data[i].clim_info->clim_provided == 1) {
+        if (data->field[cat].data[i].clim_info->clim_provided == TRUE) {
           /* Read climatology from NetCDF file */
           istat = read_netcdf_var_3d(&(clim[cat]), &clim_info_field, (proj_struct *) NULL,
                                      data->field[cat].data[i].clim_info->clim_filein_ls,
                                      data->field[cat].data[i].clim_info->clim_nomvar_ls,
-                                     data->field[cat].data[i].lonname, data->field[cat].data[i].latname, data->field[cat].data[i].timename,
+                                     data->field[cat].data[i].dimxname, data->field[cat].data[i].dimyname,
+                                     data->field[cat].data[i].timename,
                                      &nlon_file, &nlat_file, &ntime_file, TRUE);
           if (data->field[cat].nlon_ls != nlon_file || data->field[cat].nlat_ls != nlat_file || ntime_clim != ntime_file) {
             (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d ntime=%d ntime_file=%d\n",
@@ -177,7 +178,7 @@ remove_clim(data_struct *data) {
                                      data->field[cat].nlon_ls, data->field[cat].nlat_ls, data->field[cat].ntime_ls);
       
         /* If we want to save climatology in NetCDF output file for further use */
-        if (data->field[cat].data[i].clim_info->clim_save == 1) {
+        if (data->field[cat].data[i].clim_info->clim_save == TRUE) {
           istat = create_netcdf("Computed climatology", "Climatologie calculee", "Computed climatology", "Climatologie calculee",
                                 "climatologie,climatology", "C language", "Computed climatology", data->info->institution,
                                 data->info->creator_email, data->info->creator_url, data->info->creator_name,
@@ -264,14 +265,15 @@ remove_clim(data_struct *data) {
       }
 
       /* If we need to remove climatology for that field */
-      if (data->field[cat].data[i].clim_info->clim_remove == 1) {
+      if (data->field[cat].data[i].clim_info->clim_remove == TRUE) {
         /* If climatology field is already provided */
-        if (data->field[cat].data[i].clim_info->clim_provided == 1) {
+        if (data->field[cat].data[i].clim_info->clim_provided == TRUE) {
           /* Read climatology from NetCDF file */
           istat = read_netcdf_var_3d(&(clim[cat]), &clim_info_field, (proj_struct *) NULL,
                                      data->field[cat].data[i].clim_info->clim_filein_ls,
                                      data->field[cat].data[i].clim_info->clim_nomvar_ls,
-                                     data->field[cat].data[i].lonname, data->field[cat].data[i].latname, data->field[cat].data[i].timename,
+                                     data->field[cat].data[i].dimxname, data->field[cat].data[i].dimyname,
+                                     data->field[cat].data[i].timename,
                                      &nlon_file, &nlat_file, &ntime_file, TRUE);
           if (data->field[cat].nlon_ls != nlon_file || data->field[cat].nlat_ls != nlat_file || ntime_clim != ntime_file) {
             (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d ntime=%d ntime_file=%d\n",
@@ -309,7 +311,7 @@ remove_clim(data_struct *data) {
                                      data->field[cat].nlon_ls, data->field[cat].nlat_ls, data->field[cat].ntime_ls);
       
         /* If we want to save climatology in NetCDF output file for further use */
-        if (data->field[cat].data[i].clim_info->clim_save == 1) {
+        if (data->field[cat].data[i].clim_info->clim_save == TRUE) {
           istat = create_netcdf("Computed climatology", "Climatologie calculee", "Computed climatology", "Climatologie calculee",
                                 "climatologie,climatology", "C language", "Computed climatology", data->info->institution,
                                 data->info->creator_email, data->info->creator_url, data->info->creator_name,

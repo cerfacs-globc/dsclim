@@ -99,7 +99,7 @@ write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
   char *tmpstr = NULL; /* Temporary string */
 
   /* Allocate memory */
-  attname = (char *) malloc(5000 * sizeof(char));
+  attname = (char *) malloc(MAXPATH * sizeof(char));
   if (attname == NULL) alloc_error(__FILE__, __LINE__);
 
   /** Open already existing output file **/

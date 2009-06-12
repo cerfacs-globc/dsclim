@@ -131,7 +131,7 @@ wt_learning(data_struct *data) {
 
   int istat; /** Return status. */
 
-  if (data->learning->learning_provided == 1) {
+  if (data->learning->learning_provided == TRUE) {
     /** Read learning data **/
     istat = read_learning_fields(data);
     if (istat != 0) return istat;
@@ -149,26 +149,28 @@ wt_learning(data_struct *data) {
     if (istat != 0) return istat;
 
     /* Select common time period between the re-analysis and the observation data periods */
-    (void) sub_period_common(&buf_learn_obs, &ntime_learn_all, data->learning->obs->eof,
-                             data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
-                             data->learning->rea->time_s->year, data->learning->rea->time_s->month, data->learning->rea->time_s->day,
-                             1, data->learning->neof, 1, data->learning->obs->ntime, data->learning->rea->ntime);
-    (void) sub_period_common(&buf_learn_rea, &ntime_learn_all, data->learning->rea->eof,
-                             data->learning->rea->time_s->year, data->learning->rea->time_s->month, data->learning->rea->time_s->day,
-                             data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
-                             1, data->learning->neof, 1, data->learning->rea->ntime, data->learning->obs->ntime);
+    istat = sub_period_common(&buf_learn_obs, &ntime_learn_all, data->learning->obs->eof,
+                              data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
+                              data->learning->rea->time_s->year, data->learning->rea->time_s->month, data->learning->rea->time_s->day,
+                              1, data->learning->obs_neof, 1, data->learning->obs->ntime, data->learning->rea->ntime);
+    if (istat != 0) return istat;
+    istat = sub_period_common(&buf_learn_rea, &ntime_learn_all, data->learning->rea->eof,
+                              data->learning->rea->time_s->year, data->learning->rea->time_s->month, data->learning->rea->time_s->day,
+                              data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
+                              1, data->learning->rea_neof, 1, data->learning->rea->ntime, data->learning->obs->ntime);
+    if (istat != 0) return istat;
 
-    rea_var = (double *) malloc(data->learning->neof * sizeof(double));
+    rea_var = (double *) malloc(data->learning->rea_neof * sizeof(double));
     if (rea_var == NULL) alloc_error(__FILE__, __LINE__);
 
     /* Compute normalisation factor of EOF of large-scale field for the whole period */
 
-    data->learning->pc_normalized_var = (double *) malloc(data->learning->neof * sizeof(double));
+    data->learning->pc_normalized_var = (double *) malloc(data->learning->rea_neof * sizeof(double));
     if (data->learning->pc_normalized_var == NULL) alloc_error(__FILE__, __LINE__);
-    buf_learn_pc = (double *) malloc(data->learning->neof * ntime_learn_all * sizeof(double));
+    buf_learn_pc = (double *) malloc(data->learning->rea_neof * ntime_learn_all * sizeof(double));
     if (buf_learn_pc == NULL) alloc_error(__FILE__, __LINE__);
 
-    for (eof=0; eof<data->learning->neof; eof++) {
+    for (eof=0; eof<data->learning->rea_neof; eof++) {
 
       for (nt=0; nt<ntime_learn_all; nt++)
         buf_learn_pc[nt+eof*ntime_learn_all] = buf_learn_rea[nt+eof*ntime_learn_all] * data->learning->rea->sing[eof];
@@ -258,6 +260,7 @@ wt_learning(data_struct *data) {
                                         data->conf->secondary_latitude_min, data->conf->secondary_latitude_max, 
                                         data->learning->rea_coords, data->learning->rea_gridname,
                                         data->learning->rea_lonname, data->learning->rea_latname,
+                                        data->learning->rea_dimxname, data->learning->rea_dimyname,
                                         data->learning->rea_timename, data->learning->filename_rea_sup,
                                         &nlon, &nlat, data->learning->obs->ntime);
     (void) free(lon_rea);
@@ -267,14 +270,14 @@ wt_learning(data_struct *data) {
     tas_rea_mean = (double *) malloc(data->learning->obs->ntime * sizeof(double));
     if (tas_rea_mean == NULL) alloc_error(__FILE__, __LINE__);
     /* Prepare mask */
-    if (data->secondary_mask->use_mask == 1) {
+    if (data->secondary_mask->use_mask == TRUE) {
       (void) extract_subdomain(&mask_subd, &lon_mask, &lat_mask, &nlon_mask, &nlat_mask, data->secondary_mask->field,
                                data->secondary_mask->lon, data->secondary_mask->lat,
                                data->conf->secondary_longitude_min, data->conf->secondary_longitude_max,
                                data->conf->secondary_latitude_min, data->conf->secondary_latitude_max, 
                                data->secondary_mask->nlon, data->secondary_mask->nlat, 1);
       if (nlon != nlon_mask || nlat != nlat_mask) {
-        (void) fprintf(stderr, "%s: The mask for secondary large-scale fields after selecting subdomain has invalid dimensions: nlon=%d nlat=%d. Expected: nlon=%d nlat=%d\nReverting to no-mask processing.", __FILE__, nlon_mask, nlat_mask, nlon, nlat);
+        (void) fprintf(stderr, "%s: IMPORTANT WARNING: The mask for secondary large-scale fields after selecting subdomain has invalid dimensions: nlon=%d nlat=%d. Expected: nlon=%d nlat=%d\nReverting to no-mask processing.", __FILE__, nlon_mask, nlat_mask, nlon, nlat);
         mask_sub = (short int *) NULL;
       }
       else {
@@ -291,7 +294,7 @@ wt_learning(data_struct *data) {
       mask_sub = (short int *) NULL;
 
     if (mask_sub != NULL)
-      printf("%s: Using a mask for secondary large-scael fields.\n", __FILE__);
+      printf("%s: Using a mask for secondary large-scale fields.\n", __FILE__);
 
     (void) mean_field_spatial(tas_rea_mean, tas_rea, mask_sub, nlon, nlat, data->learning->obs->ntime);
     (void) free(tas_rea);
@@ -308,22 +311,22 @@ wt_learning(data_struct *data) {
       (void) extract_subperiod_months(&(data->learning->data[s].time), &(ntime_sub[s]), buf_learn_obs,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
                                       data->conf->season[s].month,
-                                      1, 1, data->learning->neof, ntime_learn_all,
+                                      1, 1, data->learning->obs_neof, ntime_learn_all,
                                       data->conf->season[s].nmonths);
       (void) extract_subperiod_months(&buf_learn_obs_sub, &(ntime_sub[s]), buf_learn_obs,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
                                       data->conf->season[s].month,
-                                      1, 1, data->learning->neof, ntime_learn_all,
+                                      1, 1, data->learning->obs_neof, ntime_learn_all,
                                       data->conf->season[s].nmonths);
       (void) extract_subperiod_months(&buf_learn_rea_sub, &(ntime_sub[s]), buf_learn_rea,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
                                       data->conf->season[s].month,
-                                      1, 1, data->learning->neof, ntime_learn_all,
+                                      1, 1, data->learning->rea_neof, ntime_learn_all,
                                       data->conf->season[s].nmonths);
       (void) extract_subperiod_months(&buf_learn_pc_sub, &(ntime_sub[s]), buf_learn_pc,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
                                       data->conf->season[s].month,
-                                      1, 1, data->learning->neof, ntime_learn_all,
+                                      1, 1, data->learning->rea_neof, ntime_learn_all,
                                       data->conf->season[s].nmonths);
       (void) extract_subperiod_months(&tas_rea_mean_sub, &(ntime_sub[s]), tas_rea_mean,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
@@ -378,12 +381,12 @@ wt_learning(data_struct *data) {
       
       /** Merge observation and reanalysis principal components for clustering algorithm and normalize using first Singular Value **/
 
-      buf_learn = (double *) realloc(buf_learn, ntime_sub[s] * data->learning->neof * 2 * sizeof(double));
+      buf_learn = (double *) realloc(buf_learn, ntime_sub[s] * data->learning->rea_neof * data->learning->obs_neof * sizeof(double));
       if (buf_learn == NULL) alloc_error(__FILE__, __LINE__);
 
-      /* Normalisation: soit par la premiere valeur singuliere */
+      /* Normalisation by the first Singular Value */
       rea_first_sing = data->learning->rea->sing[0];
-      for (eof=0; eof<data->learning->neof; eof++) {
+      for (eof=0; eof<data->learning->rea_neof; eof++) {
         rea_sing = data->learning->rea->sing[eof];        
         for (nt=0; nt<ntime_sub[s]; nt++) {
           buf_learn_rea_sub[nt+eof*ntime_sub[s]] = buf_learn_rea_sub[nt+eof*ntime_sub[s]] * rea_sing / rea_first_sing;
@@ -391,34 +394,37 @@ wt_learning(data_struct *data) {
         }
       }      
       obs_first_sing = data->learning->obs->sing[0];
-      for (eof=0; eof<data->learning->neof; eof++) {
+      for (eof=0; eof<data->learning->obs_neof; eof++) {
         obs_sing = data->learning->obs->sing[eof];        
         for (nt=0; nt<ntime_sub[s]; nt++) {
           buf_learn_obs_sub[nt+eof*ntime_sub[s]] = buf_learn_obs_sub[nt+eof*ntime_sub[s]] * obs_sing / obs_first_sing;
-          buf_learn[nt+(eof+data->learning->neof)*ntime_sub[s]] = buf_learn_obs_sub[nt+eof*ntime_sub[s]];
+          buf_learn[nt+(eof+data->learning->rea_neof)*ntime_sub[s]] = buf_learn_obs_sub[nt+eof*ntime_sub[s]];
         }
       }
 
       /* Compute best clusters */
-      buf_weight = (double *) realloc(buf_weight, data->conf->season[s].nclusters * data->learning->neof * 2 * sizeof(double));
+      buf_weight = (double *) realloc(buf_weight, data->conf->season[s].nclusters * data->learning->rea_neof * data->learning->obs_neof *
+                                      sizeof(double));
       if (buf_weight == NULL) alloc_error(__FILE__, __LINE__);
       (void) best_clusters(buf_weight, buf_learn, data->conf->classif_type, data->conf->npartitions,
-                           data->conf->nclassifications, data->learning->neof*2, data->conf->season[s].nclusters, ntime_sub[s]);
+                           data->conf->nclassifications, data->learning->rea_neof * data->learning->obs_neof,
+                           data->conf->season[s].nclusters, ntime_sub[s]);
 
-      /* Keep only first data->learning->neof EOFs */
+      /* Keep only first data->learning->rea_neof EOFs */
       data->learning->data[s].weight = (double *) 
-        malloc(data->conf->season[s].nclusters*data->learning->neof * sizeof(double));
+        malloc(data->conf->season[s].nclusters*data->learning->rea_neof * sizeof(double));
       if (data->learning->data[s].weight == NULL) alloc_error(__FILE__, __LINE__);
       for (clust=0; clust<data->conf->season[s].nclusters; clust++)
-        for (eof=0; eof<data->learning->neof; eof++)
-          data->learning->data[s].weight[eof+clust*data->learning->neof] = buf_weight[eof+clust*(data->learning->neof*2)];
+        for (eof=0; eof<data->learning->rea_neof; eof++)
+          data->learning->data[s].weight[eof+clust*data->learning->rea_neof] =
+            buf_weight[eof+clust*(data->learning->rea_neof*data->learning->obs_neof)];
       
       /* Classify each day in the current clusters */
       data->learning->data[s].class_clusters = (int *) malloc(ntime_sub[s] * sizeof(int));
       if (data->learning->data[s].class_clusters == NULL) alloc_error(__FILE__, __LINE__);
       (void) class_days_pc_clusters(data->learning->data[s].class_clusters, buf_learn,
                                     data->learning->data[s].weight, data->conf->classif_type,
-                                    data->learning->neof, data->conf->season[s].nclusters,
+                                    data->learning->rea_neof, data->conf->season[s].nclusters,
                                     ntime_sub[s]);
 
       /* Set mean and variance of distances to clusters to 1.0 because we first need to compute distances and */
@@ -437,7 +443,7 @@ wt_learning(data_struct *data) {
       if (dist == NULL) alloc_error(__FILE__, __LINE__);
       (void) dist_clusters_normctrl(dist, buf_learn_pc_sub, data->learning->data[s].weight,
                                     data->learning->pc_normalized_var, data->learning->pc_normalized_var, mean_dist, var_dist,
-                                    data->learning->neof, data->conf->season[s].nclusters, ntime_sub[s]);
+                                    data->learning->rea_neof, data->conf->season[s].nclusters, ntime_sub[s]);
       /* Normalize */
       for (clust=0; clust<data->conf->season[s].nclusters; clust++) {
         /* Calculate mean over time */
@@ -455,7 +461,7 @@ wt_learning(data_struct *data) {
       if (data->learning->data[s].class_clusters == NULL) alloc_error(__FILE__, __LINE__);
       (void) class_days_pc_clusters(data->learning->data[s].class_clusters, buf_learn,
       data->learning->data[s].weight, data->conf->classif_type,
-      data->learning->neof, data->conf->season[s].nclusters, ntime_sub[s]);*/
+      data->learning->rea_neof, data->conf->season[s].nclusters, ntime_sub[s]);*/
 
       /* Allocate memory for regression */
       precip_reg = (double *) malloc(data->conf->season[s].nreg * sizeof(double));
@@ -516,6 +522,7 @@ wt_learning(data_struct *data) {
       (void) free(mean_precip_sub);
       mean_precip_sub = NULL;
     }
+
     (void) free(tas_rea_mean);
     (void) free(mean_precip);
     (void) free(buf_weight);
@@ -530,7 +537,7 @@ wt_learning(data_struct *data) {
     (void) free(dist);
 
     /* If wanted, write learning data to files for later use */
-    if (data->learning->learning_save == 1) {
+    if (data->learning->learning_save == TRUE) {
       (void) printf("Writing learning fields.\n");
       istat = write_learning_fields(data);
     }

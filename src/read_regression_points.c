@@ -69,14 +69,14 @@ read_regression_points(reg_struct *reg) {
   int istat;
 
   /* Read latitudes of points where regressions are calculated */
-  istat = read_netcdf_var_1d(&(reg->lat), (info_field_struct *) NULL, reg->filename, reg->latname, reg->ptsname, &npts, TRUE);
+  istat = read_netcdf_var_1d(&(reg->lat), (info_field_struct *) NULL, reg->filename, reg->dimyname, reg->ptsname, &npts, TRUE);
   if (istat != 0) {
     (void) free(reg->lat);
     return istat;
   }
 
   /* Read longitudes of points where regressions are calculated */
-  istat = read_netcdf_var_1d(&(reg->lon), (info_field_struct *) NULL, reg->filename, reg->lonname, reg->ptsname, &(reg->npts), TRUE);
+  istat = read_netcdf_var_1d(&(reg->lon), (info_field_struct *) NULL, reg->filename, reg->dimxname, reg->ptsname, &(reg->npts), TRUE);
   if (istat != 0 || npts != reg->npts) {
     (void) free(reg->lat);
     (void) free(reg->lon);

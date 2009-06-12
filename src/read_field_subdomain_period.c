@@ -60,8 +60,8 @@ LICENSE END */
 int
 read_field_subdomain_period(double **buffer, double **lon, double **lat, double *missing_value, char *varname,
                             int *year, int *month, int *day, double lonmin, double lonmax, double latmin, double latmax,
-                            char *coords, char *gridname, char *lonname, char *latname, char *timename, char *filename,
-                            int *nlon, int *nlat, int ntime) {
+                            char *coords, char *gridname, char *lonname, char *latname, char *dimxname, char *dimyname,
+                            char *timename, char *filename, int *nlon, int *nlat, int ntime) {
   /**
      @param[out]  buffer         Output field 3D array
      @param[out]  lon            Longitude 2D array
@@ -77,8 +77,10 @@ read_field_subdomain_period(double **buffer, double **lon, double **lat, double 
      @param[in]   latmax         Maximum latitude for subdomain
      @param[in]   coords         Coordinates dimensions (1D or 2D)
      @param[in]   gridname       Projection name
-     @param[in]   lonname        Longitude dimension name
-     @param[in]   latname        Latitude dimension name
+     @param[in]   lonname        Longitude field name
+     @param[in]   latname        Latitude field name
+     @param[in]   dimxname       X Dimension name
+     @param[in]   dimyname       Y Dimension name
      @param[in]   timename       Time dimension name
      @param[in]   filename       Input filename
      @param[out]  nlon           Longitude dimension
@@ -126,7 +128,7 @@ read_field_subdomain_period(double **buffer, double **lon, double **lat, double 
   info->title = strdup("none");
   /* Read dimensions */
   istat = read_netcdf_dims_3d(&lon_total, &lat_total, &time_ls, &cal_type, &time_units, &nlon_file, &nlat_file, &ntime_file,
-                              info, coords, gridname, lonname, latname, timename, filename);
+                              info, coords, gridname, lonname, latname, dimxname, dimyname, timename, filename);
   (void) free(info->title);
   (void) free(info);
 
@@ -142,7 +144,7 @@ read_field_subdomain_period(double **buffer, double **lon, double **lat, double 
           month[nt] == time_s->month[tt] &&
           day[nt]   == time_s->day[tt]) {
         /* Found common date, process it. */
-        istat = read_netcdf_var_3d_2d(&buf_total, info_field, (proj_struct *) NULL, filename, varname, lonname, latname, timename,
+        istat = read_netcdf_var_3d_2d(&buf_total, info_field, (proj_struct *) NULL, filename, varname, dimxname, dimyname, timename,
                                       tt, nlon, nlat, &ntime_file, FALSE);
         /* Free non-needed variables */
         (void) free(info_field->coordinates);

@@ -97,12 +97,12 @@ read_obs_period(double **buffer, double **lon, double **lat, double *missing_val
 
   char *prev_infile = NULL;
 
-  infile = (char *) malloc(5000 * sizeof(char));
+  infile = (char *) malloc(MAXPATH * sizeof(char));
   if (infile == NULL) alloc_error(__FILE__, __LINE__);
-  prev_infile = (char *) malloc(5000 * sizeof(char));
+  prev_infile = (char *) malloc(MAXPATH * sizeof(char));
   if (prev_infile == NULL) alloc_error(__FILE__, __LINE__);
   (void) strcpy(prev_infile, "");
-  format = (char *) malloc(5000 * sizeof(char));
+  format = (char *) malloc(MAXPATH * sizeof(char));
   if (format == NULL) alloc_error(__FILE__, __LINE__);
 
   info = (info_field_struct *) malloc(sizeof(info_field_struct));

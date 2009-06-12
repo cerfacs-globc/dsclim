@@ -80,7 +80,7 @@ remove_seasonal_cycle(double *bufout, double *clim, double *bufin, tstruct *buft
 
   (void) fprintf(stdout, "%s: Removing seasonal cycle for a time serie.\n", __FILE__);
 
-  if (clim_provided != 1) {
+  if (clim_provided != TRUE) {
     /* Climatology field was not provided */
 
     /* Compute daily climatologies for climatological year */

@@ -103,7 +103,9 @@ int main(int argc, char **argv)
   int npts;
   int nterm;
   int pts;
+#if DEBUG >= 6
   int term;
+#endif
 
   int i;
   int istat;

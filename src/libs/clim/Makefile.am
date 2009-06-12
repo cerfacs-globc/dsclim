@@ -10,5 +10,5 @@
 
 noinst_LTLIBRARIES = libclim.la
 libclim_la_SOURCES = clim.h clim_daily_tserie_climyear.c remove_seasonal_cycle.c dayofclimyear.c
-libclim_la_CPPFLAGS = -I${top_srcdir}/src/libs/misc -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/filter
+libclim_la_CPPFLAGS = -I${top_srcdir}/src/libs/misc -I${top_srcdir}/src -I${top_srcdir}/src/libs/utils -I${top_srcdir}/src/libs/filter
 libclim_la_LIBADD = ../misc/libmisc.la ../utils/libutils.la ../filter/libfilter.la $(GSL_LIBS) -ludunits -lm

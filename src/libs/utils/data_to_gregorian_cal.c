@@ -224,7 +224,7 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
     
       /* Get number of timesteps (days) */
       istat = utInvCalendar(ref_year, ref_month, ref_day, ref_hour, ref_minutes, ref_seconds, &timeslice, &val);
-      *ntimeout = (int) val;
+      *ntimeout = (int) val + 1;
 
       /* Allocate memory */
       (*bufout) = (double *) malloc(ni*nj*(*ntimeout) * sizeof(double));
@@ -240,15 +240,12 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
       ref_minutes = 0;
       ref_seconds = 0.0;
 
-      /* Get start time units from date */
-      istat = utInvCalendar(ref_year, ref_month, ref_day, ref_hour, ref_minutes, ref_seconds, &dataunit_out, &curtime);
-
       /* Loop over all times */
       for (t=0; t<(*ntimeout); t++) {
+        /* Get current day */
+        istat = utInvCalendar(ref_year, ref_month, ref_day+t, ref_hour, ref_minutes, ref_seconds, &dataunit_out, &curtime);
         /* Get standard calendar date from output time units */
         istat = utCalendar(curtime, &dataunit_out, &cyear, &cmonth, &cday, &chour, &cminutes, &cseconds);
-        /* Adjust hour, minutes and seconds to 00:00:00 */
-        istat = utInvCalendar(cyear, cmonth, cday, 0, 0, 0.0, &dataunit_out, &curtime);
         /* Get corresponding time units in special calendar type */
         istat = utInvCalendar_cal(cyear, cmonth, cday, chour, cminutes, cseconds, &dataunit_in, &ccurtime, cal_type);
 #if DEBUG > 7
@@ -256,18 +253,21 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
                (int) dataunit_in.origin, (int) dataunit_in.factor, (int) ccurtime, cyear, cmonth, cday, chour, cminutes);
 #endif
         /* Find that time in the input time vector */
-        for (tt=0; tt<ntimein; tt++)
+        for (tt=0; tt<ntimein; tt++) {
           if ((int) ccurtime == (int) intimeval[tt]) {
             /* Found it */
             for (j=0; j<nj; j++)
               for (i=0; i<ni; i++)
                 (*bufout)[i+j*ni+t*ni*nj] = (double) bufin[i+j*ni+tt*ni*nj];
+            /* Get current day with hour, minutes and seconds at 00:00:00 */
+            istat = utInvCalendar(ref_year, ref_month, ref_day+t, 0, 0, 0.0, &dataunit_out, &curtime);
             /* Construct new time vector */
             (*outtimeval)[t] = (double) curtime;
             /* Exit loop */
             tt = ntimein+10;
           }
-        if (tt != (ntimein+10)) {
+        }
+        if (tt < (ntimein+10)) {
           /* We didn't found the time in the input time vector... */
           (void) fprintf(stderr, "%s: Cannot generate new time vector!! Algorithm internal error!\n", __FILE__);
           (void) free(year);
@@ -283,8 +283,6 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
         printf("%s: Standard gregorian calendar type: %d %d %d %04d/%02d/%02d %02d:%02d\n", __FILE__,
                (int) dataunit_out.origin, (int) dataunit_out.factor, (int) curtime, cyear, cmonth, cday, chour, cminutes);
 #endif
-
-        curtime++;
       }
     }
     else {
@@ -492,7 +490,7 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
     
       /* Get number of timesteps (days) */
       istat = utInvCalendar(ref_year, ref_month, ref_day, ref_hour, ref_minutes, ref_seconds, &timeslice, &val);
-      *ntimeout = (int) val;
+      *ntimeout = (int) val + 1;
 
       /* Allocate memory */
       (*bufout) = (float *) malloc(ni*nj*(*ntimeout) * sizeof(float));

@@ -68,24 +68,24 @@ free_main_data(data_struct *data) {
   int s; /* Loop counter */
   int end_cat; /* End category to process */
 
-  if ( (data->conf->analog_save == 1 || data->conf->output_only == 1) && data->conf->period_ctrl->downscale == 1 )
+  if ( (data->conf->analog_save == TRUE || data->conf->output_only == TRUE) && data->conf->period_ctrl->downscale == TRUE )
     (void) free(data->conf->analog_file_ctrl);
-  if (data->conf->analog_save == 1 || data->conf->output_only == 1)
+  if (data->conf->analog_save == TRUE || data->conf->output_only == TRUE)
     (void) free(data->conf->analog_file_other);
 
   for (i=0; i<NCAT; i++) {
 
     for (j=0; j<data->field[i].n_ls; j++) {
 
-      if (data->field[i].data[j].clim_info->clim_provided == 1)
+      if (data->field[i].data[j].clim_info->clim_provided == TRUE)
         (void) free(data->field[i].data[j].clim_info->clim_filein_ls);
-      if (data->field[i].data[j].clim_info->clim_save == 1)
+      if (data->field[i].data[j].clim_info->clim_save == TRUE)
         (void) free(data->field[i].data[j].clim_info->clim_fileout_ls);
-      if (data->field[i].data[j].clim_info->clim_save == 1 || data->field[i].data[j].clim_info->clim_provided == 1)
+      if (data->field[i].data[j].clim_info->clim_save == TRUE || data->field[i].data[j].clim_info->clim_provided == TRUE)
         (void) free(data->field[i].data[j].clim_info->clim_nomvar_ls);
       (void) free(data->field[i].data[j].clim_info);
 
-      if (data->field[i].data[j].eof_info->eof_project == 1) {
+      if (data->field[i].data[j].eof_info->eof_project == TRUE) {
         (void) free(data->field[i].data[j].eof_info->eof_coords);
         (void) free(data->field[i].data[j].eof_info->eof_filein_ls);
         (void) free(data->field[i].data[j].eof_data->eof_nomvar_ls);
@@ -96,7 +96,7 @@ free_main_data(data_struct *data) {
         (void) free(data->field[i].data[j].eof_data->eof_ls);
         (void) free(data->field[i].data[j].eof_data->sing_ls);
 
-        if ((i == 0 || i == 1) && data->conf->output_only != 1) {
+        if ((i == 0 || i == 1) && data->conf->output_only != TRUE) {
           (void) free(data->field[i].data[j].eof_info->info->units);
           (void) free(data->field[i].data[j].eof_info->info->height);
           (void) free(data->field[i].data[j].eof_info->info->coordinates);
@@ -108,7 +108,7 @@ free_main_data(data_struct *data) {
       (void) free(data->field[i].data[j].eof_info);
       (void) free(data->field[i].data[j].eof_data);
       
-      if (data->conf->output_only != 1) {
+      if (data->conf->output_only != TRUE) {
         (void) free(data->field[i].data[j].info->coordinates);
         (void) free(data->field[i].data[j].info->grid_mapping);
         (void) free(data->field[i].data[j].info->units);
@@ -119,6 +119,8 @@ free_main_data(data_struct *data) {
       (void) free(data->field[i].data[j].info);
       (void) free(data->field[i].data[j].nomvar_ls);
       (void) free(data->field[i].data[j].filename_ls);
+      (void) free(data->field[i].data[j].dimyname);
+      (void) free(data->field[i].data[j].dimxname);
       (void) free(data->field[i].data[j].latname);
       (void) free(data->field[i].data[j].lonname);
       (void) free(data->field[i].data[j].timename);
@@ -130,7 +132,7 @@ free_main_data(data_struct *data) {
       if (data->field[i].proj[j].coords != NULL)
         (void) free(data->field[i].proj[j].coords);
 
-      if (data->conf->output_only != 1) {
+      if (data->conf->output_only != TRUE) {
         for (s=0; s<data->conf->nseasons; s++) {
           if (i == 0 || (i == 1 && data->conf->period_ctrl->downscale == TRUE)) {
             (void) free(data->field[i].data[j].down->days_class_clusters[s]);
@@ -148,7 +150,7 @@ free_main_data(data_struct *data) {
       }
       if ( i == 0 || i == 1) {
         if (i == 0 || (i == 1 && data->conf->period_ctrl->downscale == TRUE)) {
-          if (data->conf->output_only != 1) {
+          if (data->conf->output_only != TRUE) {
             (void) free(data->field[i].data[j].down->dist_all);
             (void) free(data->field[i].data[j].down->days_class_clusters_all);
           }
@@ -161,14 +163,14 @@ free_main_data(data_struct *data) {
       }
       else {
         if (data->conf->period_ctrl->downscale == TRUE || i == 2)
-          if (data->conf->output_only != 1)
+          if (data->conf->output_only != TRUE)
             for (s=0; s<data->conf->nseasons; s++)
               (void) free(data->field[i].data[j].down->smean_norm[s]);
-        if (data->conf->output_only != 1)
+        if (data->conf->output_only != TRUE)
           (void) free(data->field[i].data[j].down->smean);
         
         if (data->conf->period_ctrl->downscale == TRUE || i == 2)
-          if (data->conf->output_only != 1)
+          if (data->conf->output_only != TRUE)
             for (s=0; s<data->conf->nseasons; s++)
               (void) free(data->field[i].data[j].down->delta[s]);
 
@@ -197,7 +199,7 @@ free_main_data(data_struct *data) {
       end_cat = FIELD_LS;
     if (i >= FIELD_LS && i <= end_cat) {
       if (data->field[i].n_ls > 0) {
-        if (data->conf->output_only != 1) {
+        if (data->conf->output_only != TRUE) {
           for (s=0; s<data->conf->nseasons; s++) {
             (void) free(data->field[i].precip_index[s]);
             (void) free(data->field[i].analog_days[s].tindex);
@@ -228,7 +230,7 @@ free_main_data(data_struct *data) {
 
     if (data->field[i].n_ls > 0) {
       (void) free(data->field[i].data);
-      if (data->conf->output_only != 1) {
+      if (data->conf->output_only != TRUE) {
         (void) free(data->field[i].time_s->year);
         (void) free(data->field[i].time_s->month);
         (void) free(data->field[i].time_s->day);
@@ -243,7 +245,7 @@ free_main_data(data_struct *data) {
   }
 
   for (s=0; s<data->conf->nseasons; s++) {
-    if (data->conf->output_only != 1) {
+    if (data->conf->output_only != TRUE) {
       (void) free(data->learning->data[s].time_s->year);
       (void) free(data->learning->data[s].time_s->month);
       (void) free(data->learning->data[s].time_s->day);
@@ -257,7 +259,7 @@ free_main_data(data_struct *data) {
     if (data->conf->season[s].nmonths > 0)
       (void) free(data->conf->season[s].month);
 
-    if (data->conf->output_only != 1) {
+    if (data->conf->output_only != TRUE) {
       (void) free(data->learning->data[s].weight);
       (void) free(data->learning->data[s].precip_reg);
       (void) free(data->learning->data[s].precip_reg_cst);
@@ -266,7 +268,7 @@ free_main_data(data_struct *data) {
     }
   }
   
-  if (data->learning->learning_provided == 0) {
+  if (data->learning->learning_provided == FALSE) {
     (void) free(data->learning->obs->filename_eof);
     (void) free(data->learning->obs->nomvar_eof);
     (void) free(data->learning->obs->nomvar_sing);
@@ -302,13 +304,18 @@ free_main_data(data_struct *data) {
     (void) free(data->learning->filename_rea_sup);
     (void) free(data->learning->rea_coords);
     (void) free(data->learning->rea_gridname);
+    (void) free(data->learning->rea_dimxname);
+    (void) free(data->learning->rea_dimyname);
     (void) free(data->learning->rea_lonname);
     (void) free(data->learning->rea_latname);
     (void) free(data->learning->rea_timename);
 
+    (void) free(data->learning->obs_dimxname);
+    (void) free(data->learning->obs_dimyname);
     (void) free(data->learning->obs_lonname);
     (void) free(data->learning->obs_latname);
     (void) free(data->learning->obs_timename);
+    (void) free(data->learning->obs_eofname);
 
     if (data->learning->lon != NULL)
       (void) free(data->learning->lon);
@@ -316,7 +323,7 @@ free_main_data(data_struct *data) {
       (void) free(data->learning->lat);
   }
 
-  if (data->conf->output_only != 1) {
+  if (data->conf->output_only != TRUE) {
     (void) free(data->learning->time_s->year);
     (void) free(data->learning->time_s->month);
     (void) free(data->learning->time_s->day);
@@ -327,13 +334,13 @@ free_main_data(data_struct *data) {
 
   (void) free(data->learning->time_s);
 
-  if (data->learning->learning_provided == 1) {
+  if (data->learning->learning_provided == TRUE) {
     (void) free(data->learning->filename_open_weight);
     (void) free(data->learning->filename_open_learn);
     (void) free(data->learning->filename_open_clust_learn);
   }
 
-  if (data->conf->output_only != 1)
+  if (data->conf->output_only != TRUE)
     (void) free(data->learning->pc_normalized_var);
 
   (void) free(data->learning->nomvar_time);
@@ -347,7 +354,7 @@ free_main_data(data_struct *data) {
   (void) free(data->learning->nomvar_sup_index_var);
   (void) free(data->learning->nomvar_pc_normalized_var);
 
-  if (data->learning->learning_save == 1) {
+  if (data->learning->learning_save == TRUE) {
     (void) free(data->learning->filename_save_weight);
     (void) free(data->learning->filename_save_learn);
     (void) free(data->learning->filename_save_clust_learn);
@@ -381,16 +388,18 @@ free_main_data(data_struct *data) {
   }
 
   (void) free(data->reg->filename);
+  (void) free(data->reg->dimxname);
+  (void) free(data->reg->dimyname);
   (void) free(data->reg->lonname);
   (void) free(data->reg->latname);
   (void) free(data->reg->ptsname);
-  if (data->conf->output_only != 1) {
+  if (data->conf->output_only != TRUE) {
     (void) free(data->reg->lat);
     (void) free(data->reg->lon);
   }
 
-  if (data->secondary_mask->use_mask == 1) {
-    if (data->conf->output_only != 1)
+  if (data->secondary_mask->use_mask == TRUE) {
+    if (data->conf->output_only != TRUE)
       (void) free(data->secondary_mask->field);
     (void) free(data->secondary_mask->filename);
     (void) free(data->secondary_mask->maskname);
@@ -423,6 +432,8 @@ free_main_data(data_struct *data) {
   (void) free(data->conf->obs_var->latname);
   (void) free(data->conf->obs_var->lonname);
   (void) free(data->conf->obs_var->timename);
+  (void) free(data->conf->obs_var->altitude);
+  (void) free(data->conf->obs_var->altitudename);
   (void) free(data->conf->obs_var->proj->name);
   (void) free(data->conf->obs_var->proj->coords);
   (void) free(data->conf->obs_var->proj->grid_mapping_name);
@@ -437,6 +448,8 @@ free_main_data(data_struct *data) {
   (void) free(data->conf->classif_type);
   (void) free(data->conf->time_units);
   (void) free(data->conf->cal_type);
+  (void) free(data->conf->dimxname_eof);
+  (void) free(data->conf->dimyname_eof);
   (void) free(data->conf->lonname_eof);
   (void) free(data->conf->latname_eof);
   (void) free(data->conf->eofname);

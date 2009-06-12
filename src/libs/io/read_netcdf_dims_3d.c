@@ -59,7 +59,7 @@ LICENSE END */
 int
 read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_type, char **time_units,
                     int *nlon, int *nlat, int *ntime, info_struct *info, char *coords, char *gridname,
-                    char *lonname, char *latname, char *timename, char *filename) {
+                    char *lonname, char *latname, char *dimxname, char *dimyname, char *timename, char *filename) {
   /**
      @param[out]  lon        Longitude field
      @param[out]  lat        Latitude field
@@ -74,6 +74,8 @@ read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_typ
      @param[in]   gridname   Projection grid name
      @param[in]   lonname    Longitude dimension name
      @param[in]   latname    Latitude dimension name
+     @param[in]   dimxname   X Dimension name
+     @param[in]   dimyname   Y Dimension name
      @param[in]   timename   Time dimension name
      @param[in]   filename   Input NetCDF filename
      
@@ -81,6 +83,7 @@ read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_typ
   */
 
   int istat; /* Diagnostic status */
+  int fixtime = FALSE; /* If we fixed time or not */
 
   size_t dimval; /* Variable used to retrieve dimension length */
 
@@ -124,13 +127,13 @@ read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_typ
     ndims = 1;
 
     /* Get dimensions length */
-    istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
+    istat = nc_inq_dimid(ncinid, dimyname, &latdiminid);  /* get ID for lat dimension */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     *nlat = (int) dimval;
     
-    istat = nc_inq_dimid(ncinid, lonname, &londiminid);  /* get ID for lon dimension */
+    istat = nc_inq_dimid(ncinid, dimxname, &londiminid);  /* get ID for lon dimension */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_inq_dimlen(ncinid, londiminid, &dimval); /* get lon length */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -141,14 +144,20 @@ read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_typ
     ndims = 2;
 
     /* Get dimensions length */
-    istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
-    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = nc_inq_dimid(ncinid, dimyname, &latdiminid);  /* get ID for lat dimension */
+    if (istat != NC_NOERR) {
+      (void) fprintf(stderr, "%s: Dimension name %s.\n", __FILE__, dimyname);
+      handle_netcdf_error(istat, __FILE__, __LINE__);
+    }
     istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     *nlat = (int) dimval;
     
-    istat = nc_inq_dimid(ncinid, lonname, &londiminid);  /* get ID for lon dimension */
-    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = nc_inq_dimid(ncinid, dimxname, &londiminid);  /* get ID for lon dimension */
+    if (istat != NC_NOERR) {
+      (void) fprintf(stderr, "%s: Dimension name %s.\n", __FILE__, dimxname);
+      handle_netcdf_error(istat, __FILE__, __LINE__);
+    }
     istat = nc_inq_dimlen(ncinid, londiminid, &dimval); /* get lon length */
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     *nlon = (int) dimval;
@@ -334,7 +343,8 @@ read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_typ
     if ((*timeval)[t] != 0.0)
       break;
   if (t == (*ntime)) {
-    fprintf(stderr, "%s: WARNING: Time variable values all zero!!! Fixing time variable to index value...\n", __FILE__);
+    fprintf(stderr, "\n%s: IMPORTANT WARNING: Time variable values all zero!!! Fixing time variable to index value, STARTING at 0...\n\n", __FILE__);
+    fixtime = TRUE;
     for (t=0; t<(*ntime); t++)
       (*timeval)[t] = (double) t;
   }
@@ -343,6 +353,9 @@ read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_typ
   istat = ncclose(ncinid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  /* Success status */
-  return 0;
+  if (fixtime == FALSE)
+    /* Success status */
+    return 0;
+  else
+    return 1;
 }

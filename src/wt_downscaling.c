@@ -89,7 +89,7 @@ wt_downscaling(data_struct *data) {
   char *analog_file = NULL; /* Analog data filename */
   period_struct *period = NULL; /* Period structure for output */
   
-  if (data->conf->output_only != 1) {
+  if (data->conf->output_only != TRUE) {
   
     /* Allocate memory */
     ntime_sub = (int **) malloc(NCAT * sizeof(int *));
@@ -105,7 +105,7 @@ wt_downscaling(data_struct *data) {
     if (istat != 0) return istat;
     
     /* Prepare optional mask for secondary large-scale fields */
-    if (data->secondary_mask->use_mask == 1) {
+    if (data->secondary_mask->use_mask == TRUE) {
       (void) extract_subdomain(&mask_subd, &lon_mask, &lat_mask, &nlon_mask, &nlat_mask, data->secondary_mask->field,
                                data->secondary_mask->lon, data->secondary_mask->lat,
                                data->conf->secondary_longitude_min, data->conf->secondary_longitude_max,
@@ -124,11 +124,11 @@ wt_downscaling(data_struct *data) {
             (void) fprintf(stderr, "%s: The mask for secondary large-scale fields after selecting subdomain has invalid dimensions: nlon=%d nlat=%d. Expected: nlon=%d nlat=%d\nReverting to no-mask processing.", __FILE__,
                            nlon_mask, nlat_mask, data->field[cat].nlon_ls, data->field[cat].nlat_ls);
             mask_sub = (short int *) NULL;
-            data->secondary_mask->use_mask = 0;
+            data->secondary_mask->use_mask = FALSE;
           }
       }
       /* Dimensions are ok and we are using a mask. Get values into short int buffer. */
-      if (data->secondary_mask->use_mask == 1) {
+      if (data->secondary_mask->use_mask == TRUE) {
         mask_sub = (short int *) malloc(data->field[SEC_FIELD_LS].nlon_ls*data->field[SEC_FIELD_LS].nlat_ls * sizeof(short int));
         if (mask_sub == NULL) alloc_error(__FILE__, __LINE__);
         for (i=0; i<data->field[SEC_FIELD_LS].nlon_ls*data->field[SEC_FIELD_LS].nlat_ls; i++)
@@ -160,7 +160,7 @@ wt_downscaling(data_struct *data) {
       /* Loop over large-scale fields */
       for (i=0; i<data->field[cat].n_ls; i++) {
         /* Check if we need to project field on EOFs */
-        if (data->field[cat].data[i].eof_info->eof_project == 1) {
+        if (data->field[cat].data[i].eof_info->eof_project == TRUE) {
           /* Allocate memory for projected large-scale field */
           data->field[cat].data[i].field_eof_ls = (double *) malloc(data->field[cat].ntime_ls * data->field[cat].data[i].eof_info->neof_ls *
                                                                     sizeof(double));
@@ -191,11 +191,12 @@ wt_downscaling(data_struct *data) {
       /* Normalisation of the principal component by the square root of the variance of the first one */
       /* Select common time period between the learning period and the model period (control run) */
       /* for first variance calculation */
-      (void) sub_period_common(&buf_sub, &ntime_sub_learn_all, data->field[cat].data[i].field_eof_ls,
-                               data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
-                               data->learning->time_s->year, data->learning->time_s->month,
-                               data->learning->time_s->day, 1,
-                               data->field[cat].data[i].eof_info->neof_ls, 1, data->field[cat].ntime_ls, data->learning->ntime);
+      istat = sub_period_common(&buf_sub, &ntime_sub_learn_all, data->field[cat].data[i].field_eof_ls,
+                                data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
+                                data->learning->time_s->year, data->learning->time_s->month,
+                                data->learning->time_s->day, 1,
+                                data->field[cat].data[i].eof_info->neof_ls, 1, data->field[cat].ntime_ls, data->learning->ntime);
+      if (istat != 0) return istat;
 
       /* Allocate memory for temporary buffer */
       buftmpf = (double *) malloc(ntime_sub_learn_all*data->field[cat].data[i].eof_info->neof_ls * sizeof(double));
@@ -239,11 +240,12 @@ wt_downscaling(data_struct *data) {
         if (data->field[cat].data[i].down->var_dist[s] == NULL) alloc_error(__FILE__, __LINE__);
       
         /* Select common time period between the learning period and the model period (control run) */
-        (void) sub_period_common(&buf_sub, &ntime_sub_learn, buftmp,
-                                 data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
-                                 data->learning->data[s].time_s->year, data->learning->data[s].time_s->month,
-                                 data->learning->data[s].time_s->day, 1,
-                                 data->field[cat].data[i].eof_info->neof_ls, 1, data->field[cat].ntime_ls, data->learning->data[s].ntime);
+        istat = sub_period_common(&buf_sub, &ntime_sub_learn, buftmp,
+                                  data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
+                                  data->learning->data[s].time_s->year, data->learning->data[s].time_s->month,
+                                  data->learning->data[s].time_s->day, 1,
+                                  data->field[cat].data[i].eof_info->neof_ls, 1, data->field[cat].ntime_ls, data->learning->data[s].ntime);
+        if (istat != 0) return istat;
       
         /* Compute mean and variance of distances to clusters */
         (void) mean_variance_dist_clusters(data->field[cat].data[i].down->mean_dist[s], data->field[cat].data[i].down->var_dist[s],
@@ -281,12 +283,13 @@ wt_downscaling(data_struct *data) {
         /* Compute seasonal mean and variance of principal components of selected large-scale fields */
       
         /* Select common time period between the learning period and the model period (control run) */
-        (void) sub_period_common(&buf_sub, &ntime_sub_learn, data->field[cat].data[i].field_ls,
-                                 data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
-                                 data->learning->data[s].time_s->year, data->learning->data[s].time_s->month,
-                                 data->learning->data[s].time_s->day, 3,
-                                 data->field[cat].nlon_ls, data->field[cat].nlat_ls, data->field[cat].ntime_ls,
-                                 data->learning->data[s].ntime);
+        istat = sub_period_common(&buf_sub, &ntime_sub_learn, data->field[cat].data[i].field_ls,
+                                  data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
+                                  data->learning->data[s].time_s->year, data->learning->data[s].time_s->month,
+                                  data->learning->data[s].time_s->day, 3,
+                                  data->field[cat].nlon_ls, data->field[cat].nlat_ls, data->field[cat].ntime_ls,
+                                  data->learning->data[s].ntime);
+        if (istat != 0) return istat;
       
         /* Compute seasonal mean and variance of spatially-averaged secondary field */
         (void) mean_variance_field_spatial(&(data->field[cat].data[i].down->mean[s]), &(data->field[cat].data[i].down->var[s]), buf_sub,
@@ -528,7 +531,7 @@ for (cat=beg_cat; cat>=FIELD_LS; cat--) {
       /* Process only first large-scale field. Limitation of the current implementation. */
       i = 0;
 
-      if (data->conf->output_only != 1) {
+      if (data->conf->output_only != TRUE) {
         data->field[cat].analog_days_year.tindex = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
         if (data->field[cat].analog_days_year.tindex == NULL) alloc_error(__FILE__, __LINE__);
         data->field[cat].analog_days_year.tindex_all = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
@@ -577,7 +580,7 @@ for (cat=beg_cat; cat>=FIELD_LS; cat--) {
         }
         
         /** Optionally save analog_days information in an output file **/
-        if (data->conf->analog_save == 1) {
+        if (data->conf->analog_save == TRUE) {
           if (cat == FIELD_LS)
             analog_file = data->conf->analog_file_other;
           else
@@ -616,7 +619,7 @@ for (cat=beg_cat; cat>=FIELD_LS; cat--) {
   }
           
   /* Free memory for specific downscaling buffers */
-  if (data->conf->output_only != 1) {
+  if (data->conf->output_only != TRUE) {
     for (cat=0; cat<NCAT; cat++)
       (void) free(ntime_sub[cat]);
     (void) free(ntime_sub);

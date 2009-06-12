@@ -73,7 +73,8 @@ int main(int argc, char **argv)
   int istat = 0; /* Return status */
   data_struct *data = NULL; /* Main data structure */
   short int license_accept = 0; /* If user has accepted license or not */
-
+  short int downscale = TRUE; /* If we want to downscale at least one period, excluding control */
+  
   /* Command-line arguments variables */
   char fileconf[500]; /* Configuration filename */
 
@@ -126,7 +127,7 @@ int main(int argc, char **argv)
 
 
   /* Generate analog data only if we are not reading it off disk */
-  if (data->conf->output_only == 0) {
+  if (data->conf->output_only == FALSE) {
     
     /* Read regression points positions if needed */
     if (data->reg->filename != NULL) {
@@ -140,7 +141,7 @@ int main(int argc, char **argv)
     }
 
     /* Read mask for secondary large-scale fields if needed */
-    if (data->secondary_mask->use_mask == 1) {
+    if (data->secondary_mask->use_mask == TRUE) {
       (void) printf("\n**** SECONDARY LARGE-SCALE FIELDS MASK ****\n\n");
       istat = read_mask(data->secondary_mask);
       if (istat != 0) {
@@ -161,14 +162,20 @@ int main(int argc, char **argv)
   }
   
   /* Perform downscaling */
-  (void) printf("\n**** DOWNSCALING ****\n\n");
-  if (data->conf->output_only == 1)
-    (void) printf("****WARNING: Configuration for reading analog dates and writing data ONLY!\n\n");
-  istat = wt_downscaling(data);
-  if (istat != 0) {
-    (void) fprintf(stderr, "%s: Error in performing downscaling. Aborting.\n", __FILE__);
-    (void) banner(basename(argv[0]), "ABORT", "END");
-    (void) abort();
+  downscale = FALSE;
+  for (i=0; i<data->conf->nperiods; i++)
+    if (data->conf->period[i].downscale == TRUE)
+      downscale = TRUE;
+  if (data->conf->period_ctrl->downscale == TRUE || downscale == TRUE) {
+    (void) printf("\n**** DOWNSCALING ****\n\n");
+    if (data->conf->output_only == TRUE)
+      (void) printf("****WARNING: Configuration for reading analog dates and writing data ONLY!\n\n");
+    istat = wt_downscaling(data);
+    if (istat != 0) {
+      (void) fprintf(stderr, "%s: Error in performing downscaling. Aborting.\n", __FILE__);
+      (void) banner(basename(argv[0]), "ABORT", "END");
+      (void) abort();
+    }
   }
   
   /* Free main data structure */
@@ -178,7 +185,7 @@ int main(int argc, char **argv)
 
   /* Print END banner */
   (void) banner(basename(argv[0]), "OK", "END");
-
+  
   return 0;
 }
 
@@ -212,7 +219,7 @@ show_license() {
   FILE *ifile = NULL; /* File for license acceptance */
 
   /* Let user accepts license */
-  dsclim_lic_file = (char *) malloc(5000 * sizeof(char));
+  dsclim_lic_file = (char *) malloc(MAXPATH * sizeof(char));
   if (dsclim_lic_file == NULL) alloc_error(__FILE__, __LINE__);
   (void) sprintf(dsclim_lic_file, "%s/%s", getenv("HOME"), ".dsclim_lic");
 

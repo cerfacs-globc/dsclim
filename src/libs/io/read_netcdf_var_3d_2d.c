@@ -59,15 +59,15 @@ LICENSE END */
 /** Read a 2D field from a 3D variable in a NetCDF file, and return information in info_field_struct structure and proj_struct. */
 int
 read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
-                      char *lonname, char *latname, char *timename, int t, int *nlon, int *nlat, int *ntime, int outinfo) {
+                      char *dimxname, char *dimyname, char *timename, int t, int *nlon, int *nlat, int *ntime, int outinfo) {
   /**
      @param[out]  buf        2D variable
      @param[out]  info_field Information about the output variable
      @param[out]  proj       Information about the horizontal projection of the output variable
      @param[in]   filename   NetCDF input filename
      @param[in]   varname    NetCDF variable name
-     @param[in]   lonname    Longitude dimension name
-     @param[in]   latname    Latitude dimension name
+     @param[in]   dimxname   Longitude dimension name
+     @param[in]   dimyname   Latitude dimension name
      @param[in]   timename   Time dimension name
      @param[in]   t          Time index to retrieve
      @param[out]  nlon       Longitude dimension length
@@ -105,7 +105,7 @@ read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *
   char *grid_mapping = NULL;
 
   /* Allocate memory */
-  tmpstr = (char *) malloc(5000 * sizeof(char));
+  tmpstr = (char *) malloc(MAXPATH * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Read data in NetCDF file */
@@ -133,13 +133,13 @@ read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *
   if (outinfo == TRUE)
     printf("%s: READ %s %s time=%d %d.\n", __FILE__, varname, filename, t, *ntime);
 
-  istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
+  istat = nc_inq_dimid(ncinid, dimyname, &latdiminid);  /* get ID for lat dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   *nlat = (int) dimval;
 
-  istat = nc_inq_dimid(ncinid, lonname, &londiminid);  /* get ID for lon dimension */
+  istat = nc_inq_dimid(ncinid, dimxname, &londiminid);  /* get ID for lon dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncinid, londiminid, &dimval); /* get lon length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -147,7 +147,10 @@ read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *
   
   /* Get main variable ID */
   istat = nc_inq_varid(ncinid, varname, &varinid);
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  if (istat != NC_NOERR) {
+    (void) fprintf(stderr, "%s: Error with variable %s in file %s\n", __FILE__, varname, filename);
+    handle_netcdf_error(istat, __FILE__, __LINE__);
+  }
 
   /** Read data variable **/
   

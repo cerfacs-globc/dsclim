@@ -109,11 +109,11 @@ output_downscaled_analog(analog_day_struct analog_days, data_struct *data, doubl
   /*                                         J   F   M   A   M   J   J   A   S   O   N   D    */
   static int days_per_month_reg_year[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-  infile = (char *) malloc(5000 * sizeof(char));
+  infile = (char *) malloc(MAXPATH * sizeof(char));
   if (infile == NULL) alloc_error(__FILE__, __LINE__);
-  outfile = (char *) malloc(5000 * sizeof(char));
+  outfile = (char *) malloc(MAXPATH * sizeof(char));
   if (outfile == NULL) alloc_error(__FILE__, __LINE__);
-  format = (char *) malloc(5000 * sizeof(char));
+  format = (char *) malloc(MAXPATH * sizeof(char));
   if (format == NULL) alloc_error(__FILE__, __LINE__);
 
   if (data->conf->output_month_begin == 1)
@@ -233,7 +233,7 @@ output_downscaled_analog(analog_day_struct analog_days, data_struct *data, doubl
 
           istat = utCalendar(time_ls[t-1], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
 
-          tmpstr = (char *) malloc(5000 * sizeof(char));
+          tmpstr = (char *) malloc(MAXPATH * sizeof(char));
           if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
           (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, minutes, (int) seconds);

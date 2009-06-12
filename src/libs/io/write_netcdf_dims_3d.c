@@ -126,7 +126,7 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *tim
   double minlon;
   double maxlon;
 
-  tmpstr = (char *) malloc(5000 * sizeof(char));
+  tmpstr = (char *) malloc(MAXPATH * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Open NetCDF file */

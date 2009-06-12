@@ -105,7 +105,7 @@ create_netcdf(char *title, char *title_french, char *summary, char *summary_fren
     (void) fprintf(stdout, "%s: Creating NetCDF file %s\n", __FILE__, filename);
 
   /* Allocate memory */
-  tmpstr = (char *) malloc(5000 * sizeof(char));
+  tmpstr = (char *) malloc(MAXPATH * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Open NetCDF file for writing, overwrite and truncate existing file if any */

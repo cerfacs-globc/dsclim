@@ -87,7 +87,7 @@ read_netcdf_var_generic_val(double *buf, info_field_struct *info_field, char *fi
   idx[0] = (size_t) index;
 
   /* Allocate memory */
-  tmpstr = (char *) malloc(5000 * sizeof(char));
+  tmpstr = (char *) malloc(MAXPATH * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Read data in NetCDF file */

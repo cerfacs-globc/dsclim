@@ -79,7 +79,7 @@ read_learning_obs_eof(data_struct *data) {
   /* Read EOF */
   istat = read_netcdf_var_2d(&buf, (info_field_struct *) NULL, (proj_struct *) NULL,
                              data->learning->obs->filename_eof, data->learning->obs->nomvar_eof,
-                             data->conf->eofname, data->learning->obs_timename, &neof, &ntime, TRUE);
+                             data->learning->obs_eofname, data->learning->obs_timename, &neof, &ntime, TRUE);
   if (istat != 0) {
     /* In case of failure */
     return istat;
@@ -132,7 +132,7 @@ read_learning_obs_eof(data_struct *data) {
   /* Read Singular Values */
   istat = read_netcdf_var_1d(&(data->learning->obs->sing), (info_field_struct *) NULL,
                              data->learning->obs->filename_eof, data->learning->obs->nomvar_sing,
-                             data->conf->eofname, &neof, TRUE);
+                             data->learning->obs_eofname, &neof, TRUE);
   if (istat != 0) {
     /* In case of failure */
     return istat;

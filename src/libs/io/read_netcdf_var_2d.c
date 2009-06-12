@@ -58,15 +58,15 @@ LICENSE END */
 /** Read a 2D variable in a NetCDF file, and return information in info_field_struct structure and proj_struct. */
 int
 read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *proj, char *filename, char *varname,
-                   char *lonname, char *latname, int *nlon, int *nlat, int outinfo) {
+                   char *dimxname, char *dimyname, int *nlon, int *nlat, int outinfo) {
   /**
      @param[out]  buf        2D variable
      @param[out]  info_field Information about the output variable
      @param[out]  proj       Information about the horizontal projection of the output variable
      @param[in]   filename   NetCDF input filename
      @param[in]   varname    NetCDF variable name
-     @param[in]   lonname    Longitude dimension name
-     @param[in]   latname    Latitude dimension name
+     @param[in]   dimxname    Longitude dimension name
+     @param[in]   dimyname    Latitude dimension name
      @param[out]  nlon       Longitude dimension length
      @param[out]  nlat       Latitude dimension length
      @param[in]   outinfo    TRUE if we want information output, FALSE if not
@@ -100,7 +100,7 @@ read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *pro
   char *grid_mapping = NULL;
 
   /* Allocate memory */
-  tmpstr = (char *) malloc(5000 * sizeof(char));
+  tmpstr = (char *) malloc(MAXPATH * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Read data in NetCDF file */
@@ -115,13 +115,13 @@ read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *pro
     printf("%s: READ %s %s\n", __FILE__, varname, filename);
 
   /* Get dimensions length */
-  istat = nc_inq_dimid(ncinid, latname, &latdiminid);  /* get ID for lat dimension */
+  istat = nc_inq_dimid(ncinid, dimyname, &latdiminid);  /* get ID for lat dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   *nlat = (int) dimval;
 
-  istat = nc_inq_dimid(ncinid, lonname, &londiminid);  /* get ID for lon dimension */
+  istat = nc_inq_dimid(ncinid, dimxname, &londiminid);  /* get ID for lon dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_inq_dimlen(ncinid, londiminid, &dimval); /* get lon length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);

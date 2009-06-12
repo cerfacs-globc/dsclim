@@ -128,6 +128,10 @@ project_field_eof(double *bufout, double *bufin, double *bufeof, double *singula
     /* Verify that the norm is equal to 1.0 */
     (void) fprintf(stdout, "%s: Verifying the sqrt(norm)=%lf (should be equal to 1) for EOF #%d: %lf\n", __FILE__, sqrt(norm),
                    eof, sum_verif_norm);
+    if (fabs(sum_verif_norm) < 0.01) {
+      (void) fprintf(stderr, "%s: FATAL ERROR: Re-norming does not equal 1.0 : %lf.\nAborting\n", __FILE__, sum_verif_norm);
+      return -1;
+    }
 
     /* Project field onto EOF */
     for (t=0; t<ntime; t++) {
@@ -145,6 +149,10 @@ project_field_eof(double *bufout, double *bufin, double *bufeof, double *singula
                    sqrt(gsl_stats_variance(&(bufout[eof*ntime]), 1, ntime)), singular_value[eof]);
     (void) fprintf(stdout, "%s: %lf\n", __FILE__,
                    sqrt(gsl_stats_variance(&(bufout[eof*ntime]), 1, ntime)) / singular_value[eof]);
+    if ( (sqrt(gsl_stats_variance(&(bufout[eof*ntime]), 1, ntime)) / singular_value[eof]) >= 10.0) {
+      (void) fprintf(stderr, "%s: FATAL ERROR: Problem in scaling factor! Variance is not of the same order. Verify configuration file scaling factor.\nAborting\n", __FILE__);
+      return -1;
+    }
   }
 
   /* Free memory */

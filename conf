@@ -1,2 +1,2 @@
-#./configure --prefix=/home/page/codes/local --with-zlib=/opt2/glob/uti/local64 --with-szlib=/opt2/glob/uti/local64 --with-hdf5=/opt2/glob/uti/local64 --with-netcdf=/opt2/glob/uti/local64 --with-udunits=/opt2/glob/uti/local64
-./configure --prefix=/home/page/codes/local --with-debugging=6 --with-zlib=/opt2/glob/uti/local64 --with-szlib=/opt2/glob/uti/local64 --with-hdf5=/opt2/glob/uti/local64 --with-netcdf=/opt2/glob/uti/local64 --with-udunits=/opt2/glob/uti/local64
+#./configure --prefix=/home/page/codes/local --with-zlib=/contrex/local64 --with-szlib=/contrex/local64 --with-hdf5=/contrex/local64 --with-netcdf=/contrex/local64 --with-udunits=/contrex/local64
+./configure --prefix=/home/page/codes/local --with-debugging=4 --with-zlib=/contrex/local64 --with-szlib=/contrex/local64 --with-hdf5=/contrex/local64 --with-netcdf=/contrex/local64 --with-udunits=/contrex/local64
