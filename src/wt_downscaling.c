@@ -74,6 +74,8 @@ wt_downscaling(data_struct *data) {
   double *lat_mask = NULL; /* Latitudes of mask */
   double *var_pc_norm_all = NULL; /* Temporary values of the norm of the principal components */
   int **ntime_sub = NULL; /* Number of times for sub-periods. Dimensions number of field categories (NCAT) and number of seasons */
+  double **time_ls_sub = NULL; /* Time values used for regression diagnostics output */
+  int ntime_sub_tmp; /* Number of times for regression diagnostics output */
   int ntime_sub_learn; /* Number of times for learning common sub-period with control run for a specific season */
   int ntime_sub_learn_all; /* Number of times for learning common sub-period with control run for whole period */
   int nlon_mask; /* Longitude dimension for mask subdomain */
@@ -94,6 +96,11 @@ wt_downscaling(data_struct *data) {
     /* Allocate memory */
     ntime_sub = (int **) malloc(NCAT * sizeof(int *));
     if (ntime_sub == NULL) alloc_error(__FILE__, __LINE__);
+
+    if (data->reg->reg_save == TRUE) {
+      time_ls_sub = (double **) malloc(data->conf->nseasons * sizeof(double *));
+      if (time_ls_sub == NULL) alloc_error(__FILE__, __LINE__);
+    }
     
     for (cat=0; cat<NCAT; cat++) {
       ntime_sub[cat] = (int *) malloc(data->conf->nseasons * sizeof(int));
@@ -419,10 +426,10 @@ wt_downscaling(data_struct *data) {
     else
       beg_cat = FIELD_LS;
 
-    /* Loop over larg-scale field categories (model run and optionally control run) */
+    /* Loop over large-scale field categories (model run and optionally control run) */
     for (cat=beg_cat; cat>=FIELD_LS; cat--) {
       /* Process only if, for this category, at least one large-scale field is available */
-      for (i=0; i<data->field[cat].n_ls; i++)
+      for (i=0; i<data->field[cat].n_ls; i++) {
         /* Loop over each season */
         for (s=0; s<data->conf->nseasons; s++) {
           /* Apply the regression coefficients to calculate precipitation using the cluster distances */
@@ -433,7 +440,27 @@ wt_downscaling(data_struct *data) {
                                   data->learning->data[s].precip_reg_cst,
                                   data->field[cat].data[i].down->dist[s], data->field[cat+2].data[i].down->smean_norm[s],
                                   data->reg->npts, ntime_sub[cat+2][s], data->conf->season[s].nclusters, data->conf->season[s].nreg);
+          if (data->reg->reg_save == TRUE)
+            /* Select season months in the whole time period and create sub-period time vector */
+            (void) extract_subperiod_months(&(time_ls_sub[s]), &ntime_sub_tmp, data->field[cat].time_ls,
+                                            data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
+                                            data->conf->season[s].month,
+                                            1, 1, 1, data->field[cat].ntime_ls,
+                                            data->conf->season[s].nmonths);
         }
+        if (data->reg->reg_save == TRUE) {
+          (void) printf("Writing downscaling regression diagnostic fields.\n");
+          (void) write_regression_fields(data, time_ls_sub, ntime_sub[cat+2],
+                                         data->field[cat].precip_index,
+                                         data->field[cat].data[i].down->dist,
+                                         data->field[cat+2].data[i].down->smean_norm);
+        }
+      }
+    }
+    if (data->reg->reg_save == TRUE) {
+      for (s=0; s<data->conf->nseasons; s++)
+        (void) free(time_ls_sub[s]);
+      (void) free(time_ls_sub);
     }
   
     /** Step 10: Find the days : resampling **/

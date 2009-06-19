@@ -336,7 +336,11 @@ typedef struct {
   double *lon; /**< Longitude of regression points. */
   double *lat; /**< Latitude of regression points. */
   int npts; /**< Number of regression points. */
-  double dist; /**< Distance of spatial mean influence for regression points. */
+  double dist; /**< Distance of spatial mean influence for regression points. */ 
+  int reg_save; /**< If regression data diagnostics will be saved in an output file. */
+  char *filename_save_reg; /**< Optional output filename for regression information for diagnostics. */
+  char *timename; /**< Optional output time dimension name for regression information for diagnostics. */
+  char *dist_clusters_name; /**< Optional output distance to clusters variable name for regression information for diagnostics. */
 } reg_struct;
 
 /** Data structure for mask. */
@@ -477,6 +481,7 @@ int output_downscaled_analog(analog_day_struct analog_days, double *delta, int o
                              info_struct *info, var_struct *obs_var, period_struct *period,
                              double *time_ls, int ntime);
 int write_learning_fields(data_struct *data);
+int write_regression_fields(data_struct *data, double **timeval, int *ntime, double **precip_index, double **distclust, double **sup_index);
 void read_analog_data(analog_day_struct *analog_days, double **delta, double **time_ls, char *filename, char *timename);
 void save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int *cluster, double *time_ls,
                       char *filename, data_struct *data);

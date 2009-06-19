@@ -47,7 +47,7 @@ LICENSE END */
 
 #include <dsclim.h>
 
-/** Read analog day data and write it for downscaled period. */
+/** Write learning fields for later use. */
 int
 write_learning_fields(data_struct *data) {
   /**

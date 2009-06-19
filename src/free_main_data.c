@@ -393,6 +393,10 @@ free_main_data(data_struct *data) {
   (void) free(data->reg->lonname);
   (void) free(data->reg->latname);
   (void) free(data->reg->ptsname);
+  if (data->reg->reg_save == TRUE) {
+    (void) free(data->reg->filename_save_reg);
+    (void) free(data->reg->timename);
+  }
   if (data->conf->output_only != TRUE) {
     (void) free(data->reg->lat);
     (void) free(data->reg->lon);

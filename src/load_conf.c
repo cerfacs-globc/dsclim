@@ -2065,6 +2065,20 @@ load_conf(data_struct *data, char *fileconf) {
       data->reg->dist = 40000.0;
       (void) fprintf(stdout, "%s: Regression distance in meters for spatial mean = %lf.\n", __FILE__, data->reg->dist);
     }
+    /** regression_save **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "regression_save");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) 
+      data->reg->reg_save = (int) strtol((char *) val, (char **)NULL, 10);
+    else
+      data->reg->reg_save = FALSE;
+    if (data->reg->reg_save != FALSE && data->reg->reg_save != TRUE) {
+      (void) fprintf(stderr, "%s: Invalid regression_save value %s in configuration file. Aborting.\n", __FILE__, val);
+      return -1;
+    }
+    (void) fprintf(stdout, "%s: regression_save=%d\n", __FILE__, data->reg->reg_save);
+    if (val != NULL) 
+      (void) xmlFree(val);
   }
   else {
     (void) fprintf(stderr, "%s: No regression points. Cannot perform learning or downscale. Can just output data given analog days.\n",
@@ -2073,6 +2087,37 @@ load_conf(data_struct *data, char *fileconf) {
     (void) xmlFree(val);
   }
 
+  /* If regression data is saved, additional parameters are needed */
+  if (data->reg->reg_save == TRUE) {
+    /** filename_save_reg **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "filename_save_reg");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->reg->filename_save_reg = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->reg->filename_save_reg == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->reg->filename_save_reg, (char *) val);
+      (void) fprintf(stdout, "%s: Regression filename_save_reg = %s\n", __FILE__, data->reg->filename_save_reg);
+      (void) xmlFree(val);
+    }
+    else {
+      (void) fprintf(stderr, "%s: Missing regression filename_save_reg setting. Aborting.\n", __FILE__);
+      (void) xmlFree(val);
+      return -1;
+    }
+
+    /** timename **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "timename");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->reg->timename = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->reg->timename == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->reg->timename, (char *) val);
+      (void) xmlFree(val);
+    }
+    else
+      data->reg->timename = strdup("time");
+    (void) fprintf(stdout, "%s: Regression time dimension name = %s\n", __FILE__, data->reg->timename);
+  }
 
   /**** LARGE-SCALE FIELDS CONFIGURATION ****/
 
@@ -2920,6 +2965,10 @@ load_conf(data_struct *data, char *fileconf) {
     if (data->learning->learning_save == TRUE) {
       (void) fprintf(stderr, "%s: WARNING: Desactivating learning save process because option for output only has been set!\n", __FILE__);
       data->learning->learning_save = FALSE;
+    }
+    if (data->reg->reg_save == TRUE) {
+      (void) fprintf(stderr, "%s: WARNING: Desactivating regression save process because option for output only has been set!\n", __FILE__);
+      data->reg->reg_save = FALSE;
     }
     if (data->secondary_mask->use_mask == TRUE) {
       (void) fprintf(stderr, "%s: WARNING: Desactivating use_mask for secondary large-scale fields because option for output only has been set!\n", __FILE__);
