@@ -264,6 +264,7 @@ free_main_data(data_struct *data) {
       (void) free(data->learning->data[s].precip_reg);
       (void) free(data->learning->data[s].precip_reg_cst);
       (void) free(data->learning->data[s].precip_index);
+      (void) free(data->learning->data[s].precip_index_obs);
       (void) free(data->learning->data[s].sup_index);
     }
   }
@@ -349,6 +350,7 @@ free_main_data(data_struct *data) {
   (void) free(data->learning->nomvar_precip_reg);
   (void) free(data->learning->nomvar_precip_reg_cst);
   (void) free(data->learning->nomvar_precip_index);
+  (void) free(data->learning->nomvar_precip_index_obs);
   (void) free(data->learning->nomvar_sup_index);
   (void) free(data->learning->nomvar_sup_index_mean);
   (void) free(data->learning->nomvar_sup_index_var);
@@ -394,7 +396,8 @@ free_main_data(data_struct *data) {
   (void) free(data->reg->latname);
   (void) free(data->reg->ptsname);
   if (data->reg->reg_save == TRUE) {
-    (void) free(data->reg->filename_save_reg);
+    (void) free(data->reg->filename_save_ctrl_reg);
+    (void) free(data->reg->filename_save_other_reg);
     (void) free(data->reg->timename);
   }
   if (data->conf->output_only != TRUE) {

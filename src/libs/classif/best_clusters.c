@@ -48,7 +48,7 @@ LICENSE END */
 #include <classif.h>
 
 /** Algorithm to generate best clusters among many tries. */
-void
+int
 best_clusters(double *best_clusters, double *pc_eof_days, char *type, int npart, int nclassif, int neof, int ncluster, int ndays) {
   /**
      @param[out]     best_clusters      Best clusters' positions.
@@ -59,6 +59,8 @@ best_clusters(double *best_clusters, double *pc_eof_days, char *type, int npart,
      @param[in]      neof               Number of EOFs.
      @param[in]      ncluster           Number of clusters.
      @param[in]      ndays              Number of days in the pc_eof_days vector.
+
+     \return         Minimum number of iterations needed.
   */
 
   double min_meandistval; /* Minimum distance between a partition and all other partitions */
@@ -82,7 +84,12 @@ best_clusters(double *best_clusters, double *pc_eof_days, char *type, int npart,
   int clust2; /* Loop counter for clusters inside loop */
   int eof; /* Loop counter for eofs */
 
+  int niter; /* Number of iterations */
+  int niter_min; /* Minimum number of iterations */
+
   (void) fprintf(stdout, "%s:: BEGIN: Find the best partition of clusters.\n", __FILE__);
+
+  niter_min = 99999;
 
   /* Allocate memory */
   tmpcluster = (double *) calloc(neof*ncluster, sizeof(double));
@@ -96,7 +103,8 @@ best_clusters(double *best_clusters, double *pc_eof_days, char *type, int npart,
 #if DEBUG >= 1
     (void) fprintf(stdout, "%s:: Generating %d/%d partition of clusters.\n", __FILE__, part+1, npart);
 #endif
-    (void) generate_clusters(tmpcluster, pc_eof_days, type, nclassif, neof, ncluster, ndays);
+    niter = generate_clusters(tmpcluster, pc_eof_days, type, nclassif, neof, ncluster, ndays);
+    if (niter < niter_min) niter_min = niter;
     for (clust=0; clust<ncluster; clust++)
       for (eof=0; eof<neof; eof++)
         testclusters[part+eof*npart+clust*npart*neof] = tmpcluster[eof+clust*neof];
@@ -189,4 +197,6 @@ best_clusters(double *best_clusters, double *pc_eof_days, char *type, int npart,
   (void) free(testclusters);
 
   (void) fprintf(stdout, "%s:: END: Find the best partition of clusters. Partition %d selected.\n", __FILE__, min_partition);
+
+  return niter_min;
 }

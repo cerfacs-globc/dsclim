@@ -90,6 +90,8 @@ wt_downscaling(data_struct *data) {
 
   char *analog_file = NULL; /* Analog data filename */
   period_struct *period = NULL; /* Period structure for output */
+
+  char *filename = NULL; /* Temporary filename for regression optional output */
   
   if (data->conf->output_only != TRUE) {
   
@@ -450,7 +452,11 @@ wt_downscaling(data_struct *data) {
         }
         if (data->reg->reg_save == TRUE) {
           (void) printf("Writing downscaling regression diagnostic fields.\n");
-          (void) write_regression_fields(data, time_ls_sub, ntime_sub[cat+2],
+          if (cat == CTRL_FIELD_LS)
+            filename = data->reg->filename_save_ctrl_reg;
+          else
+            filename = data->reg->filename_save_other_reg;
+          (void) write_regression_fields(data, filename, time_ls_sub, ntime_sub[cat+2],
                                          data->field[cat].precip_index,
                                          data->field[cat].data[i].down->dist,
                                          data->field[cat+2].data[i].down->smean_norm);

@@ -48,7 +48,7 @@ LICENSE END */
 #include <classif.h>
 
 /** Algorithm to generate clusters based on the Michelangeli et al (1995) methodology. */
-void
+int
 generate_clusters(double *clusters, double *pc_eof_days, char *type, int nclassif,
                   int neof, int ncluster, int ndays) {
   /**
@@ -59,6 +59,8 @@ generate_clusters(double *clusters, double *pc_eof_days, char *type, int nclassi
      @param[in]      neof          Number of EOFs.
      @param[in]      ncluster      Number of clusters.
      @param[in]      ndays         Number of days in the pc_eof_days vector.
+
+     \return         Number of iterations.
   */
 
   unsigned long int *random_num = NULL; /* Vector of random numbers for random choice of initial points. */
@@ -206,4 +208,6 @@ generate_clusters(double *clusters, double *pc_eof_days, char *type, int nclassi
   (void) free(days_class_cluster);
 
   (void) fprintf(stdout, "%s:: END: Find clusters among data points. %d iterations needed.\n", __FILE__, classif);
+
+  return classif;
 }

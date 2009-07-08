@@ -82,8 +82,8 @@ LICENSE END */
 /* Prototypes */
 void class_days_pc_clusters(int *days_class_cluster, double *pc_eof_days, double *eof_days_cluster, char *type,
                             int neof, int ncluster, int ndays);
-void generate_clusters(double *clusters, double *pc_eof_days, char *type, int nclassif, int neof, int ncluster, int ndays);
-void best_clusters(double *best_clusters, double *pc_eof_days, char *type, int npart, int nclassif, int neof, int ncluster, int ndays);
+int generate_clusters(double *clusters, double *pc_eof_days, char *type, int nclassif, int neof, int ncluster, int ndays);
+int best_clusters(double *best_clusters, double *pc_eof_days, char *type, int npart, int nclassif, int neof, int ncluster, int ndays);
 void mean_variance_dist_clusters(double *mean_dist, double *var_dist, double *pc, double *clusters, double *var_pc,
                                  double *var_pc_norm_all, int neof, int nclust, int ntime);
 void dist_clusters_normctrl(double *dist_pc, double *pc, double *clusters, double *var_pc,

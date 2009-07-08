@@ -1914,6 +1914,19 @@ load_conf(data_struct *data, char *fileconf) {
     data->learning->nomvar_precip_index = strdup("rrd");
   (void) fprintf(stdout, "%s: Learning nomvar_precip_index = %s\n", __FILE__, data->learning->nomvar_precip_index);
   
+  /** nomvar_precip_index_obs **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_index_obs");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_precip_index_obs = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_precip_index_obs == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_precip_index_obs, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_precip_index_obs = strdup("rro");
+  (void) fprintf(stdout, "%s: Learning nomvar_precip_index_obs = %s\n", __FILE__, data->learning->nomvar_precip_index_obs);
+  
   /** nomvar_sup_index **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_sup_index");
   val = xml_get_setting(conf, path);
@@ -2089,24 +2102,39 @@ load_conf(data_struct *data, char *fileconf) {
 
   /* If regression data is saved, additional parameters are needed */
   if (data->reg->reg_save == TRUE) {
-    /** filename_save_reg **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "filename_save_reg");
+    /** filename_save_ctrl_reg **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "filename_save_ctrl_reg");
     val = xml_get_setting(conf, path);
     if (val != NULL) {
-      data->reg->filename_save_reg = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
-      if (data->reg->filename_save_reg == NULL) alloc_error(__FILE__, __LINE__);
-      (void) strcpy(data->reg->filename_save_reg, (char *) val);
-      (void) fprintf(stdout, "%s: Regression filename_save_reg = %s\n", __FILE__, data->reg->filename_save_reg);
+      data->reg->filename_save_ctrl_reg = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->reg->filename_save_ctrl_reg == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->reg->filename_save_ctrl_reg, (char *) val);
+      (void) fprintf(stdout, "%s: Regression filename_save_ctrl_reg = %s\n", __FILE__, data->reg->filename_save_ctrl_reg);
       (void) xmlFree(val);
     }
     else {
-      (void) fprintf(stderr, "%s: Missing regression filename_save_reg setting. Aborting.\n", __FILE__);
+      (void) fprintf(stderr, "%s: Missing regression filename_save_ctrl_reg setting. Aborting.\n", __FILE__);
+      (void) xmlFree(val);
+      return -1;
+    }
+    /** filename_save_other_reg **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "filename_save_other_reg");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->reg->filename_save_other_reg = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->reg->filename_save_other_reg == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->reg->filename_save_other_reg, (char *) val);
+      (void) fprintf(stdout, "%s: Regression filename_save_other_reg = %s\n", __FILE__, data->reg->filename_save_other_reg);
+      (void) xmlFree(val);
+    }
+    else {
+      (void) fprintf(stderr, "%s: Missing regression filename_save_other_reg setting. Aborting.\n", __FILE__);
       (void) xmlFree(val);
       return -1;
     }
 
     /** timename **/
-    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "timename");
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "regression", "time_name");
     val = xml_get_setting(conf, path);
     if (val != NULL) {
       data->reg->timename = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));

@@ -111,6 +111,9 @@ write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *file
   attname = (char *) malloc(MAXPATH * sizeof(char));
   if (attname == NULL) alloc_error(__FILE__, __LINE__);
 
+  /* Change directory to output directory for autofs notification */
+  istat = chdir(dirname(filename));
+
   /** Open already existing output file **/
   istat = nc_open(filename, NC_WRITE, &ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);

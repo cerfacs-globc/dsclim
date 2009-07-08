@@ -78,6 +78,9 @@ LICENSE END */
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
+#ifdef HAVE_LIBGEN_H
+#include <libgen.h>
+#endif
 
 /** TRUE value macro is 1. */
 #define TRUE 1

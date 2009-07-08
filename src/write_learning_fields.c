@@ -67,6 +67,7 @@ write_learning_fields(data_struct *data) {
   int *cstoutid; /* NetCDF regression constant variable ID */
   int *regoutid; /* NetCDF regression coefficients variable ID */
   int *rrdoutid; /* NetCDF precipitation index variable ID */
+  int *rrooutid; /* NetCDF observed precipitation index variable ID */
   int *taoutid; /* NetCDF secondary large-scale field index variable ID */
   int pcoutid; /* NetCDF pc_normalized_var variable ID */
   int tamoutid; /* NetCDF secondary large-scale field index mean variable ID */
@@ -113,6 +114,8 @@ write_learning_fields(data_struct *data) {
   if (regoutid == NULL) alloc_error(__FILE__, __LINE__);
   rrdoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
   if (rrdoutid == NULL) alloc_error(__FILE__, __LINE__);
+  rrooutid = (int *) malloc(data->conf->nseasons * sizeof(int));
+  if (rrooutid == NULL) alloc_error(__FILE__, __LINE__);
   taoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
   if (taoutid == NULL) alloc_error(__FILE__, __LINE__);
   clustoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
@@ -223,6 +226,22 @@ write_learning_fields(data_struct *data) {
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = sprintf(tmpstr, "none");
     istat = nc_put_att_text(ncoutid, rrdoutid[s], "units", strlen(tmpstr), tmpstr);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    /* Define precipitation index obs variables */
+    (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_index_obs, s+1);
+    vardimids[0] = timedimoutid[s];
+    vardimids[1] = ptsdimoutid;
+    istat = nc_def_var(ncoutid, nomvar, NC_DOUBLE, 2, vardimids, &(rrooutid[s]));
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    istat = nc_put_att_double(ncoutid, rrooutid[s], "missing_value", NC_DOUBLE, 1, &fillvalue);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = sprintf(tmpstr, "%s %s_%d", data->conf->ptsname, data->learning->nomvar_time, s+1);
+    istat = nc_put_att_text(ncoutid, rrooutid[s], "coordinates", strlen(tmpstr), tmpstr);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = sprintf(tmpstr, "none");
+    istat = nc_put_att_text(ncoutid, rrooutid[s], "units", strlen(tmpstr), tmpstr);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
     /* Define sup_index (secondary large-scale field index for learning period) */
@@ -342,6 +361,16 @@ write_learning_fields(data_struct *data) {
     count[1] = (size_t) data->reg->npts;
     count[2] = 0;
     istat = nc_put_vara_double(ncoutid, rrdoutid[s], start, count, data->learning->data[s].precip_index);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    /* Write precipitation index obs */
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) data->learning->data[s].ntime;
+    count[1] = (size_t) data->reg->npts;
+    count[2] = 0;
+    istat = nc_put_vara_double(ncoutid, rrooutid[s], start, count, data->learning->data[s].precip_index_obs);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
     /* Write secondary field index */
@@ -566,6 +595,7 @@ write_learning_fields(data_struct *data) {
   (void) free(cstoutid);
   (void) free(regoutid);
   (void) free(rrdoutid);
+  (void) free(rrooutid);
   (void) free(taoutid);
   (void) free(clustoutid);
   (void) free(weightoutid);

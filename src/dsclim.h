@@ -260,6 +260,7 @@ typedef struct {
   double *precip_reg; /**< Precipitation regression values. */
   double *precip_reg_cst; /**< Precipitation regression constant values. */
   double *precip_index; /**< Precipitation index. */
+  double *precip_index_obs; /**< Observed precipitation index on regression points. */
   double *sup_index; /**< Secondary field index. */
   double sup_index_mean; /**< Mean of secondary field index. */
   double sup_index_var; /**< Variance of secondary field index. */
@@ -292,6 +293,7 @@ typedef struct {
   char *nomvar_precip_reg; /**< NetCDF variable name for precipitation regression coefficients. */
   char *nomvar_precip_reg_cst; /**< NetCDF variable name for precipitation regression constant. */
   char *nomvar_precip_index; /**< NetCDF variable name for precipitation index. */
+  char *nomvar_precip_index_obs; /**< NetCDF variable name for observed precipitation index. */
   char *nomvar_sup_index; /**< NetCDF variable name for secondary large-scale field index. */
   char *nomvar_sup_index_mean; /**< NetCDF variable name for secondary large-scale field mean. */
   char *nomvar_sup_index_var; /**< NetCDF variable name for secondary large-scale field variance. */
@@ -338,7 +340,8 @@ typedef struct {
   int npts; /**< Number of regression points. */
   double dist; /**< Distance of spatial mean influence for regression points. */ 
   int reg_save; /**< If regression data diagnostics will be saved in an output file. */
-  char *filename_save_reg; /**< Optional output filename for regression information for diagnostics. */
+  char *filename_save_ctrl_reg; /**< Optional output filename for regression information for diagnostics for control-run period. */
+  char *filename_save_other_reg; /**< Optional output filename for regression information for diagnostics for other downscaled period. */
   char *timename; /**< Optional output time dimension name for regression information for diagnostics. */
   char *dist_clusters_name; /**< Optional output distance to clusters variable name for regression information for diagnostics. */
 } reg_struct;
@@ -481,7 +484,8 @@ int output_downscaled_analog(analog_day_struct analog_days, double *delta, int o
                              info_struct *info, var_struct *obs_var, period_struct *period,
                              double *time_ls, int ntime);
 int write_learning_fields(data_struct *data);
-int write_regression_fields(data_struct *data, double **timeval, int *ntime, double **precip_index, double **distclust, double **sup_index);
+int write_regression_fields(data_struct *data, char *filename, double **timeval, int *ntime, double **precip_index, double **distclust,
+                            double **sup_index);
 void read_analog_data(analog_day_struct *analog_days, double **delta, double **time_ls, char *filename, char *timename);
 void save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int *cluster, double *time_ls,
                       char *filename, data_struct *data);

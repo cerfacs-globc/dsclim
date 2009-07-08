@@ -50,7 +50,8 @@ LICENSE END */
 
 /** Write regression-related downscaling fields for diagnostics use. */
 int
-write_regression_fields(data_struct *data, double **timeval, int *ntime, double **precip_index, double **distclust, double **sup_index) {
+write_regression_fields(data_struct *data, char *filename, double **timeval, int *ntime, double **precip_index, double **distclust,
+                        double **sup_index) {
   /**
      @param[in]   data                  MASTER data structure.
   */
@@ -104,7 +105,7 @@ write_regression_fields(data_struct *data, double **timeval, int *ntime, double 
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Open NetCDF file for writing, overwrite and truncate existing file if any */
-  istat = nc_create(data->reg->filename_save_reg, NC_CLOBBER, &ncoutid);
+  istat = nc_create(filename, NC_CLOBBER, &ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Set global attributes */

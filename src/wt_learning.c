@@ -129,6 +129,8 @@ wt_learning(data_struct *data) {
   int pt;
   int npt;
 
+  int niter;
+
   int istat; /** Return status. */
 
   if (data->learning->learning_provided == TRUE) {
@@ -246,6 +248,11 @@ wt_learning(data_struct *data) {
             npt++;
           }
         }
+      if (npt == 0) {
+        (void) fprintf(stderr, "%s: ERROR: There are no point of observation in the vicinity of the regression point #%d at a minimum distance of at least %f meters! Verify your regression points, or the configuration of your coordinate variable names in your configuration file. Must abort...\n",
+                       __FILE__, pt, data->reg->dist);
+        return -1;
+      }
       for (t=0; t<data->learning->obs->ntime; t++)
         mean_precip[t+pt*data->learning->obs->ntime] = sqrt(mean_precip[t+pt*data->learning->obs->ntime] / (double) npt);
     }
@@ -406,9 +413,14 @@ wt_learning(data_struct *data) {
       buf_weight = (double *) realloc(buf_weight, data->conf->season[s].nclusters * data->learning->rea_neof * data->learning->obs_neof *
                                       sizeof(double));
       if (buf_weight == NULL) alloc_error(__FILE__, __LINE__);
-      (void) best_clusters(buf_weight, buf_learn, data->conf->classif_type, data->conf->npartitions,
-                           data->conf->nclassifications, data->learning->rea_neof * data->learning->obs_neof,
-                           data->conf->season[s].nclusters, ntime_sub[s]);
+      niter = best_clusters(buf_weight, buf_learn, data->conf->classif_type, data->conf->npartitions,
+                            data->conf->nclassifications, data->learning->rea_neof * data->learning->obs_neof,
+                            data->conf->season[s].nclusters, ntime_sub[s]);
+      if (niter == 1) {
+        (void) fprintf(stderr, "%s: ERROR: In one classification, only 1 iteration was needed! Probably an error in your EOF data or configuration. Must abort...\n",
+                       __FILE__);
+        return -1;
+      }
 
       /* Keep only first data->learning->rea_neof EOFs */
       data->learning->data[s].weight = (double *) 
@@ -492,6 +504,8 @@ wt_learning(data_struct *data) {
       if (data->learning->data[s].precip_reg == NULL) alloc_error(__FILE__, __LINE__);
       data->learning->data[s].precip_index = (double *) malloc(data->reg->npts*ntime_sub[s] * sizeof(double));
       if (data->learning->data[s].precip_index == NULL) alloc_error(__FILE__, __LINE__);
+      data->learning->data[s].precip_index_obs = (double *) malloc(data->reg->npts*ntime_sub[s] * sizeof(double));
+      if (data->learning->data[s].precip_index_obs == NULL) alloc_error(__FILE__, __LINE__);
 
       for (pt=0; pt<data->reg->npts; pt++) {
         /* Compute regression and save regression constant */
@@ -505,6 +519,10 @@ wt_learning(data_struct *data) {
         /* Save precipitation index */
         for (t=0; t<ntime_sub[s]; t++)
           data->learning->data[s].precip_index[pt+t*data->reg->npts] = precip_index[t];
+
+        /* Save observed precipitation index */
+        for (t=0; t<ntime_sub[s]; t++)
+          data->learning->data[s].precip_index_obs[pt+t*data->reg->npts] = mean_precip_sub[t+pt*ntime_sub[s]];
       }
       (void) free(precip_reg);
       (void) free(precip_index);
