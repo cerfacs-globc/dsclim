@@ -129,6 +129,7 @@ void extract_subperiod_months(double **buf_sub, int *ntime_sub, double *bufin, i
 void mask_region(double *buffer, double missing_value, double *lon, double *lat,
                  double minlon, double maxlon, double minlat, double maxlat,
                  int nlon, int nlat, int ndim);
+void mask_points(double *buffer, double missing_value, short int *mask, int nlon, int nlat, int ndim);
 void normalize_field(double *nbuf, double *buf, double mean, double var, int ndima, int ndimb, int ntime);
 int comparf(const void *a, const void *b);
 double distance_point(double lon1, double lat1, double lon2, double lat2);

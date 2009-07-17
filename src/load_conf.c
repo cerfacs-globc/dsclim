@@ -718,6 +718,157 @@ load_conf(data_struct *data, char *fileconf) {
   if (val != NULL)
     (void) xmlFree(val);    
 
+  /**** LEARNING MASKFILE CONFIGURATION ****/
+  data->conf->learning_maskfile = (mask_struct *) malloc(sizeof(mask_struct));
+  if (data->conf->learning_maskfile == NULL) alloc_error(__FILE__, __LINE__);
+  /** use_mask **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "domain_learning_maskfile", "use_mask");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) 
+    data->conf->learning_maskfile->use_mask = (int) strtol((char *) val, (char **)NULL, 10);
+  else
+    data->conf->learning_maskfile->use_mask = FALSE;
+  if (data->conf->learning_maskfile->use_mask != FALSE && data->conf->learning_maskfile->use_mask != TRUE) {
+    (void) fprintf(stderr, "%s: Invalid or missing domain_learning_maskfile use_mask value %s in configuration file. Aborting.\n", __FILE__, val);
+    return -1;
+  }
+  (void) fprintf(stdout, "%s: domain_learning_maskfile use_mask=%d\n", __FILE__, data->conf->learning_maskfile->use_mask);
+  if (val != NULL) 
+    (void) xmlFree(val);
+
+  if (data->conf->learning_maskfile->use_mask == TRUE) {
+    /** filename **/
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "domain_learning_maskfile", "filename");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->conf->learning_maskfile->filename = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+      if (data->conf->learning_maskfile->filename == NULL) alloc_error(__FILE__, __LINE__);
+      (void) strcpy(data->conf->learning_maskfile->filename, (char *) val);
+      (void) fprintf(stdout, "%s: Learning domain maskfile filename = %s\n", __FILE__, data->conf->learning_maskfile->filename);
+      (void) xmlFree(val);
+      
+      /** maskname **/
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "domain_learning_maskfile", "mask_name");
+      val = xml_get_setting(conf, path);
+      if (val != NULL) {
+        data->conf->learning_maskfile->maskname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+        if (data->conf->learning_maskfile->maskname == NULL) alloc_error(__FILE__, __LINE__);
+        (void) strcpy(data->conf->learning_maskfile->maskname, (char *) val);
+        (void) fprintf(stdout, "%s: Learning domain maskfile name = %s\n", __FILE__, data->conf->learning_maskfile->maskname);
+        (void) xmlFree(val);
+      }
+      else {
+        data->conf->learning_maskfile->maskname = strdup("mask");
+        (void) fprintf(stderr, "%s: Default learning domain maskfile name = %s\n", __FILE__,
+                       data->conf->learning_maskfile->maskname);
+        (void) xmlFree(val);
+      }
+      /** lonname **/
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "domain_learning_maskfile", "longitude_name");
+      val = xml_get_setting(conf, path);
+      if (val != NULL) {
+        data->conf->learning_maskfile->lonname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+        if (data->conf->learning_maskfile->lonname == NULL) alloc_error(__FILE__, __LINE__);
+        (void) strcpy(data->conf->learning_maskfile->lonname, (char *) val);
+        (void) fprintf(stdout, "%s: Learning domain maskfile longitude_name = %s\n", __FILE__, data->conf->learning_maskfile->lonname);
+        (void) xmlFree(val);
+      }
+      else {
+        data->conf->learning_maskfile->lonname = strdup("lon");
+        (void) fprintf(stderr, "%s: Default learning domain maskfile longitude_name = %s\n", __FILE__,
+                       data->conf->learning_maskfile->lonname);
+        (void) xmlFree(val);
+      }
+      /** latname **/
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "domain_learning_maskfile", "latitude_name");
+      val = xml_get_setting(conf, path);
+      if (val != NULL) {
+        data->conf->learning_maskfile->latname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+        if (data->conf->learning_maskfile->latname == NULL) alloc_error(__FILE__, __LINE__);
+        (void) strcpy(data->conf->learning_maskfile->latname, (char *) val);
+        (void) fprintf(stdout, "%s: Learning domain maskfile latitude_name = %s\n", __FILE__, data->conf->learning_maskfile->latname);
+        (void) xmlFree(val);
+      }
+      else {
+        data->conf->learning_maskfile->latname = strdup("lat");
+        (void) fprintf(stderr, "%s: Default learning domain maskfile latitude_name = %s\n", __FILE__,
+                       data->conf->learning_maskfile->latname);
+        (void) xmlFree(val);
+      }
+      /** coords **/
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "domain_learning_maskfile", "coordinates");
+      val = xml_get_setting(conf, path);
+      if (val != NULL)
+        data->conf->learning_maskfile->coords = strdup((char *) val);
+      else
+        data->conf->learning_maskfile->coords = strdup("2D");
+      (void) fprintf(stdout, "%s: Learning domain maskfile coords = %s\n", __FILE__, data->conf->learning_maskfile->coords);
+      if (val != NULL)
+        (void) xmlFree(val);    
+      /** dimxname **/
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "domain_learning_maskfile", "dimx_name");
+      val = xml_get_setting(conf, path);
+      if (val != NULL) {
+        data->conf->learning_maskfile->dimxname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+        if (data->conf->learning_maskfile->dimxname == NULL) alloc_error(__FILE__, __LINE__);
+        (void) strcpy(data->conf->learning_maskfile->dimxname, (char *) val);
+        (void) fprintf(stdout, "%s: Learning domain maskfile dimx_name = %s\n", __FILE__, data->conf->learning_maskfile->dimxname);
+        (void) xmlFree(val);
+      }
+      else {
+        data->conf->learning_maskfile->dimxname = strdup("dimx");
+        (void) fprintf(stderr, "%s: Default learning domain maskfile dimx_name = %s\n", __FILE__,
+                       data->conf->learning_maskfile->dimxname);
+        (void) xmlFree(val);
+      }
+      /** dimyname **/
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "domain_learning_maskfile", "dimy_name");
+      val = xml_get_setting(conf, path);
+      if (val != NULL) {
+        data->conf->learning_maskfile->dimyname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+        if (data->conf->learning_maskfile->dimyname == NULL) alloc_error(__FILE__, __LINE__);
+        (void) strcpy(data->conf->learning_maskfile->dimyname, (char *) val);
+        (void) fprintf(stdout, "%s: Learning domain maskfile dimy_name = %s\n", __FILE__, data->conf->learning_maskfile->dimyname);
+        (void) xmlFree(val);
+      }
+      else {
+        data->conf->learning_maskfile->dimyname = strdup("dimy");
+        (void) fprintf(stderr, "%s: Default learning domain maskfile dimy_name = %s\n", __FILE__,
+                       data->conf->learning_maskfile->dimyname);
+        (void) xmlFree(val);
+      }
+      /** dimcoords **/
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "domain_learning_maskfile", "dim_coordinates");
+      val = xml_get_setting(conf, path);
+      if (val != NULL)
+        data->conf->learning_maskfile->dimcoords = strdup((char *) val);
+      else
+        data->conf->learning_maskfile->dimcoords = strdup("2D");
+      (void) fprintf(stdout, "%s: Learning domain maskfile dim_coords = %s\n", __FILE__, data->conf->learning_maskfile->dimcoords);
+      if (val != NULL)
+        (void) xmlFree(val);    
+      /** projection **/
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "domain_learning_maskfile", "projection");
+      val = xml_get_setting(conf, path);
+      if (val != NULL) {
+        data->conf->learning_maskfile->proj = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+        if (data->conf->learning_maskfile->proj == NULL) alloc_error(__FILE__, __LINE__);
+        (void) strcpy(data->conf->learning_maskfile->proj, (char *) val);
+        (void) xmlFree(val);
+      }
+      else
+        data->conf->learning_maskfile->proj = strdup("Latitude_Longitude");
+      (void) fprintf(stdout, "%s: Learning domain maskfile projection = %s\n",
+                     __FILE__, data->conf->learning_maskfile->proj);
+    }
+    else {
+      (void) fprintf(stderr, "%s: No learning domain maskfile. Desactivating the use of the mask.\n", __FILE__);
+      data->conf->learning_maskfile->filename = NULL;
+      data->conf->learning_maskfile->use_mask = FALSE;
+      (void) xmlFree(val);
+    }
+  }
+
   /**** OUTPUT CONFIGURATION ****/
 
   /** path **/
@@ -2993,6 +3144,10 @@ load_conf(data_struct *data, char *fileconf) {
     if (data->learning->learning_save == TRUE) {
       (void) fprintf(stderr, "%s: WARNING: Desactivating learning save process because option for output only has been set!\n", __FILE__);
       data->learning->learning_save = FALSE;
+    }
+    if (data->conf->learning_maskfile->use_mask == TRUE) {
+      (void) fprintf(stderr, "%s: WARNING: Desactivating use_mask for learning because option for output only has been set!\n", __FILE__);
+      data->conf->learning_maskfile->use_mask = FALSE;
     }
     if (data->reg->reg_save == TRUE) {
       (void) fprintf(stderr, "%s: WARNING: Desactivating regression save process because option for output only has been set!\n", __FILE__);

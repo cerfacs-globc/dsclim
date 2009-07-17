@@ -425,6 +425,23 @@ free_main_data(data_struct *data) {
   }
   (void) free(data->secondary_mask);
 
+  if (data->conf->learning_maskfile->use_mask == TRUE) {
+    if (data->conf->output_only != TRUE)
+      (void) free(data->conf->learning_maskfile->field);
+    (void) free(data->conf->learning_maskfile->filename);
+    (void) free(data->conf->learning_maskfile->maskname);
+    (void) free(data->conf->learning_maskfile->lonname);
+    (void) free(data->conf->learning_maskfile->latname);
+    (void) free(data->conf->learning_maskfile->coords);
+    (void) free(data->conf->learning_maskfile->dimxname);
+    (void) free(data->conf->learning_maskfile->dimyname);
+    (void) free(data->conf->learning_maskfile->dimcoords);
+    (void) free(data->conf->learning_maskfile->proj);
+    (void) free(data->conf->learning_maskfile->lat);
+    (void) free(data->conf->learning_maskfile->lon);
+  }
+  (void) free(data->conf->learning_maskfile);
+
   if (data->conf->obs_var->nobs_var > 0) {
     for (i=0; i<data->conf->obs_var->nobs_var; i++) {
       (void) free(data->conf->obs_var->acronym[i]);

@@ -216,7 +216,23 @@ wt_learning(data_struct *data) {
     (void) free(precip_liquid_obs);
     (void) free(precip_solid_obs);
     
-    /* Mask region if needed */
+    /* Apply mask for learning data */
+    if (data->conf->learning_maskfile->use_mask == TRUE) {
+      /* Allocate memory */
+      mask_sub = (short int *) malloc(data->learning->nlat*data->learning->nlon * sizeof(short int));
+      if (mask_sub == NULL) alloc_error(__FILE__, __LINE__);
+      for (i=0; i<data->learning->nlat*data->learning->nlon; i++)
+        mask_sub[i] = (short int) data->conf->learning_maskfile->field[i];
+      /* Apply mask */
+      (void) printf("%s: Masking points using mask file for regression analysis.\n", __FILE__);
+      (void) mask_points(precip_obs, missing_value_precip, mask_sub,
+                         data->learning->nlon, data->learning->nlat, data->learning->obs->ntime);
+      /* Free memory of mask_sub */
+      (void) free(mask_sub);
+      mask_sub = NULL;
+    }
+
+    /* Mask region if needed using domain bounding box */
     if (data->conf->learning_mask_longitude_min != -999.0 &&
         data->conf->learning_mask_longitude_max != -999.0 &&
         data->conf->learning_mask_latitude_min != -999.0 &&
@@ -227,7 +243,7 @@ wt_learning(data_struct *data) {
                          data->conf->learning_mask_latitude_min, data->conf->learning_mask_latitude_max,
                          data->learning->nlon, data->learning->nlat, data->learning->obs->ntime);
     }
-    
+
     /* Perform spatial mean of observed precipitation around regression points, normalize precip */
     (void) printf("%s: Perform spatial mean of observed precipitation around regression points.\n", __FILE__);
     mean_precip = (double *) malloc(data->reg->npts * data->learning->obs->ntime * sizeof(double));

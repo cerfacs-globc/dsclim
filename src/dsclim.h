@@ -421,6 +421,7 @@ typedef struct {
   double learning_mask_longitude_max; /**< Learning Mask maximum longitude. */
   double learning_mask_latitude_min; /**< Learning Mask minimum latitude. */
   double learning_mask_latitude_max; /**< Learning Mask maximum latitude. */
+  mask_struct *learning_maskfile; /**< Learning Mask structure for optional mask file. */
   char *output_path; /**< Output path. */
   int output_month_begin; /**< Output month number (1-12) in where we begin the output year. */
   int nseasons; /**< Number of seasons. */

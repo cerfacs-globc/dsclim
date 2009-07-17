@@ -10,7 +10,7 @@
 
 # initial information about the project
 AC_INIT([dsclim],
-        [1.0.3],
+        [1.0.4],
         [Christian Page christian.page@cerfacs.fr],
         [dsclim])
 
