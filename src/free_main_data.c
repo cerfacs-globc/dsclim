@@ -264,8 +264,8 @@ free_main_data(data_struct *data) {
       (void) free(data->learning->data[s].precip_reg);
       (void) free(data->learning->data[s].precip_reg_cst);
       (void) free(data->learning->data[s].precip_index);
-      (void) free(data->learning->data[s].precip_index_obs);
       (void) free(data->learning->data[s].sup_index);
+      
     }
   }
   
@@ -275,6 +275,9 @@ free_main_data(data_struct *data) {
     (void) free(data->learning->obs->nomvar_sing);
     (void) free(data->learning->obs->eof);
     (void) free(data->learning->obs->sing);
+
+    for (s=0; s<data->conf->nseasons; s++)
+      (void) free(data->learning->data[s].precip_index_obs);
     
     (void) free(data->learning->obs->time_s->year);
     (void) free(data->learning->obs->time_s->month);
@@ -427,12 +430,18 @@ free_main_data(data_struct *data) {
       (void) free(data->conf->obs_var->acronym[i]);
       (void) free(data->conf->obs_var->netcdfname[i]);
       (void) free(data->conf->obs_var->name[i]);
+      (void) free(data->conf->obs_var->post[i]);
+      (void) free(data->conf->obs_var->height[i]);
+      (void) free(data->conf->obs_var->units[i]);
     }
     (void) free(data->conf->obs_var->acronym);
     (void) free(data->conf->obs_var->netcdfname);
     (void) free(data->conf->obs_var->name);
     (void) free(data->conf->obs_var->factor);
     (void) free(data->conf->obs_var->delta);
+    (void) free(data->conf->obs_var->post);
+    (void) free(data->conf->obs_var->height);
+    (void) free(data->conf->obs_var->units);
   }
   (void) free(data->conf->obs_var->frequency);
   (void) free(data->conf->obs_var->template);

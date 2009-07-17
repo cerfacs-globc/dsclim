@@ -126,11 +126,14 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *tim
   double minlon;
   double maxlon;
 
+  /* Change directory to output directory for autofs notification */
+  tmpstr = strdup(filename);
+  istat = chdir(dirname(tmpstr));
+  (void) free(tmpstr);
+
   tmpstr = (char *) malloc(MAXPATH * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
 
-  /* Change directory to output directory for autofs notification */
-  istat = chdir(dirname(filename));
   /* Open NetCDF file */
   if (outinfo == TRUE)
     printf("%s: Writing info from NetCDF output file %s\n", __FILE__, filename);

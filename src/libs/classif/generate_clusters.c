@@ -80,7 +80,7 @@ generate_clusters(double *clusters, double *pc_eof_days, char *type, int nclassi
   int *days_class_cluster = NULL; /* Vector of classification of days into each cluster. */
 
   static unsigned long int seed = 0;
-  
+
   (void) fprintf(stdout, "%s:: BEGIN: Find clusters among data points.\n", __FILE__);
 
   /***********************************/

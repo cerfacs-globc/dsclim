@@ -86,6 +86,7 @@ mean_variance_field_spatial(double *buf_mean, double *buf_var, double *buf, shor
   else {
     for (t=0; t<ntime; t++) {
       sum = 0.0;
+      pts = 0;
       for (j=0; j<nj; j++)
         for (i=0; i<ni; i++)
           if (mask[i+j*ni] == 1) {

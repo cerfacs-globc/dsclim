@@ -165,6 +165,10 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
 
   /* Process each downscaled day */
   for (t=0; t<ntime_sub; t++) {
+    
+#if DEBUG > 7
+    printf("%d %d %d %d\n",t,year[buf_sub_i[t]],month[buf_sub_i[t]],day[buf_sub_i[t]]);
+#endif
 
     /* Compute the current downscaled day of year being processed */
     cur_dayofy = dayofclimyear(day[buf_sub_i[t]], month[buf_sub_i[t]]);

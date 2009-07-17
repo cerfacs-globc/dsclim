@@ -129,7 +129,7 @@ wt_learning(data_struct *data) {
   int pt;
   int npt;
 
-  int niter;
+  int niter = 2;
 
   int istat; /** Return status. */
 
@@ -388,7 +388,7 @@ wt_learning(data_struct *data) {
       
       /** Merge observation and reanalysis principal components for clustering algorithm and normalize using first Singular Value **/
 
-      buf_learn = (double *) realloc(buf_learn, ntime_sub[s] * data->learning->rea_neof * data->learning->obs_neof * sizeof(double));
+      buf_learn = (double *) realloc(buf_learn, ntime_sub[s] * (data->learning->rea_neof + data->learning->obs_neof) * sizeof(double));
       if (buf_learn == NULL) alloc_error(__FILE__, __LINE__);
 
       /* Normalisation by the first Singular Value */
@@ -410,17 +410,12 @@ wt_learning(data_struct *data) {
       }
 
       /* Compute best clusters */
-      buf_weight = (double *) realloc(buf_weight, data->conf->season[s].nclusters * data->learning->rea_neof * data->learning->obs_neof *
+      buf_weight = (double *) realloc(buf_weight, data->conf->season[s].nclusters * (data->learning->rea_neof + data->learning->obs_neof) *
                                       sizeof(double));
       if (buf_weight == NULL) alloc_error(__FILE__, __LINE__);
       niter = best_clusters(buf_weight, buf_learn, data->conf->classif_type, data->conf->npartitions,
-                            data->conf->nclassifications, data->learning->rea_neof * data->learning->obs_neof,
+                            data->conf->nclassifications, data->learning->rea_neof + data->learning->obs_neof,
                             data->conf->season[s].nclusters, ntime_sub[s]);
-      if (niter == 1) {
-        (void) fprintf(stderr, "%s: ERROR: In one classification, only 1 iteration was needed! Probably an error in your EOF data or configuration. Must abort...\n",
-                       __FILE__);
-        return -1;
-      }
 
       /* Keep only first data->learning->rea_neof EOFs */
       data->learning->data[s].weight = (double *) 
@@ -429,7 +424,7 @@ wt_learning(data_struct *data) {
       for (clust=0; clust<data->conf->season[s].nclusters; clust++)
         for (eof=0; eof<data->learning->rea_neof; eof++)
           data->learning->data[s].weight[eof+clust*data->learning->rea_neof] =
-            buf_weight[eof+clust*(data->learning->rea_neof*data->learning->obs_neof)];
+            buf_weight[eof+clust*(data->learning->rea_neof+data->learning->obs_neof)];
       
       /* Classify each day in the current clusters */
       data->learning->data[s].class_clusters = (int *) malloc(ntime_sub[s] * sizeof(int));
@@ -558,6 +553,11 @@ wt_learning(data_struct *data) {
     if (data->learning->learning_save == TRUE) {
       (void) printf("Writing learning fields.\n");
       istat = write_learning_fields(data);
+    }
+    if (niter == 1) {
+      (void) fprintf(stderr, "%s: ERROR: In one classification, only 1 iteration was needed! Probably an error in your EOF data or configuration. Must abort...\n",
+                     __FILE__);
+      return -1;
     }
   }
 

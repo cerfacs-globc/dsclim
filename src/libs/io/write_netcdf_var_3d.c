@@ -98,12 +98,15 @@ write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
   char *attname = NULL; /* Attribute name */
   char *tmpstr = NULL; /* Temporary string */
 
+  /* Change directory to output directory for autofs notification */
+  tmpstr = strdup(filename);
+  istat = chdir(dirname(tmpstr));
+  (void) free(tmpstr);
+
   /* Allocate memory */
   attname = (char *) malloc(MAXPATH * sizeof(char));
   if (attname == NULL) alloc_error(__FILE__, __LINE__);
 
-  /* Change directory to output directory for autofs notification */
-  istat = chdir(dirname(filename));
   /** Open already existing output file **/
   istat = nc_open(filename, NC_WRITE, &ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
