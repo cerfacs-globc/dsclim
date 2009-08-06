@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<configuration>
+
+  <!-- Debugging setting -->
+  <setting name="debug">On</setting>
+  
+  <!-- Climatology removal -->
+  <setting name="clim_filter_width">60</setting>
+  <setting name="clim_filter_type">hanning</setting>
+
+  <!-- Cluster classification distance type -->
+  <setting name="classif_type">euclidian</setting>
+  <setting name="number_of_partitions">30</setting>
+  <setting name="number_of_classifications">1000</setting>
+
+  <!-- Calendar-output parameters -->
+  <setting name="base_time_units">days since 1900-01-01 00:00:00</setting>
+  <setting name="base_calendar_type">gregorian</setting>
+
+  <!-- Grid-output information -->
+  <setting name="longitude_name">lon</setting>
+  <setting name="latitude_name">lat</setting>
+  <setting name="coordinates">2D</setting>
+  
+  <!-- Output information -->
+  <setting name="output">
+    <path>/home/page/downscaling/data/results/SRESA1B/v2_new</path>
+    <month_begin>08</month_begin>
+  </setting>
+
+  <!-- Observation database for analog days -->
+  <setting name="observations">
+    <dimx_name>x</dimx_name>
+    <dimy_name>y</dimy_name>
+    <dim_coordinates>1D</dim_coordinates>
+    <longitude_name>lon</longitude_name>
+    <latitude_name>lat</latitude_name>
+    <coordinates>2D</coordinates>
+    <time_name>time</time_name>
+    <number_of_variables>7</number_of_variables>
+    <frequency>daily</frequency>
+    <path>/contrex/Obs/SAFRAN/netcdf</path>
+    <month_begin>08</month_begin>
+    <year_digits>2</year_digits>
+    <!-- ForcT.DAT_france_0102_daily.nc : format as in sprintf -->
+    <!-- Must be consistent with the number of year_digits and month_begin. -->
+    <!-- If month_begin is 1, only one %d must appear! -->
+    <template>Forc%s.DAT_france_%02d%02d_daily.nc</template>
+    <variables>
+      <name id="1" acronym="T" netcdfname="tas" factor="1.0" delta="0.0">Temperature at 2 m</name>
+      <name id="2" acronym="Q" netcdfname="hus" factor="1.0" delta="0.0">Specific humidity at 2 m</name>
+      <name id="3" acronym="PRCP" netcdfname="prr" factor="1.0" delta="0.0">Liquid precipitation at the surface</name>
+      <name id="4" acronym="SNOW" netcdfname="prsn" factor="1.0" delta="0.0">Solid precipitation at the surface</name>
+      <name id="5" acronym="RAT" netcdfname="rlds" factor="1.0" delta="0.0">Incoming infra-red radiation at the surface</name>
+      <name id="6" acronym="GLO" netcdfname="rsds" factor="1.0" delta="0.0">Incoming shortwave radiation at the surface</name>
+      <name id="7" acronym="Vu" netcdfname="uvas" factor="1.0" delta="0.0">Wind speed module at 10 m</name>
+    </variables>
+  </setting>
+
+  <!-- Learning data -->
+  <setting name="learning">
+    <learning_provided>0</learning_provided>
+    <learning_save>1</learning_save>
+    <filename_open_weight>/home/page/codes/src/dsclim/trunk/tests/Poid_down.nc</filename_open_weight>
+    <filename_open_learn>/home/page/codes/src/dsclim/trunk/tests/learning_data_NCEP.nc</filename_open_learn>
+    <filename_open_clust_learn>/home/page/codes/src/dsclim/trunk/tests/clust_learn.nc</filename_open_clust_learn>
+    <filename_save_weight>/home/page/codes/src/dsclim/trunk/tests/Poid_down_test.nc</filename_save_weight>
+    <filename_save_learn>/home/page/codes/src/dsclim/trunk/tests/learning_data_NCEP_test.nc</filename_save_learn>
+    <filename_save_clust_learn>/home/page/codes/src/dsclim/trunk/tests/clust_learn_test.nc</filename_save_clust_learn>
+    <filename_obs_eof>/home/page/codes/src/dsclim/trunk/tests/ForcPRE.DAT_france_8105_cat_aseason_EOF_test.nc</filename_obs_eof>
+    <filename_rea_eof>/home/page/codes/src/dsclim/trunk/tests/psl_1d_19480101_20060331_NCP_aseason_EOF_test.nc</filename_rea_eof>
+    <filename_rea_sup>/home/page/codes/src/dsclim/trunk/tests/tas_1d_19480101_20070331_NCP.nc</filename_rea_sup>
+    <number_of_eofs>10</number_of_eofs>
+    <nomvar_obs_eof>pre_pc</nomvar_obs_eof>
+    <nomvar_rea_eof>psl_pc</nomvar_rea_eof>
+    <!-- NetCDF variable name for singular values -->
+    <nomvar_obs_sing>pre_sing</nomvar_obs_sing>
+    <nomvar_rea_sing>psl_sing</nomvar_rea_sing>
+  </setting>
+
+  <!-- Regression parameters -->
+  <setting name="regression">
+    <filename>/home/page/codes/src/dsclim/trunk/tests/reg_pts_france.nc</filename>
+    <latname>lat</latname>
+    <lonname>lon</lonname>
+    <ptsname>pts</ptsname>
+  </setting>
+
+  <!-- Large-scale domain bounding box -->
+  <setting name="domain_large_scale">
+    <longitude type="min">-10.0</longitude>
+    <longitude type="max">17.5</longitude>
+    <latitude type="min">35.0</latitude>
+    <latitude type="max">57.5</latitude>
+  </setting>
+
+  <!-- Learning mask domain bounding box -->
+  <!-- corse=where(lons le 43.5 and lons ge 8.5,complement=no_corse) -->
+  <setting name="domain_learning_mask">
+    <longitude type="min">8.5</longitude>
+    <longitude type="max">43.5</longitude>
+    <latitude type="min">20.0</latitude>
+    <latitude type="max">60.0</latitude>
+  </setting>
+
+  <!-- Model control-run period -->
+  <setting name="period_ctrl">
+    <period>
+      <year_begin>1950</year_begin>
+      <month_begin>01</month_begin>
+      <day_begin>01</day_begin>
+      <year_end>1999</year_end>
+      <month_end>12</month_end>
+      <day_end>31</day_end>
+    </period>
+    <downscale>1</downscale>
+  </setting>
+
+  <!-- Seasons definition -->
+  <!-- Number of seasons -->
+  <setting name="number_of_seasons">4</setting>
+  <setting name="seasons">
+    <!-- For each season, number of months followed by month numbers in that particular season -->
+    <season id="1" nmonths="3">09 10 11</season>
+    <season id="2" nmonths="3">12 01 02</season>
+    <season id="3" nmonths="3">03 04 05</season>
+    <season id="4" nmonths="3">06 07 08</season>
+    <!-- For each season, number of clusters -->
+    <number_of_clusters id="1">9</number_of_clusters>
+    <number_of_clusters id="2">9</number_of_clusters>
+    <number_of_clusters id="3">10</number_of_clusters>
+    <number_of_clusters id="4">10</number_of_clusters>
+    <!-- For each season, number of regression variables -->
+    <number_of_regression_vars id="1">9</number_of_regression_vars>
+    <number_of_regression_vars id="2">9</number_of_regression_vars>
+    <number_of_regression_vars id="3">10</number_of_regression_vars>
+    <number_of_regression_vars id="4">11</number_of_regression_vars>
+    <!-- For each season, number of days to search in the season -->
+    <number_of_days_search id="1">10</number_of_days_search>
+    <number_of_days_search id="2">10</number_of_days_search>
+    <number_of_days_search id="3">10</number_of_days_search>
+    <number_of_days_search id="4">10</number_of_days_search>
+    <!-- For each season, number of analog days to choose for final selection -->
+    <number_of_days_choices id="1">16</number_of_days_choices>
+    <number_of_days_choices id="2">16</number_of_days_choices>
+    <number_of_days_choices id="3">11</number_of_days_choices>
+    <number_of_days_choices id="4">11</number_of_days_choices>
+    <!-- For each season, if we want to shuffle when choosing the analog day -->
+    <days_shuffle id="1">1</days_shuffle>
+    <days_shuffle id="2">1</days_shuffle>
+    <days_shuffle id="3">0</days_shuffle>
+    <days_shuffle id="4">0</days_shuffle>
+  </setting>
+
+  <!-- Large-scale fields -->
+  <setting name="number_of_large_scale_control_fields">1</setting>
+  <setting name="number_of_large_scale_fields">0</setting>
+
+  <setting name="large_scale_control_fields">
+
+    <!-- *********************** -->
+    <!-- Mean Sea-Level Pressure -->
+    <!-- *********************** -->
+    <!-- General parameters -->
+    <!-- NetCDF variable name -->
+    <name id="1">psl</name>
+    <!-- Control model run NetCDF file -->
+    <filename id="1">/home/page/codes/src/dsclim/trunk/tests/interpERA40_psl_1d_19500101_19991231_EB2_test.nc</filename>
+    <!-- Projection type CF-1.0 compliant -->
+    <projection id="1">Latitude_Longitude</projection>
+    <!-- Coordinates number of dimensions -->
+    <coordinates id="1">2D</coordinates>
+
+    <!-- Climatology parameters -->
+    <!-- Remove climatology or not -->
+    <clim_remove id="1">1</clim_remove>
+    <!-- Climatology is pre-calculated or not -->
+    <clim_provided id="1">1</clim_provided>
+    <!-- NetCDF climatology variable name -->
+    <clim_name id="1">psl</clim_name>
+    <!-- Save climatology or not -->
+    <clim_save id="1">0</clim_save>
+    <!-- NetCDF file to open for pre-calculated climatology -->
+    <clim_openfilename id="1">/home/page/codes/src/dsclim/trunk/tests/CLIM_psl_1d_19500101_19991231_EB2_test.nc</clim_openfilename>
+    <!-- NetCDF file to save climatology -->
+    <clim_savefilename id="1">/home/page/codes/src/dsclim/trunk/tests/CLIM_psl_1d_19500101_19991231_EB2_save.nc</clim_savefilename>
+
+    <!-- EOF parameters -->
+    <!-- Number of EOFs -->
+    <number_of_eofs id="1">10</number_of_eofs>
+    <!-- Project field onto EOF or not -->
+    <eof_project id="1">1</eof_project>
+    <!-- Scaling factor when projecting data onto EOF -->
+    <eof_scale id="1">100.0</eof_scale>
+    <!-- NetCDF variable name for projected field onto EOF -->
+    <eof_name id="1">psl_eof</eof_name>
+    <!-- NetCDF variable name for singular values -->
+    <sing_name id="1">psl_sing</sing_name>
+    <!-- Coordinates number of dimensions -->
+    <eof_coordinates id="1">1D</eof_coordinates>
+    <!-- NetCDF file for pre-projected data on EOF -->
+    <eof_openfilename id="1">/home/page/codes/src/dsclim/trunk/tests/psl_1d_19480101_20060331_NCP_aseason_EOF_test.nc</eof_openfilename>
+
+  </setting>
+
+  <!-- Large-scale secondary fields -->
+  <setting name="number_of_secondary_large_scale_control_fields">1</setting>
+  <setting name="number_of_secondary_large_scale_fields">0</setting>
+
+  <setting name="secondary_large_scale_control_fields">
+
+    <!-- ************************** -->
+    <!-- Temperature                -->
+    <!-- ************************** -->
+    <!-- General parameters -->
+    <!-- NetCDF variable name -->
+    <name id="1">tas</name>
+    <!-- Control model run NetCDF file -->
+    <filename id="1">/home/page/codes/src/dsclim/trunk/tests/interpERA40_tas_1d_19500101_19991231_EB2_test.nc</filename>
+    <!-- Projection type CF-1.0 compliant -->
+    <projection id="1">Latitude_Longitude</projection>
+    <!-- Coordinates number of dimensions -->
+    <coordinates id="1">2D</coordinates>
+
+  </setting>
+
+</configuration>

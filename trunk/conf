@@ -1,0 +1,2 @@
+#./configure --prefix=/home/page/codes/local --with-zlib=/contrex/local64 --with-szlib=/contrex/local64 --with-hdf5=/contrex/local64 --with-netcdf=/contrex/local64 --with-udunits=/contrex/local64
+./configure --prefix=/home/page/codes/local --with-debugging=4 --with-zlib=/contrex/local64 --with-szlib=/contrex/local64 --with-hdf5=/contrex/local64 --with-netcdf=/contrex/local64 --with-udunits=/contrex/local64
