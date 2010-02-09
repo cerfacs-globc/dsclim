@@ -198,6 +198,7 @@ utCalendar_cal( double val, utUnit *dataunits, int *year, int *month, int *day, 
 #if DEBUG > 7
     printf( "utCalendar_cal: using standard calendar\n" );
 #endif
+    utCalendar( val, dataunits, year, month, day, hour, minute, second );
     return( utCalendar( val, dataunits, year, month, day, hour, minute, second ));
   }
   else if( (strcmp(calendar,"365")==0) || (strncasecmp(calendar,"365_day",7)==0) || (strncasecmp(calendar,"noleap",6)==0) ) {

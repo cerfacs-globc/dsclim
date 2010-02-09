@@ -330,7 +330,7 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
         for (tl=0; tl<ntime_days; tl++)
           metric_norm[tl] = (metric[tl] - varmean) / varstd;
 
-      /* Sort the vector, retrieve the sortex indexes and select only the first ndayschoices ones */
+      /* Sort the vector, retrieve the sorted indexes and select only the first ndayschoices ones */
       //      printf("%d %d\n",ntime_days,ndayschoices);
       (void) gsl_sort_smallest_index(metric_index, (size_t) ndayschoices, metric_norm, 1, (size_t) ntime_days);
       
@@ -354,6 +354,21 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
         analog_days.month_s[t] = month[buf_sub_i[t]];
         analog_days.day_s[t] = day[buf_sub_i[t]];
         analog_days.tindex_s_all[t] = buf_sub_i[t];
+
+        /* Save all analog days in special time structure */
+        analog_days.analog_dayschoice[t] = (tstruct *) malloc(ndayschoices * sizeof(tstruct));
+        if (analog_days.analog_dayschoice[t] == NULL) alloc_error(__FILE__, __LINE__);
+        analog_days.metric_norm[t] = (float *) malloc(ndayschoices * sizeof(float));
+        if (analog_days.metric_norm[t] == NULL) alloc_error(__FILE__, __LINE__);
+        for (ii=0; ii<ndayschoices; ii++) {
+          analog_days.metric_norm[t][ii] = metric_norm[metric_index[ii]];
+          analog_days.analog_dayschoice[t][ii].year = year_learn[ntime_days_learn[metric_index[ii]]];
+          analog_days.analog_dayschoice[t][ii].month = month_learn[ntime_days_learn[metric_index[ii]]];
+          analog_days.analog_dayschoice[t][ii].day = day_learn[ntime_days_learn[metric_index[ii]]];
+          analog_days.analog_dayschoice[t][ii].hour = 0;
+          analog_days.analog_dayschoice[t][ii].min = 0;
+          analog_days.analog_dayschoice[t][ii].sec = 0;
+        }
       }
       else {
         /* Don't shuffle. Instead choose the one having the smallest metric for the best match */
@@ -401,6 +416,21 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
         analog_days.month_s[t] = month[buf_sub_i[t]];
         analog_days.day_s[t] = day[buf_sub_i[t]];
         analog_days.tindex_s_all[t] = buf_sub_i[t];
+
+        /* Save all analog days in special time structure */
+        analog_days.analog_dayschoice[t] = (tstruct *) malloc(ndayschoices * sizeof(tstruct));
+        if (analog_days.analog_dayschoice[t] == NULL) alloc_error(__FILE__, __LINE__);
+        analog_days.metric_norm[t] = (float *) malloc(ndayschoices * sizeof(float));
+        if (analog_days.metric_norm[t] == NULL) alloc_error(__FILE__, __LINE__);
+        for (ii=0; ii<ndayschoices; ii++) {
+          analog_days.metric_norm[t][ii] = metric_norm[metric_index[ii]];
+          analog_days.analog_dayschoice[t][ii].year = year_learn[ntime_days_learn[metric_index[ii]]];
+          analog_days.analog_dayschoice[t][ii].month = month_learn[ntime_days_learn[metric_index[ii]]];
+          analog_days.analog_dayschoice[t][ii].day = day_learn[ntime_days_learn[metric_index[ii]]];
+          analog_days.analog_dayschoice[t][ii].hour = 0;
+          analog_days.analog_dayschoice[t][ii].min = 0;
+          analog_days.analog_dayschoice[t][ii].sec = 0;
+        }
       }
       
       /* Free memory */

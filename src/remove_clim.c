@@ -220,6 +220,7 @@ remove_clim(data_struct *data) {
                                       data->field[cat].data[i].clim_info->clim_nomvar_ls, data->field[cat].proj[i].name,
                                       data->field[cat].data[i].lonname, data->field[cat].data[i].latname,
                                       data->field[cat].data[i].timename,
+                                      data->conf->format, data->conf->compression_level,
                                       data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_clim, TRUE);
           if (istat != 0) {
             /* In case of failure */
@@ -353,6 +354,7 @@ remove_clim(data_struct *data) {
                                       data->field[cat].data[i].clim_info->clim_nomvar_ls, data->field[cat].proj[i].name,
                                       data->field[cat].data[i].lonname, data->field[cat].data[i].latname,
                                       data->field[cat].data[i].timename,
+                                      data->conf->format, data->conf->compression_level,
                                       data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_clim, TRUE);
           if (istat != 0) {
             /* In case of failure */

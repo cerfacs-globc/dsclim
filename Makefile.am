@@ -18,7 +18,7 @@ EXTRA_DIST = configure $(DX_CONFIG) etc doc/html
 SUBDIRS = m4 src/libs src tests .
 
 confsdir=${pkgdatadir}
-confs_DATA=etc/configuration.xml
+confs_DATA=etc/configuration_example_grid.xml etc/configuration_example_nongrid.xml
 
 #htmldocdir=${pkgdatadir}/doc/html
 #htmldoc_DATA = doc/html/*

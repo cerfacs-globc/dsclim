@@ -5,12 +5,13 @@
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
 /* Date of creation: sep 2008                            */
-/* Last date of modification: sep 2008                   */
+/* Last date of modification: jan 2010                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
-/* Current revision:                                     */
+/* Current revision: 1.1                                 */
 /* ***************************************************** */
 /* Revisions                                             */
+/* 1.1 Added compression level                           */
 /* ***************************************************** */
 /*! \file write_netcdf_var_3d.c
     \brief Write a NetCDF variable.
@@ -59,22 +60,24 @@ LICENSE END */
 int
 write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
                     char *varname, char *gridname, char *lonname, char *latname, char *timename,
-                    int nlon, int nlat, int ntime, int outinfo) {
+                    int format, int compression_level, int nlon, int nlat, int ntime, int outinfo) {
   /**
-     @param[in]  buf         3D Field to write
-     @param[in]  fillvalue   Missing value
-     @param[in]  filename    Output NetCDF filename
-     @param[in]  varname     Variable name in the NetCDF file
-     @param[in]  gridname    Grid type name in the NetCDF file
-     @param[in]  lonname     Longitude name dimension in the NetCDF file
-     @param[in]  latname     Latitude name dimension in the NetCDF file
-     @param[in]  timename    Time name dimension in the NetCDF file
-     @param[in]  nlon        Longitude dimension
-     @param[in]  nlat        Latitude dimension
-     @param[in]  ntime       Time dimension
-     @param[in]  outinfo     TRUE if we want information output, FALSE if not
+     @param[in]  buf               3D Field to write
+     @param[in]  fillvalue         Missing value
+     @param[in]  filename          Output NetCDF filename
+     @param[in]  varname           Variable name in the NetCDF file
+     @param[in]  gridname          Grid type name in the NetCDF file
+     @param[in]  lonname           Longitude name dimension in the NetCDF file
+     @param[in]  latname           Latitude name dimension in the NetCDF file
+     @param[in]  timename          Time name dimension in the NetCDF file
+     @param[in]  format            Format of NetCDF file
+     @param[in]  compression_level Compression level of NetCDF file (only for NetCDF-4: format==4)
+     @param[in]  nlon              Longitude dimension
+     @param[in]  nlat              Latitude dimension
+     @param[in]  ntime             Time dimension
+     @param[in]  outinfo           TRUE if we want information output, FALSE if not
      
-     \return                 Status.
+     \return                       Status.
   */
 
   int istat; /* Diagnostic status */
@@ -87,6 +90,10 @@ write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
   int londimoutid; /* NetCDF longitude dimension output ID */
   int latdimoutid; /* NetCDF latitude dimension output ID */
   int vardimids[NC_MAX_VAR_DIMS]; /* NetCDF dimension IDs */
+  //  size_t chunksize[NC_MAX_VAR_DIMS]; /* Chunksize */
+  //  size_t cachesize; /* HDF5 cache size */
+  //  size_t cache_nelems = 2000; /* HDF5 cache number of elements */
+  //  float cache_preemp;
 
   int ntime_file; /* Time dimension in NetCDF output file */
   int nlat_file; /* Latitude dimension in NetCDF output file */
@@ -106,6 +113,20 @@ write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
   /* Allocate memory */
   attname = (char *) malloc(MAXPATH * sizeof(char));
   if (attname == NULL) alloc_error(__FILE__, __LINE__);
+
+  /* Set cache size */
+  /*   if (format == 4 && compression_level > 0) {
+    if ( !strcmp(gridname, "list") )
+      cachesize = (size_t) nlon*sizeof(float)*cache_nelems;
+    else
+      cachesize = (size_t) nlat*nlon*sizeof(float)*cache_nelems;
+    istat = nc_get_chunk_cache(&cachesize, &cache_nelems, &cache_preemp);
+    cache_preemp = 0.75;
+    cachesize=128000000;
+    printf("%d %d %f\n",(int)cachesize,(int)cache_nelems,cache_preemp);
+    istat = nc_set_chunk_cache(cachesize, cache_nelems, cache_preemp);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    } */
 
   /** Open already existing output file **/
   istat = nc_open(filename, NC_WRITE, &ncoutid);
@@ -160,6 +181,27 @@ write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
     istat = nc_def_var(ncoutid, varname, NC_FLOAT, 3, vardimids, &varoutid);  
   }
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+#ifdef NC_NETCDF4
+    if (format == 4 && compression_level > 0) {
+      istat = nc_def_var_deflate(ncoutid, varoutid, 0, 1, compression_level);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      /* Set up chunking */
+      /*      if ( !strcmp(gridname, "list") ) {
+        chunksize[0] = (size_t) ntime;
+        chunksize[1] = (size_t) nlon;
+        chunksize[2] = (size_t) 0;
+      }
+      else {
+        chunksize[0] = (size_t) ntime;
+        chunksize[1] = (size_t) nlat;
+        chunksize[2] = (size_t) nlon;
+      }
+      istat = nc_def_var_chunking(ncoutid, varoutid, NC_CHUNKED, chunksize);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      */
+    }
+#endif
 
   /* Set main variable attributes */
   (void) strcpy(attname, "_FillValue");

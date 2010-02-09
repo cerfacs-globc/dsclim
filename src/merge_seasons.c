@@ -58,6 +58,7 @@ merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_day
   */
   
   int t; /* Time loop counter */
+  int i; /* Loop counter */
   int curindex_merged; /* Current index in the merged season vector */
 
   /* Process each downscaled day for a specific season subperiod */
@@ -80,6 +81,22 @@ merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_day
     analog_days_merged.year_s[curindex_merged] = analog_days.year_s[t];
     analog_days_merged.month_s[curindex_merged] = analog_days.month_s[t];
     analog_days_merged.day_s[curindex_merged] = analog_days.day_s[t];
+
+    analog_days_merged.ndayschoice[curindex_merged] = analog_days.ndayschoice[t];
+    analog_days_merged.analog_dayschoice[curindex_merged] =
+      (tstruct *) malloc(analog_days_merged.ndayschoice[curindex_merged] * sizeof(tstruct));
+    if (analog_days_merged.analog_dayschoice[curindex_merged] == NULL) alloc_error(__FILE__, __LINE__);
+    analog_days_merged.metric_norm[curindex_merged] = (float *) malloc(analog_days_merged.ndayschoice[curindex_merged] * sizeof(float));
+    if (analog_days_merged.metric_norm[curindex_merged] == NULL) alloc_error(__FILE__, __LINE__);
+    for (i=0; i<analog_days_merged.ndayschoice[curindex_merged]; i++) {
+      analog_days_merged.metric_norm[curindex_merged][i] = analog_days.metric_norm[t][i];
+      analog_days_merged.analog_dayschoice[curindex_merged][i].year = analog_days.analog_dayschoice[t][i].year;
+      analog_days_merged.analog_dayschoice[curindex_merged][i].month = analog_days.analog_dayschoice[t][i].month;
+      analog_days_merged.analog_dayschoice[curindex_merged][i].day = analog_days.analog_dayschoice[t][i].day;
+      analog_days_merged.analog_dayschoice[curindex_merged][i].hour = analog_days.analog_dayschoice[t][i].hour;
+      analog_days_merged.analog_dayschoice[curindex_merged][i].min = analog_days.analog_dayschoice[t][i].min;
+      analog_days_merged.analog_dayschoice[curindex_merged][i].sec = analog_days.analog_dayschoice[t][i].sec;
+    }      
 
   }
 

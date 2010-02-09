@@ -151,6 +151,17 @@ int main(int argc, char **argv)
       }
     }
     
+    /* Read mask for learning fields if needed */
+    if (data->conf->learning_maskfile->use_mask == TRUE) {
+      (void) printf("\n**** LEARNING FIELDS MASK ****\n\n");
+      istat = read_mask(data->conf->learning_maskfile);
+      if (istat != 0) {
+        (void) fprintf(stderr, "%s: Error in reading learning mask file. Aborting.\n", __FILE__);
+        (void) banner(basename(argv[0]), "ABORT", "END");
+        (void) abort();
+      }
+    }
+
     /* If wanted, generate learning data */
     (void) printf("\n**** LEARNING ****\n\n");
     istat = wt_learning(data);

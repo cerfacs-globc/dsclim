@@ -51,24 +51,25 @@ LICENSE END */
 /** Read analog day data and write it for downscaled period. */
 int
 output_downscaled_analog(analog_day_struct analog_days, double *delta, int output_month_begin, char *output_path,
-                         char *config, char *time_units, char *cal_type, int file_format, int file_compression,
+                         char *config, char *time_units, char *cal_type, int file_format, int file_compression, int file_compression_level,
                          info_struct *info, var_struct *obs_var, period_struct *period,
                          double *time_ls, int ntime) {
   /**
-     @param[in]   analog_days           Analog days time indexes and dates with corresponding dates being downscaled.
-     @param[in]   delta                 Temperature difference to apply to analog day data
-     @param[in]   output_month_begin    First month for yearly file output
-     @param[in]   output_path           Output path directory
-     @param[in]   config                Whole configuration text
-     @param[in]   time_units            Output base time units
-     @param[in]   cal_type              Output calendar-type
-     @param[in]   file_format           File format version for NetCDF
-     @param[in]   file_compression      Compression flag for NetCDF-4 file format
-     @param[in]   info                  General meta-data information structure for NetCDF output file
-     @param[in]   obs_var               Input/output observation variables data structure
-     @param[in]   period                Period structure for downscaling output
-     @param[in]   time_ls               Time values
-     @param[in]   ntime                 Number of times dimension
+     @param[in]   analog_days            Analog days time indexes and dates with corresponding dates being downscaled.
+     @param[in]   delta                  Temperature difference to apply to analog day data
+     @param[in]   output_month_begin     First month for yearly file output
+     @param[in]   output_path            Output path directory
+     @param[in]   config                 Whole configuration text
+     @param[in]   time_units             Output base time units
+     @param[in]   cal_type               Output calendar-type
+     @param[in]   file_format            File format version for NetCDF
+     @param[in]   file_compression       Compression flag for NetCDF-4 file format
+     @param[in]   file_compression_level Compression level for NetCDF-4 file format
+     @param[in]   info                   General meta-data information structure for NetCDF output file
+     @param[in]   obs_var                Input/output observation variables data structure
+     @param[in]   period                 Period structure for downscaling output
+     @param[in]   time_ls                Time values
+     @param[in]   ntime                  Number of times dimension
   */
   
   char **infile = NULL; /* Input filename */
@@ -275,7 +276,6 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
         (void) sprintf(outfile[var], "%s/%s_1d_%04d%02d%02d_%04d%02d%02d.nc", output_path, obs_var->netcdfname[var],
                        year1, output_month_begin, 1,
                        year2, output_month_end, days_per_month_reg_year[output_month_end-1]);
-      
         /* Check if output file has already been created */
         found_file[var] = FALSE;
         f = 0;
@@ -447,8 +447,6 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
       }
 
       /* Find date in observation database */
-      found = FALSE;
-      tl = 0;
 #if DEBUG > 7
       (void) printf("Processing %d %d %d %d\n",t,analog_days.year_s[t],analog_days.month_s[t],analog_days.day_s[t]);
 #endif
@@ -466,6 +464,9 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
 
       /* Loop over hours if needed */
       for (hour=minh; hour<=maxh; hour++) {
+        
+        found = FALSE;
+        tl = 0;
         
         if ( !strcmp(obs_var->frequency, "hourly") ) {
           while (tl<ntime_obs && found == FALSE) {
@@ -849,7 +850,8 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                 istat = write_netcdf_var_3d_2d(buf[var], &curtime, info_tmp[var]->fillvalue, outfile[var], obs_var->netcdfname[var],
                                                info_tmp[var]->long_name, info_tmp[var]->units, info_tmp[var]->height, proj_tmp->name, 
                                                obs_var->dimxname, obs_var->dimyname, obs_var->timename,
-                                               0, !(found_file[var]), nlon, nlat, ntime_file, FALSE);
+                                               0, !(found_file[var]), file_format, file_compression_level,
+                                               nlon, nlat, ntime_file, FALSE);
                 found_file[var] = TRUE;
               }
               else if ( !strcmp(info->timestep, "daily") && !strcmp(obs_var->frequency, "hourly") ) {
@@ -867,7 +869,8 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                   istat = write_netcdf_var_3d_2d(buf[var], &curtime, info_tmp[var]->fillvalue, outfile[var], obs_var->netcdfname[var],
                                                  info_tmp[var]->long_name, info_tmp[var]->units, info_tmp[var]->height, proj_tmp->name, 
                                                  obs_var->dimxname, obs_var->dimyname, obs_var->timename,
-                                                 0, !(found_file[var]), nlon, nlat, ntime_file, FALSE);
+                                                 0, !(found_file[var]),  file_format, file_compression_level,
+                                                 nlon, nlat, ntime_file, FALSE);
                   found_file[var] = TRUE;
                 }
                 else {

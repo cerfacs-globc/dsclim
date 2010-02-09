@@ -101,6 +101,9 @@ LICENSE END */
 /** Maximum length of paths/filenames strings. */
 #define MAXPATH 5000
 
+/** Compression level **/
+#define DEFLATE_LEVEL 6
+
 /* Local C includes. */
 #include <utils.h>
 #include <clim.h>
@@ -143,6 +146,9 @@ typedef struct {
   int *year; /**< Year of analog day. */
   int *month; /**< Month of analog day. */
   int *day; /**< Day of analog day. */
+  int *ndayschoice; /**< Number of days in the first selection of analog days. */
+  tstruct **analog_dayschoice; /** All analog days in the first selection. */
+  float **metric_norm; /** Metric normalized for all analog days in the selection. */
   int ntime; /**< Number of analog times. */
   int *tindex_s_all; /**< Time index of day being downscaled in the season-merged index. */
   int *year_s; /**< Years of dates being downscaled. */
@@ -394,6 +400,7 @@ typedef struct {
   int debug; /**< Debugging flag. */
   int format; /**< Format for NetCDF output files. */
   int compression; /**< Compression for NetCDF-4 output files. */
+  int compression_level; /**< Compression Level for NetCDF-4 output files. */
   int fixtime; /**< Fix incorrect time in input climate model file, and use 01/01/year_begin_ctrl as first day for control period, and year_begin_other for other period, and assume daily data since it is required. */
   int year_begin_ctrl; /**< Use year_begin_ctrl as first day for control period in model file when fixing time units. */
   int year_begin_other; /**< Use year_begin_other as first day for other period in model file when fixing time units. */
@@ -481,7 +488,8 @@ int merge_seasonal_data(double *buf_merged, double *buf, analog_day_struct analo
 int merge_seasonal_data_i(int *buf_merged, int *buf, analog_day_struct analog_days, int dimx, int dimy,
                           int ntimes_merged, int ntimes);
 int output_downscaled_analog(analog_day_struct analog_days, double *delta, int output_month_begin, char *output_path,
-                             char *config, char *time_units, char *cal_type, int file_format, int file_compression,
+                             char *config, char *time_units, char *cal_type,
+                             int file_format, int file_compression, int file_compression_level,
                              info_struct *info, var_struct *obs_var, period_struct *period,
                              double *time_ls, int ntime);
 int write_learning_fields(data_struct *data);

@@ -116,7 +116,12 @@ create_netcdf(char *title, char *title_french, char *summary, char *summary_fren
     istat = nc_create(filename, NC_CLOBBER, &ncoutid);
 #endif
   else
+#ifdef NC_NETCDF4
+    istat = nc_create(filename, NC_CLOBBER | NC_NETCDF4 | NC_CLASSIC_MODEL, &ncoutid);
+#else
     istat = nc_create(filename, NC_CLOBBER, &ncoutid);
+#endif
+    //    istat = nc_create(filename, NC_CLOBBER, &ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Set global attributes */

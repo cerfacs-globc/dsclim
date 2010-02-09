@@ -66,10 +66,16 @@ save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int
   int ncoutid; /* NetCDF output file handle ID */
   int timedimoutid; /* NetCDF time dimension output ID */
   int timeoutid; /* NetCDF time variable ID */
+  int ndayschoicedimoutid; /* NetCDF ndayschoice dimension output ID */
+  int ndayschoiceoutid; /* NetCDF ndayschoice variable ID */
   int analogoutid; /* NetCDF analog dates variable ID */
   int analogyearoutid; /* NetCDF analog dates variable ID */
   int analogmonthoutid; /* NetCDF analog dates variable ID */
   int analogdayoutid; /* NetCDF analog dates variable ID */
+  int analogyearndaysoutid; /* NetCDF analog ndayschoice dates variable ID */
+  int analogmonthndaysoutid; /* NetCDF analog ndayschoice dates variable ID */
+  int analogdayndaysoutid; /* NetCDF analog ndayschoice dates variable ID */
+  int metricoutid; /* NetCDF analog normalized metric variable ID */
   int downscaledyearoutid; /* NetCDF downscaled dates variable ID */
   int downscaledmonthoutid; /* NetCDF downscaled dates variable ID */
   int downscaleddayoutid; /* NetCDF downscaled dates variable ID */
@@ -77,14 +83,21 @@ save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int
   int clusteroutid; /* NetCDF cluster number variable ID */
   int deltatoutid; /* NetCDF delta T variable ID */
   int vardimids[NC_MAX_VAR_DIMS]; /* NetCDF dimension IDs */
+  
+  int *buftmp = NULL; /* Temporary int buffer for writing data */
+  float *buftmpf = NULL; /* Temporary float buffer for writing data */
+  int maxndays; /* Maximum number of days selected for any particular date */
     
-  size_t start[1]; /* Start element when writing */
-  size_t count[1]; /* Count of elements to write */
+  size_t start[2]; /* Start element when writing */
+  size_t count[2]; /* Count of elements to write */  
 
   int fillvaluei; /* Missing value */
   float fillvaluef; /* Missing value */
 
   char *tmpstr = NULL; /* Temporary string */
+
+  int t; /* Time loop counter */
+  int i; /* Loop counter */
 
   tmpstr = (char *) malloc(200 * sizeof(char));
   if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
@@ -122,6 +135,22 @@ save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = sprintf(tmpstr, "time in %s", data->conf->time_units);
   istat = nc_put_att_text(ncoutid, timeoutid, "long_name", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  /* Find maximum number of days in the first selection of analog days to have constant dimension size */
+  maxndays = analog_days.ndayschoice[0];
+  for (t=0; t<analog_days.ntime; t++)
+    if (maxndays < analog_days.ndayschoice[t])
+      maxndays = analog_days.ndayschoice[t];
+  istat = nc_def_dim(ncoutid, "ndayschoice", maxndays, &ndayschoicedimoutid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  vardimids[0] = timedimoutid;
+  istat = nc_def_var(ncoutid, "ndayschoice", NC_INT, 1, vardimids, &ndayschoiceoutid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  istat = sprintf(tmpstr, "Number of analog days selected");
+  istat = nc_put_att_text(ncoutid, ndayschoiceoutid, "long_name", strlen(tmpstr), tmpstr);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Set variables */
@@ -306,21 +335,107 @@ save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int
   istat = nc_put_att_text(ncoutid, clusteroutid, "long_name", strlen(tmpstr), tmpstr);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+  /* Define ndayschoice analog day variable: year */
+  vardimids[0] = timedimoutid;
+  vardimids[1] = ndayschoicedimoutid;
+  istat = nc_def_var(ncoutid, "analog_ndays_date_year", NC_INT, 2, vardimids, &analogyearndaysoutid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  fillvaluei = 0;
+  istat = nc_put_att_int(ncoutid, analogyearndaysoutid, "missing_value", NC_INT, 1, &fillvaluei);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) sprintf(tmpstr, "time ndayschoice");
+  istat = nc_put_att_text(ncoutid, analogyearndaysoutid, "coordinates", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) sprintf(tmpstr, "%s", "year");
+  istat = nc_put_att_text(ncoutid, analogyearndaysoutid, "units", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) strcpy(tmpstr, "Analog ndays date: year");
+  istat = nc_put_att_text(ncoutid, analogyearndaysoutid, "long_name", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  /* Define ndayschoice analog day variable: month */
+  vardimids[0] = timedimoutid;
+  vardimids[1] = ndayschoicedimoutid;
+  istat = nc_def_var(ncoutid, "analog_ndays_date_month", NC_INT, 2, vardimids, &analogmonthndaysoutid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  fillvaluei = 0;
+  istat = nc_put_att_int(ncoutid, analogmonthndaysoutid, "missing_value", NC_INT, 1, &fillvaluei);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) sprintf(tmpstr, "time ndayschoice");
+  istat = nc_put_att_text(ncoutid, analogmonthndaysoutid, "coordinates", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) sprintf(tmpstr, "%s", "month");
+  istat = nc_put_att_text(ncoutid, analogmonthndaysoutid, "units", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) strcpy(tmpstr, "Analog ndays date: month");
+  istat = nc_put_att_text(ncoutid, analogmonthndaysoutid, "long_name", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  /* Define ndayschoice analog day variable: day */
+  vardimids[0] = timedimoutid;
+  vardimids[1] = ndayschoicedimoutid;
+  istat = nc_def_var(ncoutid, "analog_ndays_date_day", NC_INT, 2, vardimids, &analogdayndaysoutid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  fillvaluei = 0;
+  istat = nc_put_att_int(ncoutid, analogdayndaysoutid, "missing_value", NC_INT, 1, &fillvaluei);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) sprintf(tmpstr, "time ndayschoice");
+  istat = nc_put_att_text(ncoutid, analogdayndaysoutid, "coordinates", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) sprintf(tmpstr, "%s", "day");
+  istat = nc_put_att_text(ncoutid, analogdayndaysoutid, "units", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) strcpy(tmpstr, "Analog ndays date: day");
+  istat = nc_put_att_text(ncoutid, analogdayndaysoutid, "long_name", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  /* Define ndayschoice normalized metric */
+  vardimids[0] = timedimoutid;
+  vardimids[1] = ndayschoicedimoutid;
+  istat = nc_def_var(ncoutid, "analog_metric_norm", NC_FLOAT, 2, vardimids, &metricoutid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  fillvaluef = 0.0;
+  istat = nc_put_att_float(ncoutid, metricoutid, "missing_value", NC_FLOAT, 1, &fillvaluef);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) sprintf(tmpstr, "time ndayschoice");
+  istat = nc_put_att_text(ncoutid, metricoutid, "coordinates", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) sprintf(tmpstr, "%s", "metric");
+  istat = nc_put_att_text(ncoutid, metricoutid, "units", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) strcpy(tmpstr, "Analog normalized metric");
+  istat = nc_put_att_text(ncoutid, metricoutid, "long_name", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
   /* End definition mode */
   istat = nc_enddef(ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  /* Write variables */
-
-  /* Write time */
+  /* Write variables */  /* Write time */
   start[0] = 0;
+  start[1] = 0;
   count[0] = (size_t) analog_days.ntime;
+  count[1] = 0;
   istat = nc_put_vara_double(ncoutid, timeoutid, start, count, time_ls);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  
+
+  /* Write ndayschoice */
+  start[0] = 0;
+  start[1] = 0;
+  count[0] = (size_t) analog_days.ntime;
+  count[1] = 0;
+  istat = nc_put_vara_int(ncoutid, ndayschoiceoutid, start, count, analog_days.ndayschoice);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
   /* Write downscaled dates */
   start[0] = 0;
+  start[1] = 0;
   count[0] = (size_t) analog_days.ntime;
+  count[1] = 0;
   istat = nc_put_vara_int(ncoutid, downscaledyearoutid, start, count, analog_days.year_s);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_put_vara_int(ncoutid, downscaledmonthoutid, start, count, analog_days.month_s);
@@ -330,7 +445,9 @@ save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int
 
   /* Write analog dates */
   start[0] = 0;
+  start[1] = 0;
   count[0] = (size_t) analog_days.ntime;
+  count[1] = 0;
   istat = nc_put_vara_int(ncoutid, analogoutid, start, count, analog_days.tindex_all);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_put_vara_int(ncoutid, analogyearoutid, start, count, analog_days.year);
@@ -340,21 +457,66 @@ save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int
   istat = nc_put_vara_int(ncoutid, analogdayoutid, start, count, analog_days.day);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   
+  /* Write ndayschoice analog dates */
+  start[0] = 0;
+  start[1] = 0;
+  count[0] = (size_t) analog_days.ntime;
+  count[1] = (size_t) maxndays;
+  /* Build 2D array */
+  buftmp = (int *) calloc(analog_days.ntime * maxndays, sizeof(int));
+  if (buftmp == NULL) alloc_error(__FILE__, __LINE__);
+  for (t=0; t<analog_days.ntime; t++)
+    for (i=0; i<analog_days.ndayschoice[t]; i++)
+      buftmp[i+t*maxndays] = analog_days.analog_dayschoice[t][i].year;
+  istat = nc_put_vara_int(ncoutid, analogyearndaysoutid, start, count, buftmp);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  for (t=0; t<analog_days.ntime; t++)
+    for (i=0; i<analog_days.ndayschoice[t]; i++)
+      buftmp[i+t*maxndays] = analog_days.analog_dayschoice[t][i].month;
+  istat = nc_put_vara_int(ncoutid, analogmonthndaysoutid, start, count, buftmp);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  for (t=0; t<analog_days.ntime; t++)
+    for (i=0; i<analog_days.ndayschoice[t]; i++)
+      buftmp[i+t*maxndays] = analog_days.analog_dayschoice[t][i].day;
+  istat = nc_put_vara_int(ncoutid, analogdayndaysoutid, start, count, buftmp);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) free(buftmp);
+
+  /* Write analog normalized metric */
+  start[0] = 0;
+  start[1] = 0;
+  count[0] = (size_t) analog_days.ntime;
+  count[1] = (size_t) maxndays;
+  buftmpf = (float *) calloc(analog_days.ntime * maxndays, sizeof(float));
+  if (buftmpf == NULL) alloc_error(__FILE__, __LINE__);
+  for (t=0; t<analog_days.ntime; t++)
+    for (i=0; i<analog_days.ndayschoice[t]; i++)
+      buftmpf[i+t*maxndays] = analog_days.metric_norm[t][i];
+  istat = nc_put_vara_float(ncoutid, metricoutid, start, count, buftmpf);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) free(buftmpf);
+ 
   /* Write delta of temperature */
   start[0] = 0;
+  start[1] = 0;
   count[0] = (size_t) analog_days.ntime;
+  count[1] = 0;
   istat = nc_put_vara_double(ncoutid, deltatoutid, start, count, delta);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Write cluster distance */
   start[0] = 0;
+  start[1] = 0;
   count[0] = (size_t) analog_days.ntime;
+  count[1] = 0;
   istat = nc_put_vara_double(ncoutid, distoutid, start, count, dist);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   
   /* Write cluster number */
   start[0] = 0;
+  start[1] = 0;
   count[0] = (size_t) analog_days.ntime;
+  count[1] = 0;
   istat = nc_put_vara_int(ncoutid, clusteroutid, start, count, cluster);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   

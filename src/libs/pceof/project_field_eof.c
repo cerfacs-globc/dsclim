@@ -71,6 +71,11 @@ project_field_eof(double *bufout, double *bufin, double *bufeof, double *singula
   double sum; /* Temporary sum */
 
   double *true_val = NULL; /* 2D matrix of normalized value */
+  
+  double variance_bufin; /* Variance of input buffer */
+  double tot_variance_bufin = 0.0; /* Total Variance of input buffer */
+  double variance_bufout; /* Variance of output buffer */
+  double tot_variance_bufout = 0.0; /* Total Variance of output buffer */
 
   int eof; /* Loop counter */
   int i; /* Loop counter */
@@ -143,17 +148,24 @@ project_field_eof(double *bufout, double *bufin, double *bufeof, double *singula
       bufout[t+eof*ntime] = sum;
     }
 
+    variance_bufout = gsl_stats_variance(&(bufout[eof*ntime]), 1, ntime);
+    tot_variance_bufout += variance_bufout;
+    variance_bufin = gsl_stats_variance(&(bufin[eof*ntime]), 1, ntime);
+    tot_variance_bufin += variance_bufin;
+
     /* Verify variance of field */
     /* Should be of the same order */
-    (void) fprintf(stdout, "%s: Verifying variance (should be the same order): %lf %lf\n", __FILE__,
-                   sqrt(gsl_stats_variance(&(bufout[eof*ntime]), 1, ntime)), singular_value[eof]);
-    (void) fprintf(stdout, "%s: %lf\n", __FILE__,
-                   sqrt(gsl_stats_variance(&(bufout[eof*ntime]), 1, ntime)) / singular_value[eof]);
+    (void) fprintf(stdout, "%s: Verifying square-root of variance (should be the same order): %lf %lf\n", __FILE__,
+                   sqrt(variance_bufout), singular_value[eof]);
+    (void) fprintf(stdout, "%s: %lf\n", __FILE__, sqrt(variance_bufout) / singular_value[eof]);
     if ( (sqrt(gsl_stats_variance(&(bufout[eof*ntime]), 1, ntime)) / singular_value[eof]) >= 10.0) {
       (void) fprintf(stderr, "%s: FATAL ERROR: Problem in scaling factor! Variance is not of the same order. Verify configuration file scaling factor.\nAborting\n", __FILE__);
       return -1;
     }
   }
+
+  (void) fprintf(stdout, "%s: Comparing total variance of field before %lf and after %lf projection onto EOF: %% of variance remaining: %lf\n",
+                 __FILE__, tot_variance_bufin, tot_variance_bufout, tot_variance_bufout / tot_variance_bufin * 100.0);
 
   /* Free memory */
   (void) free(true_val);

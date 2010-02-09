@@ -230,6 +230,37 @@ load_conf(data_struct *data, char *fileconf) {
   else
     data->conf->compression = FALSE;
 
+  /** compression level for NetCDF-4 **/
+  if (data->conf->compression == TRUE) {
+    (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "compression_level");
+    val = xml_get_setting(conf, path);
+    if (val != NULL) {
+      data->conf->compression_level = (int) xmlXPathCastStringToNumber(val);
+      if (data->conf->compression_level < 0) {
+        data->conf->compression_level = 1;
+        (void) fprintf(stdout,
+                       "%s: WARNING: NetCDF-4 Compression Level invalid value (must be between 1 and 9 inclusively). Forced to %d.\n",
+                       __FILE__, data->conf->compression_level);
+      }
+      else if (data->conf->compression_level > 9) {
+        data->conf->compression_level = 9;
+        (void) fprintf(stdout,
+                       "%s: WARNING: NetCDF-4 Compression Level invalid value (must be between 1 and 9 inclusively). Forced to %d.\n",
+                       __FILE__, data->conf->compression_level);
+      }
+      (void) xmlFree(val);
+    }
+    else {
+      data->conf->compression_level = 1;
+      (void) fprintf(stdout,
+                     "%s: WARNING: NetCDF-4 Compression Level not set! (must be between 1 and 9 inclusively). Forced to default value of %d.\n",
+                     __FILE__, data->conf->compression_level);
+    }
+    (void) fprintf(stdout, "%s: NetCDF-4 Compression Level = %d.\n", __FILE__, data->conf->compression_level);
+  }
+  else
+    data->conf->compression_level = 0;
+
   /** Fix incorrect time in input climate model file, and use 01/01/YEARBEGIN as first day, and assume daily data since it is required. */
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "fixtime");
   val = xml_get_setting(conf, path);
@@ -3019,6 +3050,13 @@ load_conf(data_struct *data, char *fileconf) {
       }
       else
         data->conf->season[i].nreg = -1;
+
+      if ( ! ((data->conf->season[i].nreg == data->conf->season[i].nclusters) ||
+              ( data->conf->season[i].nreg == data->conf->season[i].nclusters+1 ) ) ) {
+        (void) fprintf(stderr, "%s: For season=%d, invalid correspondence between number_of_clusters=%d and number_of_regression_vars=%d. number_of_regression_vars should be equal to number_of_clusters or number_of_clusters+1 (temperature as supplemental regression variable). Aborting.\n",
+                       __FILE__, i, data->conf->season[i].nclusters, data->conf->season[i].nreg);
+        return -1;
+      }
 
       /** number_of_days_search **/
       (void) sprintf(path, "/configuration/%s/%s[@id=\"%d\"]", "setting", "number_of_days_search", i+1);

@@ -188,11 +188,11 @@ int read_netcdf_var_1d(double **buf, info_field_struct *info_field, char *filena
 int read_netcdf_var_generic_val(double *buf, info_field_struct *info_field, char *filename, char *varname, int index);
 int write_netcdf_var_3d(double *buf, double fillvalue, char *filename,
                         char *varname, char *gridname, char *lonname, char *latname, char *timename,
-                        int nlon, int nlat, int ntime, int outinfo);
+                        int format, int compression_level, int nlon, int nlat, int ntime, int outinfo);
 int write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *filename,
                            char *varname, char *longname, char *units, char *height,
                            char *gridname, char *lonname, char *latname, char *timename,
-                           int t, int newfile, int nlon, int nlat, int ntime, int outinfo);
+                           int t, int newfile, int format, int compression_level, int nlon, int nlat, int ntime, int outinfo);
 int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *timein, char *cal_type, char *time_units,
                          int nlon, int nlat, int ntime, char *timestep, char *gridname, char *coords,
                          char *grid_mapping_name, double latin1, double latin2,

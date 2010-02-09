@@ -66,6 +66,7 @@ free_main_data(data_struct *data) {
   int i; /* Loop counter */
   int j; /* Loop counter */
   int s; /* Loop counter */
+  int tt; /* Loop counter */
   int end_cat; /* End category to process */
 
   if ( (data->conf->analog_save == TRUE || data->conf->output_only == TRUE) && data->conf->period_ctrl->downscale == TRUE )
@@ -211,6 +212,18 @@ free_main_data(data_struct *data) {
             (void) free(data->field[i].analog_days[s].year_s);
             (void) free(data->field[i].analog_days[s].month_s);
             (void) free(data->field[i].analog_days[s].day_s);
+            //            printf("%d %d\n",i,s);
+            //            printf("%d\n",data->field[i].analog_days[s].ntime);
+            for (tt=0; tt<data->field[i].analog_days[s].ntime; tt++) {
+              //              printf("ALLO %d\n", tt);
+              if (data->field[i].analog_days[s].analog_dayschoice[tt] != NULL)
+                (void) free(data->field[i].analog_days[s].analog_dayschoice[tt]);
+              //              printf("ALLO\n");
+              if (data->field[i].analog_days[s].metric_norm[tt] != NULL)
+                (void) free(data->field[i].analog_days[s].metric_norm[tt]);
+            }
+            (void) free(data->field[i].analog_days[s].analog_dayschoice);
+            (void) free(data->field[i].analog_days[s].ndayschoice);
           }
           (void) free(data->field[i].analog_days_year.tindex);
           (void) free(data->field[i].analog_days_year.tindex_all);
@@ -222,6 +235,14 @@ free_main_data(data_struct *data) {
         (void) free(data->field[i].analog_days_year.year_s);
         (void) free(data->field[i].analog_days_year.month_s);
         (void) free(data->field[i].analog_days_year.day_s);
+        for (tt=0; tt<data->field[i].analog_days_year.ntime; tt++) {
+          if (data->field[i].analog_days_year.analog_dayschoice[tt] != NULL)
+            (void) free(data->field[i].analog_days_year.analog_dayschoice[tt]);
+          if (data->field[i].analog_days_year.metric_norm[tt] != NULL)
+            (void) free(data->field[i].analog_days_year.metric_norm[tt]);
+        }
+        (void) free(data->field[i].analog_days_year.analog_dayschoice);
+        (void) free(data->field[i].analog_days_year.ndayschoice);
       }
     }
 

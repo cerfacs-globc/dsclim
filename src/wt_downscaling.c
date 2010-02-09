@@ -490,6 +490,7 @@ wt_downscaling(data_struct *data) {
         
           /* Find the analog days in the learning period given the precipitation index, */
           /* the spatial mean of the secondary large-scale fields and its index, and the cluster classification of the days */
+          data->field[cat].analog_days[s].ntime = ntime_sub[cat][s];
           data->field[cat].analog_days[s].tindex = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
           if (data->field[cat].analog_days[s].tindex == NULL) alloc_error(__FILE__, __LINE__);
           data->field[cat].analog_days[s].tindex_all = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
@@ -508,6 +509,17 @@ wt_downscaling(data_struct *data) {
           if (data->field[cat].analog_days[s].month_s == NULL) alloc_error(__FILE__, __LINE__);
           data->field[cat].analog_days[s].day_s = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
           if (data->field[cat].analog_days[s].day_s == NULL) alloc_error(__FILE__, __LINE__);
+          data->field[cat].analog_days[s].ndayschoice = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
+          if (data->field[cat].analog_days[s].ndayschoice == NULL) alloc_error(__FILE__, __LINE__);
+          data->field[cat].analog_days[s].analog_dayschoice = (tstruct **) malloc(ntime_sub[cat][s] * sizeof(tstruct *));
+          if (data->field[cat].analog_days[s].analog_dayschoice == NULL) alloc_error(__FILE__, __LINE__);
+          data->field[cat].analog_days[s].metric_norm = (float **) malloc(ntime_sub[cat][s] * sizeof(float *));
+          if (data->field[cat].analog_days[s].metric_norm == NULL) alloc_error(__FILE__, __LINE__);
+          for (ii=0; ii<ntime_sub[cat][s]; ii++) {
+            data->field[cat].analog_days[s].ndayschoice[ii] = data->conf->season[s].ndayschoices;
+            data->field[cat].analog_days[s].analog_dayschoice[ii] = (tstruct *) NULL;
+            data->field[cat].analog_days[s].metric_norm[ii] = (float *) NULL;            
+          }
           (void) printf("%s: Searching analog days for season #%d\n", __FILE__, s);
           (void) find_the_days(data->field[cat].analog_days[s], data->field[cat].precip_index[s], data->learning->data[s].precip_index,
                                data->field[cat+2].data[i].down->smean_norm[s], data->learning->data[s].sup_index,
@@ -558,7 +570,7 @@ wt_downscaling(data_struct *data) {
     beg_cat = FIELD_LS;
   
   /* Loop over large-scale field categories (model run and optionally control run) */
-for (cat=beg_cat; cat>=FIELD_LS; cat--) {
+  for (cat=beg_cat; cat>=FIELD_LS; cat--) {
     /* Process only if, for this category, at least one large-scale field is available */
     if (data->field[cat].n_ls > 0) {
       /* Process only first large-scale field. Limitation of the current implementation. */
@@ -583,6 +595,16 @@ for (cat=beg_cat; cat>=FIELD_LS; cat--) {
         if (data->field[cat].analog_days_year.month_s == NULL) alloc_error(__FILE__, __LINE__);
         data->field[cat].analog_days_year.day_s = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
         if (data->field[cat].analog_days_year.day_s == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.analog_dayschoice = (tstruct **) malloc(data->field[cat].ntime_ls * sizeof(tstruct *));
+        if (data->field[cat].analog_days_year.analog_dayschoice == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.metric_norm = (float **) malloc(data->field[cat].ntime_ls * sizeof(float *));
+        if (data->field[cat].analog_days_year.metric_norm == NULL) alloc_error(__FILE__, __LINE__);
+        for (ii=0; ii<data->field[cat].ntime_ls; ii++) {
+          data->field[cat].analog_days_year.analog_dayschoice[ii] = (tstruct *) NULL;
+          data->field[cat].analog_days_year.metric_norm[ii] = (float *) NULL;
+        }
+        data->field[cat].analog_days_year.ndayschoice = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+        if (data->field[cat].analog_days_year.ndayschoice == NULL) alloc_error(__FILE__, __LINE__);
         data->field[cat+2].data[i].down->delta_all = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
         if (data->field[cat+2].data[i].down->delta_all == NULL) alloc_error(__FILE__, __LINE__);
         data->field[cat].data[i].down->dist_all = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
@@ -635,7 +657,7 @@ for (cat=beg_cat; cat>=FIELD_LS; cat--) {
                                 &(data->field[cat].time_ls), analog_file, data->conf->obs_var->timename);
         data->field[cat].ntime_ls = data->field[cat].analog_days_year.ntime;
       }
-        
+      
       /* Process all data */
       if (cat == FIELD_LS) {
         period = data->conf->period;
@@ -645,7 +667,8 @@ for (cat=beg_cat; cat>=FIELD_LS; cat--) {
       }
       istat = output_downscaled_analog(data->field[cat].analog_days_year, data->field[cat+2].data[i].down->delta_all,
                                        data->conf->output_month_begin, data->conf->output_path, data->conf->config,
-                                       data->conf->time_units, data->conf->cal_type, data->conf->format, data->conf->compression,
+                                       data->conf->time_units, data->conf->cal_type,
+                                       data->conf->format, data->conf->compression, data->conf->compression_level,
                                        data->info, data->conf->obs_var, period, data->field[cat].time_ls, data->field[cat].ntime_ls);
       if (istat != 0) return istat;
     }
