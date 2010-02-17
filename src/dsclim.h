@@ -1,11 +1,10 @@
-\
 /*! \file dsclim.h
     \brief Include file for main program of downscaling algorithm.
 */
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -39,6 +38,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 #ifndef DSCLIM_H
 #define DSCLIM_H
 
@@ -133,6 +133,7 @@ typedef struct {
   char **netcdfname; /**< Standard NetCDF variable acronym. */
   char **name; /**< Long name of observation variable. */
   char **post; /**< Post-processing attribute. */
+  char **output; /**< Output attribute. */
   char **units; /**< Units attribute for post-processing variables. */
   char **height; /**< Height attribute for post-processing variables. */
   double *delta; /**< Value to add to get SI units. */
@@ -147,8 +148,8 @@ typedef struct {
   int *month; /**< Month of analog day. */
   int *day; /**< Day of analog day. */
   int *ndayschoice; /**< Number of days in the first selection of analog days. */
-  tstruct **analog_dayschoice; /** All analog days in the first selection. */
-  float **metric_norm; /** Metric normalized for all analog days in the selection. */
+  tstruct **analog_dayschoice; /**< All analog days in the first selection. */
+  float **metric_norm; /**< Metric normalized for all analog days in the selection. */
   int ntime; /**< Number of analog times. */
   int *tindex_s_all; /**< Time index of day being downscaled in the season-merged index. */
   int *year_s; /**< Years of dates being downscaled. */

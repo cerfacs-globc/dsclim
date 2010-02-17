@@ -18,7 +18,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -52,6 +52,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 #include <dsclim.h>
 
@@ -89,7 +90,7 @@ int main(int argc, char **argv)
   /* license_accept == 2 when user had already accepted the license in a previous execution of the program. */
 
   /* Print BEGIN banner */
-  (void) banner(basename(argv[0]), "1.0", "BEGIN");
+  (void) banner(basename(argv[0]), "1.5.5", "BEGIN");
 
   /* Allocate memory */
   data = (data_struct *) malloc(sizeof(data_struct));
@@ -224,7 +225,7 @@ show_license() {
 
   short int license_accept = 0;
   int istat = -1;
-  const char license[5000] = "\nCopyright Cerfacs (Christian Page) (2009)\n\nchristian.page@cerfacs.fr\n\nThis software is a computer program whose purpose is to downscale climate\nscenarios using a statistical methodology based on weather regimes.\n\nThis software is governed by the CeCILL license under French law and\nabiding by the rules of distribution of free software. You can use, \nmodify and/ or redistribute the software under the terms of the CeCILL\nlicense as circulated by CEA, CNRS and INRIA at the following URL\n\"http://www.cecill.info\". \n\nAs a counterpart to the access to the source code and rights to copy,\nmodify and redistribute granted by the license, users are provided only\nwith a limited warranty and the software's author, the holder of the\neconomic rights, and the successive licensors have only limited\nliability. \n\nIn this respect, the user's attention is drawn to the risks associated\nwith loading, using, modifying and/or developing or reproducing the\nsoftware by the user in light of its specific status of free software,\nthat may mean that it is complicated to manipulate, and that also\ntherefore means that it is reserved for developers and experienced\nprofessionals having in-depth computer knowledge. Users are therefore\nencouraged to load and test the software's suitability as regards their\nrequirements in conditions enabling the security of their systems and/or \ndata to be ensured and, more generally, to use and operate it in the \nsame conditions as regards security. \n\nTo further continue, you must accept the CeCILL license and its terms.\n\n";
+  const char license[5000] = "\nCopyright Cerfacs (Christian Page) (2010)\n\nchristian.page@cerfacs.fr\n\nThis software is a computer program whose purpose is to downscale climate\nscenarios using a statistical methodology based on weather regimes.\n\nThis software is governed by the CeCILL license under French law and\nabiding by the rules of distribution of free software. You can use, \nmodify and/ or redistribute the software under the terms of the CeCILL\nlicense as circulated by CEA, CNRS and INRIA at the following URL\n\"http://www.cecill.info\". \n\nAs a counterpart to the access to the source code and rights to copy,\nmodify and redistribute granted by the license, users are provided only\nwith a limited warranty and the software's author, the holder of the\neconomic rights, and the successive licensors have only limited\nliability. \n\nIn this respect, the user's attention is drawn to the risks associated\nwith loading, using, modifying and/or developing or reproducing the\nsoftware by the user in light of its specific status of free software,\nthat may mean that it is complicated to manipulate, and that also\ntherefore means that it is reserved for developers and experienced\nprofessionals having in-depth computer knowledge. Users are therefore\nencouraged to load and test the software's suitability as regards their\nrequirements in conditions enabling the security of their systems and/or \ndata to be ensured and, more generally, to use and operate it in the \nsame conditions as regards security. \n\nTo further continue, you must accept the CeCILL license and its terms.\n\n";
   char *dsclim_lic_file = NULL; /* dsclim license check file */
   char *dsclim_lic = NULL; /* dsclim license check */
   FILE *ifile = NULL; /* File for license acceptance */

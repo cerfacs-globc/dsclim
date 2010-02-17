@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -44,6 +44,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 #include <misc.h>
 

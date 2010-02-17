@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -45,6 +45,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
 
+
 #include <utils.h>
 
 /** Compute relative humidity from specific humidity. */
@@ -52,7 +53,7 @@ void
 spechum_to_hr(double *hur, double *tas, double *hus, double *pmsl, double fillvalue, int ni, int nj) {
 
   /** 
-      @param[out]    hr            Relative humidity (%)
+      @param[out]    hur           Relative humidity (%)
       @param[in]     tas           Input 2D temperature (K)
       @param[in]     hus           Input 2D specific humidity (kg/kg)
       @param[in]     pmsl          Input 2D mean sea-level pressure (hPa)

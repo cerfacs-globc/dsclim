@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -45,6 +45,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
 
+
 #include <utils.h>
 
 /** Compute standard atmosphere pressure given altitude. */
@@ -77,7 +78,7 @@ alt_to_press(double *pres, double *alt, int ni, int nj) {
     ;        71   84.852 -2.0
   */
 
-#define NLAYERS 7
+#define NLAYERS 7 /**< Number of layers in US Standard Atmosphere. */
 
   int i; /* Loop counter */
   int layr; /* Loop counter */

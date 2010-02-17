@@ -18,7 +18,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -52,6 +52,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 #include <dsclim.h>
 
@@ -91,7 +92,7 @@ read_large_scale_eof(data_struct *data) {
       
         if (data->field[cat].lon_eof_ls == NULL) {
           /* Read dimensions for EOF */
-          istat = read_netcdf_dims_eof(&lon, &lat, &nlon, &nlat, &(data->field[cat].data[i].eof_info->neof_ls),
+          istat = read_netcdf_dims_eof(&lon, &lat, &nlon, &nlat, &neof_file,
                                        data->field[cat].data[i].eof_info->eof_coords,
                                        data->conf->lonname_eof, data->conf->latname_eof,
                                        data->conf->dimxname_eof, data->conf->dimyname_eof,
@@ -116,9 +117,16 @@ read_large_scale_eof(data_struct *data) {
                                    data->field[cat].data[i].eof_data->eof_nomvar_ls,
                                    data->conf->dimxname_eof, data->conf->dimyname_eof,
                                    data->conf->eofname, &nlon_file, &nlat_file, &neof_file, TRUE);
-        if (nlon != nlon_file || nlat != nlat_file || data->field[cat].data[i].eof_info->neof_ls != neof_file) {
-          (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d neof=%d neof_file=%d\n",
-                         __FILE__, nlat, nlat_file, nlon, nlon_file, data->field[cat].data[i].eof_info->neof_ls, neof_file);
+        if (nlon != nlon_file || nlat != nlat_file) {
+          (void) fprintf(stderr, "%s: Problems in dimensions! nlat=%d nlat_file=%d nlon=%d nlon_file=%d\n",
+                         __FILE__, nlat, nlat_file, nlon, nlon_file);
+          istat = -1;
+        }
+        if (data->field[cat].data[i].eof_info->neof_ls != neof_file) {
+          (void) fprintf(stderr, "%s: ERROR: Number of EOFs (%d) for %s field from large-scale fields file (%s) is not equal to number of EOFs specified in XML configuration file for large-scale fields (%d)!\n", __FILE__, neof_file,
+                         data->field[cat].data[i].eof_data->eof_nomvar_ls,
+                         data->field[cat].data[i].eof_info->eof_filein_ls,
+                         data->field[cat].data[i].eof_info->neof_ls);
           istat = -1;
         }
         if (istat != 0) {
@@ -165,8 +173,9 @@ read_large_scale_eof(data_struct *data) {
                                    data->field[cat].data[i].eof_info->eof_filein_ls, data->field[cat].data[i].eof_data->sing_nomvar_ls,
                                    data->conf->eofname, &neof_file, TRUE);
         if (data->field[cat].data[i].eof_info->neof_ls != neof_file) {
-          (void) fprintf(stderr, "%s: Problems in dimensions! neof=%d neof_file=%d\n",
-                         __FILE__, data->field[cat].data[i].eof_info->neof_ls, neof_file);
+          (void) fprintf(stderr, "%s: ERROR: Number of EOFs (%d) for %s singular values from large-scale fields file (%s) is not equal to number of EOFs specified in XML configuration file for large-scale fields (%d)!\n", __FILE__, neof_file,
+                          data->field[cat].data[i].eof_data->sing_nomvar_ls, data->field[cat].data[i].eof_info->eof_filein_ls,
+                         data->field[cat].data[i].eof_info->neof_ls);
           istat = -1;
         }
         if (istat != 0) {

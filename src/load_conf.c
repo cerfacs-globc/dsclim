@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -44,6 +44,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 #include <libs/xml_utils/xml_utils.h>
 #include <dsclim.h>
@@ -1250,6 +1251,8 @@ load_conf(data_struct *data, char *fileconf) {
     if (data->conf->obs_var->delta == NULL) alloc_error(__FILE__, __LINE__);
     data->conf->obs_var->post = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
     if (data->conf->obs_var->post == NULL) alloc_error(__FILE__, __LINE__);
+    data->conf->obs_var->output = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
+    if (data->conf->obs_var->output == NULL) alloc_error(__FILE__, __LINE__);
     data->conf->obs_var->units = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
     if (data->conf->obs_var->units == NULL) alloc_error(__FILE__, __LINE__);
     data->conf->obs_var->height = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
@@ -1332,6 +1335,22 @@ load_conf(data_struct *data, char *fileconf) {
         return -1;
       }
 
+      /* Output */
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s/%s[@id=\"%d\"]/@%s", "setting", "observations", "variables", "name", i+1, "output");
+      val = xml_get_setting(conf, path);
+      if (val != NULL) {
+        data->conf->obs_var->output[i] = strdup((char *) val);
+        (void) xmlFree(val);
+      }
+      else {
+        data->conf->obs_var->output[i] = strdup("yes");
+      }
+
+      if ( strcmp(data->conf->obs_var->output[i], "yes") && strcmp(data->conf->obs_var->output[i], "no") ) {
+        (void) fprintf(stderr, "%s: Invalid observation variable output setting (valid values are \"yes\" or \"no\"). Aborting.\n", __FILE__);
+        return -1;
+      }
+
       /* Try to retrieve units and height. */
       (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s/%s[@id=\"%d\"]/@%s", "setting", "observations", "variables", "name", i+1, "units");
       val = xml_get_setting(conf, path);
@@ -1352,7 +1371,7 @@ load_conf(data_struct *data, char *fileconf) {
         data->conf->obs_var->height[i] = strdup("unknown");
       }
     
-      (void) printf("%s: Variable id=%d name=\"%s\" netcdfname=%s acronym=%s factor=%f delta=%f\n", __FILE__, i+1, data->conf->obs_var->name[i], data->conf->obs_var->netcdfname[i], data->conf->obs_var->acronym[i], data->conf->obs_var->factor[i], data->conf->obs_var->delta[i]);
+      (void) printf("%s: Variable id=%d name=\"%s\" netcdfname=%s acronym=%s factor=%f delta=%f postprocess=%s output=%s\n", __FILE__, i+1, data->conf->obs_var->name[i], data->conf->obs_var->netcdfname[i], data->conf->obs_var->acronym[i], data->conf->obs_var->factor[i], data->conf->obs_var->delta[i], data->conf->obs_var->post[i], data->conf->obs_var->output[i]);
     }
   }
   else {

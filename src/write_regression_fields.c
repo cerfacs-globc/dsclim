@@ -11,7 +11,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -46,6 +46,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
 
+
 #include <dsclim.h>
 
 /** Write regression-related downscaling fields for diagnostics use. */
@@ -54,6 +55,12 @@ write_regression_fields(data_struct *data, char *filename, double **timeval, int
                         double **sup_index) {
   /**
      @param[in]   data                  MASTER data structure.
+     @param[in]   filename              Output filename.
+     @param[in]   timeval               Time vector.
+     @param[in]   ntime                 Number of times in timeval.
+     @param[in]   precip_index          Precipitation index.
+     @param[in]   distclust             Distance of days to cluster centres.
+     @param[in]   sup_index             Supplemental large-scale field index.
   */
 
   int istat; /* Diagnostic status */

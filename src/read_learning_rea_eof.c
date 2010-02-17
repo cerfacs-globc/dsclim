@@ -19,7 +19,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -54,6 +54,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
 
+
 #include <dsclim.h>
 
 /** Read reanalysis data EOFs for learning period. Currently only NetCDF is implemented. */
@@ -82,6 +83,11 @@ read_learning_rea_eof(data_struct *data) {
   if (istat != 0) {
     /* In case of failure */
     return istat;
+  }
+  if (data->learning->rea_neof != neof) {
+    (void) fprintf(stderr, "%s: ERROR: Number of EOFs (%d) for reanalysis %s field from EOF file (%s) is not equal to number of EOFs specified in XML configuration file for reanalysis fields (%d)!\n", __FILE__, neof,
+                   data->learning->rea->nomvar_eof, data->learning->rea->filename_eof, data->learning->rea_neof);
+    return -1;
   }
   /* Re-order array with time as fastest varying dimension */
   data->learning->rea->eof = malloc(neof*ntime * sizeof(double));
@@ -113,6 +119,12 @@ read_learning_rea_eof(data_struct *data) {
     /* In case of failure */
     (void) free(data->learning->rea->time_s);
     return istat;
+  }
+  if (data->learning->rea_neof != neof) {
+    (void) fprintf(stderr, "%s: ERROR: Number of EOFs (%d) for reanalysis %s field from EOF file (%s) is not equal to number of EOFs specified in XML configuration file for reanalysis fields (%d)!\n", __FILE__, neof,
+                   data->learning->rea->nomvar_sing, data->learning->rea->filename_eof, data->learning->rea_neof);
+    (void) free(data->learning->rea->time_s);
+    return -1;
   }
 
   /* Diagnostic status */

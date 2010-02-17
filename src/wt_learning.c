@@ -19,7 +19,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -53,6 +53,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 #include <dsclim.h>
 
@@ -178,6 +179,11 @@ wt_learning(data_struct *data) {
         buf_learn_pc[nt+eof*ntime_learn_all] = buf_learn_rea[nt+eof*ntime_learn_all] * data->learning->rea->sing[eof];
 
       rea_var[eof] = gsl_stats_variance(&(buf_learn_pc[eof*ntime_learn_all]), 1, ntime_learn_all);
+      if (rea_var[eof] == 0.0) {
+        (void) fprintf(stderr, "%s: ERROR: Variance of the projection of the large-scale field onto EOF is 0.0. You probably have too many EOFs for your field. EOF number=%d. Variance=%f. Must abort...\n",
+                       __FILE__, eof, rea_var[eof]);
+        return -1;
+      }
 
       /* Renormalize EOF of large-scale field for the whole period using the first EOF norm and the Singular Value */
       for (nt=0; nt<ntime_learn_all; nt++)
@@ -185,18 +191,23 @@ wt_learning(data_struct *data) {
 
       /* Recompute normalization factor using normalized field */
       data->learning->pc_normalized_var[eof] = gsl_stats_variance(&(buf_learn_pc[eof*ntime_learn_all]), 1, ntime_learn_all);
+      if (data->learning->pc_normalized_var[eof] == 0.0) {
+        (void) fprintf(stderr, "%s: ERROR: Normalized variance of the projection of the large-scale field onto EOF is 0.0. You probably have too many EOFs for your field. EOF number=%d. Variance=%f. Must abort...\n",
+                       __FILE__, eof, data->learning->pc_normalized_var[eof]);
+        return -1;
+      }
     }
                                                     
     ntime_sub = (int *) malloc(data->conf->nseasons * sizeof(int));
     if (ntime_sub == NULL) alloc_error(__FILE__, __LINE__);
 
     /* Read observed precipitation (liquid and solid) */
-    istat = read_obs_period(&precip_liquid_obs, &(data->learning->lon), &(data->learning->lat), &missing_value_precip, data, "PRCP",
+    istat = read_obs_period(&precip_liquid_obs, &(data->learning->lon), &(data->learning->lat), &missing_value_precip, data, "prr",
                             data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
                             &(data->learning->nlon), &(data->learning->nlat), data->learning->obs->ntime);
     (void) free(data->learning->lon);
     (void) free(data->learning->lat);
-    istat = read_obs_period(&precip_solid_obs, &(data->learning->lon), &(data->learning->lat), &missing_value_precip, data, "SNOW",
+    istat = read_obs_period(&precip_solid_obs, &(data->learning->lon), &(data->learning->lat), &missing_value_precip, data, "prsn",
                             data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
                             &(data->learning->nlon), &(data->learning->nlat), data->learning->obs->ntime);
 

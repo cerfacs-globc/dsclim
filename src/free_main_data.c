@@ -18,7 +18,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -52,6 +52,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 #include <dsclim.h>
 
@@ -469,6 +470,7 @@ free_main_data(data_struct *data) {
       (void) free(data->conf->obs_var->netcdfname[i]);
       (void) free(data->conf->obs_var->name[i]);
       (void) free(data->conf->obs_var->post[i]);
+      (void) free(data->conf->obs_var->output[i]);
       (void) free(data->conf->obs_var->height[i]);
       (void) free(data->conf->obs_var->units[i]);
     }
@@ -478,6 +480,7 @@ free_main_data(data_struct *data) {
     (void) free(data->conf->obs_var->factor);
     (void) free(data->conf->obs_var->delta);
     (void) free(data->conf->obs_var->post);
+    (void) free(data->conf->obs_var->output);
     (void) free(data->conf->obs_var->height);
     (void) free(data->conf->obs_var->units);
   }

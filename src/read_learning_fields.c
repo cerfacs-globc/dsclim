@@ -18,7 +18,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -52,6 +52,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 #include <dsclim.h>
 
@@ -123,11 +124,26 @@ read_learning_fields(data_struct *data) {
                                data->learning->filename_open_weight, nomvar, data->conf->eofname, name,
                                &neof_file, &nclusters, TRUE);
     /* Save EOF dimension for control and model large-scale fields */
-    if (data->field[0].n_ls > 0)
-      data->field[0].data[0].eof_info->neof_ls = neof_file;
+    if (data->field[0].n_ls > 0) {
+      if (data->field[0].data[0].eof_info->neof_ls != neof_file) {
+        (void) fprintf(stderr, "%s: ERROR: Number of EOFs in learning weight datafile (%d) is not equal to number of EOFs specified in XML configuration file for model large-scale fields (%d)!\n", __FILE__, neof_file, data->field[0].data[0].eof_info->neof_ls);
+        (void) free(nomvar);
+        (void) free(nomvar_time);
+        (void) free(nomvar_season);
+        (void) free(name);
+        return -1;
+      }
+    }
     if (data->field[1].n_ls > 0)
-      data->field[1].data[0].eof_info->neof_ls = neof_file;
-
+      if (data->field[1].data[0].eof_info->neof_ls != neof_file) {
+        (void) fprintf(stderr, "%s: ERROR: Number of EOFs in learning weight datafile (%d) is not equal to number of EOFs specified in XML configuration file for control large-scale fields (%d)!\n", __FILE__, neof_file, data->field[1].data[0].eof_info->neof_ls);
+        (void) free(nomvar);
+        (void) free(nomvar_time);
+        (void) free(nomvar_season);
+        (void) free(name);
+        return -1;
+      }
+    
     /* If clusters dimension is not initialized, use retrieved info from input file */
     if (data->conf->season[i].nclusters == -1)
       data->conf->season[i].nclusters = nclusters;
@@ -343,8 +359,7 @@ read_learning_fields(data_struct *data) {
                              &neof, TRUE);
   if (neof != neof_file) {
     /* Verify that EOF dimension match configuration value */
-    (void) fprintf(stderr, "%s: ERROR: Incorrect number of EOFs in NetCDF file %d vs configuration file %d.\n",
-                   __FILE__, neof, neof_file);
+    (void) fprintf(stderr, "%s: ERROR: Number of EOFs in learning weight datafile (%d) is not equal to number of EOFs in learning datafile (%d)!\n", __FILE__, neof, neof_file);
     (void) free(nomvar);
     (void) free(nomvar_time);
     (void) free(nomvar_season);

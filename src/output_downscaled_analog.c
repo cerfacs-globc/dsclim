@@ -11,7 +11,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2009)
+Copyright Cerfacs (Christian Page) (2010)
 
 christian.page@cerfacs.fr
 
@@ -45,6 +45,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 #include <dsclim.h>
 
@@ -287,69 +288,74 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
           f++;
         }
         if (found_file[var] == FALSE) {
-          /* File was not created already by this algorithm run */
-          outfiles[var] = (char **) realloc(outfiles[var], (noutf[var]+1) * sizeof(char *));
-          if (outfiles[var] == NULL) alloc_error(__FILE__, __LINE__);
-          outfiles[var][noutf[var]++] = strdup(outfile[var]);
 
-          /* Verify if file exists and if we can write into it */
-          istat = nc_open(outfile[var], NC_WRITE, &ncoutid);
+          if ( !strcmp(obs_var->output[var], "yes") ) {
 
-          if (istat != NC_NOERR) {
-            /* File does not exists */
+            /* File was not created already by this algorithm run */
+            outfiles[var] = (char **) realloc(outfiles[var], (noutf[var]+1) * sizeof(char *));
+            if (outfiles[var] == NULL) alloc_error(__FILE__, __LINE__);
+            outfiles[var][noutf[var]++] = strdup(outfile[var]);
+            
+            /* Verify if file exists and if we can write into it */
+            istat = nc_open(outfile[var], NC_WRITE, &ncoutid);
+            
+            if (istat != NC_NOERR) {
+              /* File does not exists */
+              
+              /* Create output file */
+              istat = create_netcdf(info->title, info->title_french, info->summary, info->summary_french,
+                                    info->keywords, info->processor, info->description, info->institution,
+                                    info->creator_email, info->creator_url, info->creator_name,
+                                    info->version, info->scenario, info->scenario_co2, info->model,
+                                    info->institution_model, info->country, info->member,
+                                    info->downscaling_forcing, info->contact_email, info->contact_name,
+                                    info->other_contact_email, info->other_contact_name,
+                                    outfile[var], TRUE, file_format, file_compression);
+              if (istat != 0) {
+                /* In case of failure */
+                (void) free(outfile[var]);
+                for (f=0; f<noutf[var]; f++)
+                  (void) free(outfiles[var][f]);
+                if (noutf[var] > 0)
+                  (void) free(outfiles[var]);
+                if (pmsl != NULL) (void) free(pmsl);
+                return istat;
+              }
+            
+              /* Add algorithm configuration */
 
-            /* Create output file */
-            istat = create_netcdf(info->title, info->title_french, info->summary, info->summary_french,
-                                  info->keywords, info->processor, info->description, info->institution,
-                                  info->creator_email, info->creator_url, info->creator_name,
-                                  info->version, info->scenario, info->scenario_co2, info->model,
-                                  info->institution_model, info->country, info->member,
-                                  info->downscaling_forcing, info->contact_email, info->contact_name,
-                                  info->other_contact_email, info->other_contact_name,
-                                  outfile[var], TRUE, file_format, file_compression);
-            if (istat != 0) {
-              /* In case of failure */
-              (void) free(outfile[var]);
-              for (f=0; f<noutf[var]; f++)
-                (void) free(outfiles[var][f]);
-              if (noutf[var] > 0)
-                (void) free(outfiles[var]);
-              if (pmsl != NULL) (void) free(pmsl);
-              return istat;
+              istat = nc_open(outfile[var], NC_WRITE, &ncoutid);  /* open NetCDF file */
+              if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+              
+              /* Go into redefine mode */
+              istat = nc_redef(ncoutid);
+              if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+              
+              /* Define configuration */
+              istat = nc_def_dim(ncoutid, "configstr", strlen(config)+1, &configstrdimid);
+              if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+              istat = nc_def_var(ncoutid, "dsclim_configuration", NC_CHAR, 1, &configstrdimid, &configstroutid);
+              if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+              
+              /* End definition mode */
+              istat = nc_enddef(ncoutid);
+              if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+              
+              /* Write configuration */
+              start[0] = 0;
+              count[0] = strlen(config) + 1;
+              istat = nc_put_vara_text(ncoutid, configstroutid, start, count, config);
+              if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
             }
+            else
+              found_file[var] = TRUE;
             
-            /* Add algorithm configuration */
-            istat = nc_open(outfile[var], NC_WRITE, &ncoutid);  /* open NetCDF file */
-            if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-            
-            /* Go into redefine mode */
-            istat = nc_redef(ncoutid);
-            if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-            
-            /* Define configuration */
-            istat = nc_def_dim(ncoutid, "configstr", strlen(config)+1, &configstrdimid);
-            if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-            istat = nc_def_var(ncoutid, "dsclim_configuration", NC_CHAR, 1, &configstrdimid, &configstroutid);
-            if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-            
-            /* End definition mode */
-            istat = nc_enddef(ncoutid);
-            if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-            
-            /* Write configuration */
-            start[0] = 0;
-            count[0] = strlen(config) + 1;
-            istat = nc_put_vara_text(ncoutid, configstroutid, start, count, config);
+            /* Close the output netCDF file. */
+            istat = ncclose(ncoutid);
             if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
           }
-          else
-            found_file[var] = TRUE;
-
-          /* Close the output netCDF file. */
-          istat = ncclose(ncoutid);
-          if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
         }
-
+          
         /* Complete time metadata time_coverage_end for previous output file and output whole config */
         if (noutf[var] > 1 && t > 0) {
           
@@ -358,23 +364,23 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
           
           istat = nc_redef(ncoutid);
           if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-        
+          
           if (utIsInit() != TRUE)
             istat = utInit("");
           istat = utScan(time_units,  &dataunit);
           istat = utCalendar(time_ls[t-1], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
           (void) utTerm();
-        
+          
           tmpstr = (char *) malloc(MAXPATH * sizeof(char));
           if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
           (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, minutes, (int) seconds);
           istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_end", strlen(tmpstr), tmpstr);
           (void) free(tmpstr);
-
+          
           /* End definition mode */
           istat = nc_enddef(ncoutid);
           if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-
+          
           /* Close the output netCDF file. */
           istat = ncclose(ncoutid);
           if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -782,51 +788,53 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
 
           /* Process each variable for writing */
           for (var=0; var<obs_var->nobs_var; var++) {
-            /* Write dimensions of field in newly-created NetCDF output file */
-            if (found_file[var] == FALSE && hour == minh && buf[var] != NULL) {
-              /* We just created output file: we need to write dimensions */
-              ctimeval[0] = time_ls[t];
-              istat = write_netcdf_dims_3d(lon, lat, x, y, ctimeval, cal_type,
-                                           time_units, nlon, nlat, 0,
-                                           info->timestep, obs_var->proj->name, obs_var->proj->coords,
-                                           obs_var->proj->grid_mapping_name, obs_var->proj->latin1,
-                                           obs_var->proj->latin2, obs_var->proj->lonc, obs_var->proj->lat0,
-                                           obs_var->proj->false_easting, obs_var->proj->false_northing,
-                                           obs_var->lonname, obs_var->latname, obs_var->timename,
-                                           outfile[var], FALSE);
-              if (istat != 0) {
-                /* In case of failure */
-                (void) free(time_s->year);
-                (void) free(time_s->month);
-                (void) free(time_s->day);
-                (void) free(time_s->hour);
-                (void) free(time_s->minutes);
-                (void) free(time_s->seconds);
+            if ( !strcmp(obs_var->output[var], "yes") ) {
+              /* Write dimensions of field in newly-created NetCDF output file */
+              if (found_file[var] == FALSE && hour == minh && buf[var] != NULL) {
+                /* We just created output file: we need to write dimensions */
+                ctimeval[0] = time_ls[t];
+                istat = write_netcdf_dims_3d(lon, lat, x, y, ctimeval, cal_type,
+                                             time_units, nlon, nlat, 0,
+                                             info->timestep, obs_var->proj->name, obs_var->proj->coords,
+                                             obs_var->proj->grid_mapping_name, obs_var->proj->latin1,
+                                             obs_var->proj->latin2, obs_var->proj->lonc, obs_var->proj->lat0,
+                                             obs_var->proj->false_easting, obs_var->proj->false_northing,
+                                             obs_var->lonname, obs_var->latname, obs_var->timename,
+                                             outfile[var], FALSE);
+                if (istat != 0) {
+                  /* In case of failure */
+                  (void) free(time_s->year);
+                  (void) free(time_s->month);
+                  (void) free(time_s->day);
+                  (void) free(time_s->hour);
+                  (void) free(time_s->minutes);
+                  (void) free(time_s->seconds);
+                  
+                  (void) free(time_s);
             
-                (void) free(time_s);
-            
-                (void) free(infile[var]);
-                (void) free(outfile[var]);
-                (void) free(info_tmp[var]->grid_mapping);
-                (void) free(info_tmp[var]->units);
-                (void) free(info_tmp[var]->height);
-                (void) free(info_tmp[var]->coordinates);
-                (void) free(info_tmp[var]->long_name);
-                (void) free(info_tmp[var]);
-                (void) free(proj_tmp->name);
-                (void) free(proj_tmp->grid_mapping_name);
-                (void) free(proj_tmp);
-                for (f=0; f<noutf[var]; f++)
-                  (void) free(outfiles[var][f]);
-                if (noutf[var] > 0)
-                  (void) free(outfiles[var]);
-                (void) free(outfiles);
-                if (pmsl != NULL) (void) free(pmsl);
-                return istat;
+                  (void) free(infile[var]);
+                  (void) free(outfile[var]);
+                  (void) free(info_tmp[var]->grid_mapping);
+                  (void) free(info_tmp[var]->units);
+                  (void) free(info_tmp[var]->height);
+                  (void) free(info_tmp[var]->coordinates);
+                  (void) free(info_tmp[var]->long_name);
+                  (void) free(info_tmp[var]);
+                  (void) free(proj_tmp->name);
+                  (void) free(proj_tmp->grid_mapping_name);
+                  (void) free(proj_tmp);
+                  for (f=0; f<noutf[var]; f++)
+                    (void) free(outfiles[var][f]);
+                  if (noutf[var] > 0)
+                    (void) free(outfiles[var]);
+                  (void) free(outfiles);
+                  if (pmsl != NULL) (void) free(pmsl);
+                  return istat;
+                }
               }
             }
           }
-        
+
           /* Compute time if output timestep is hourly and not daily */
           if ( !strcmp(info->timestep, "hourly") ) {
             if (utIsInit() != TRUE)
@@ -841,7 +849,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
 
           /* Process each variable */
           for (var=0; var<obs_var->nobs_var; var++) {
-            if (buf[var] != NULL) {
+            if (buf[var] != NULL && !strcmp(obs_var->output[var], "yes")) {
               if ( !strcmp(info->timestep, obs_var->frequency) ) {
                 /* Output and input data are at same frequency */
                 if (found_file[var] == FALSE && hour == minh)
