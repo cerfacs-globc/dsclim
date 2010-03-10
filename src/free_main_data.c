@@ -207,6 +207,7 @@ free_main_data(data_struct *data) {
             (void) free(data->field[i].analog_days[s].tindex);
             (void) free(data->field[i].analog_days[s].tindex_all);
             (void) free(data->field[i].analog_days[s].tindex_s_all);
+            (void) free(data->field[i].analog_days[s].time);
             (void) free(data->field[i].analog_days[s].year);
             (void) free(data->field[i].analog_days[s].month);
             (void) free(data->field[i].analog_days[s].day);
@@ -229,6 +230,7 @@ free_main_data(data_struct *data) {
           (void) free(data->field[i].analog_days_year.tindex);
           (void) free(data->field[i].analog_days_year.tindex_all);
           (void) free(data->field[i].analog_days_year.tindex_s_all);
+          (void) free(data->field[i].analog_days_year.time);
         }
         (void) free(data->field[i].analog_days_year.year);
         (void) free(data->field[i].analog_days_year.month);

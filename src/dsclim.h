@@ -144,6 +144,7 @@ typedef struct {
 typedef struct {
   int *tindex; /**< Time index of analog day. */
   int *tindex_all; /**< Time index of analog day in the season-merged index. */
+  int *time; /**< Time (udunits) of analog day. */
   int *year; /**< Year of analog day. */
   int *month; /**< Month of analog day. */
   int *day; /**< Day of analog day. */
@@ -478,7 +479,7 @@ int read_regression_points(reg_struct *reg);
 int read_mask(mask_struct *mask);
 void find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn, double *sup_field_index,
                    double *sup_field_index_learn, int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
-                   int *year_learn, int *month_learn, int *day_learn,
+                   int *year_learn, int *month_learn, int *day_learn, char *time_units,
                    int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts,
                    int shuffle, int sup, int sup_choice);
 void compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days, double *sup_field_index,

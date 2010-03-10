@@ -286,6 +286,20 @@ read_obs_period(double **buffer, double **lon, double **lat, double *missing_val
       (void) strcpy(prev_infile, infile);
     }
   }
+  else {
+    (void) free(infile);
+    (void) free(prev_infile);
+
+    (void) free(format);
+
+    (void) free(info);
+    (void) free(proj);
+
+    (void) fprintf(stderr, "%s: Cannot find variable %s. Check your configuration file for observed liquid and solid precipitation!\n",
+                   __FILE__, varname);
+
+    return -1;
+  }
 
   /* Free allocated memory */
   if (time_s != NULL) {

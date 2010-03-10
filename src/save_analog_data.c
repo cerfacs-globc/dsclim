@@ -449,7 +449,7 @@ save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int
   start[1] = 0;
   count[0] = (size_t) analog_days.ntime;
   count[1] = 0;
-  istat = nc_put_vara_int(ncoutid, analogoutid, start, count, analog_days.tindex_all);
+  istat = nc_put_vara_int(ncoutid, analogoutid, start, count, analog_days.time);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_put_vara_int(ncoutid, analogyearoutid, start, count, analog_days.year);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);

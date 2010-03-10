@@ -492,6 +492,8 @@ wt_downscaling(data_struct *data) {
           /* Find the analog days in the learning period given the precipitation index, */
           /* the spatial mean of the secondary large-scale fields and its index, and the cluster classification of the days */
           data->field[cat].analog_days[s].ntime = ntime_sub[cat][s];
+          data->field[cat].analog_days[s].time = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
+          if (data->field[cat].analog_days[s].time == NULL) alloc_error(__FILE__, __LINE__);
           data->field[cat].analog_days[s].tindex = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
           if (data->field[cat].analog_days[s].tindex == NULL) alloc_error(__FILE__, __LINE__);
           data->field[cat].analog_days[s].tindex_all = (int *) malloc(ntime_sub[cat][s] * sizeof(int));
@@ -527,7 +529,7 @@ wt_downscaling(data_struct *data) {
                                data->field[cat].data[i].down->days_class_clusters[s], data->learning->data[s].class_clusters,
                                data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
                                data->learning->data[s].time_s->year, data->learning->data[s].time_s->month,
-                               data->learning->data[s].time_s->day,
+                               data->learning->data[s].time_s->day, data->conf->time_units,
                                data->field[cat].ntime_ls, data->learning->data[s].ntime,
                                data->conf->season[s].month, data->conf->season[s].nmonths,
                                data->conf->season[s].ndays, data->conf->season[s].ndayschoices, data->reg->npts,
@@ -578,6 +580,8 @@ wt_downscaling(data_struct *data) {
       i = 0;
 
       if (data->conf->output_only != TRUE) {
+        data->field[cat].analog_days_year.time = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+        if (data->field[cat].analog_days_year.time == NULL) alloc_error(__FILE__, __LINE__);
         data->field[cat].analog_days_year.tindex = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
         if (data->field[cat].analog_days_year.tindex == NULL) alloc_error(__FILE__, __LINE__);
         data->field[cat].analog_days_year.tindex_all = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));

@@ -53,7 +53,7 @@ LICENSE END */
 void
 find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn, double *sup_field_index,
               double *sup_field_index_learn, int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
-              int *year_learn, int *month_learn, int *day_learn,
+              int *year_learn, int *month_learn, int *day_learn, char *time_units,
               int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
               int sup_choice) {
   /**
@@ -70,6 +70,7 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
      @param[in]   year_learn            years of days of learning period
      @param[in]   month_learn           month of days of learning period
      @param[in]   day_learn             day of month of days of learning period
+     @param[in]   time_units            base time units for downscaling
      @param[in]   ntime                 number of times of days to downscale
      @param[in]   ntime_learn           number of times of learning period
      @param[in]   months                months of the year in each season
@@ -128,6 +129,16 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
   int tt; /* Time loop counter */
   int tl; /* Time loop counter */
   int pts; /* Regression points loop counter */
+
+  utUnit dataunits; /* Time data units (udunits) */
+  int istat; /* Return status of functions */
+  double timei; /* udunits Time value */
+
+  /* Initialize udunits */
+  istat = utInit("");
+
+  /* Get time units */
+  istat = utScan(time_units, &dataunits);
 
   /* Initialize random number generator if needed */
   if (shuffle == TRUE) {
@@ -346,10 +357,13 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
 
         /* Save analog day time index in the learning period */
         analog_days.tindex[t] = ntime_days_learn[metric_index[random_index[0]]];
-        analog_days.tindex_all[t] = buf_learn_sub_i[analog_days.tindex[t]];
         analog_days.year[t] = year_learn[analog_days.tindex[t]];
         analog_days.month[t] = month_learn[analog_days.tindex[t]];
         analog_days.day[t] = day_learn[analog_days.tindex[t]];
+        analog_days.tindex_all[t] = buf_learn_sub_i[analog_days.tindex[t]];
+        istat = utInvCalendar(analog_days.year[t], analog_days.month[t], analog_days.day[t], 0, 0, 0.0, &dataunits, &timei);
+        analog_days.time[t] = (int) timei;
+
         /* Save date of day being downscaled */
         analog_days.year_s[t] = year[buf_sub_i[t]];
         analog_days.month_s[t] = month[buf_sub_i[t]];
@@ -406,12 +420,16 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
             }
           }
         }
+
         /* Save analog day time index in the learning period */
         analog_days.tindex[t] = ntime_days_learn[min_metric_index];
-        analog_days.tindex_all[t] = buf_learn_sub_i[analog_days.tindex[t]];
         analog_days.year[t] = year_learn[analog_days.tindex[t]];
         analog_days.month[t] = month_learn[analog_days.tindex[t]];
         analog_days.day[t] = day_learn[analog_days.tindex[t]];
+        analog_days.tindex_all[t] = buf_learn_sub_i[analog_days.tindex[t]];
+        istat = utInvCalendar(analog_days.year[t], analog_days.month[t], analog_days.day[t], 0, 0, 0.0, &dataunits, &timei);
+        analog_days.time[t] = (int) timei;
+
         /* Save date of day being downscaled */
         analog_days.year_s[t] = year[buf_sub_i[t]];
         analog_days.month_s[t] = month[buf_sub_i[t]];
@@ -466,4 +484,6 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
 
   (void) free(buf_sub_i);
   (void) free(buf_learn_sub_i);
+
+  (void) utTerm();
 }

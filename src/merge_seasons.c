@@ -74,6 +74,7 @@ merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_day
     }
     /* Retrieve values */
     analog_days_merged.tindex_all[curindex_merged] = analog_days.tindex_all[t];
+    analog_days_merged.time[curindex_merged] = analog_days.time[t];
     analog_days_merged.year[curindex_merged] = analog_days.year[t];
     analog_days_merged.month[curindex_merged] = analog_days.month[t];
     analog_days_merged.day[curindex_merged] = analog_days.day[t];

@@ -566,6 +566,18 @@ write_learning_fields(data_struct *data) {
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   for (s=0; s<data->conf->nseasons; s++) {
+
+    timeval = (double *) realloc(timeval, data->learning->data[s].ntime * sizeof(double));
+    if (timeval == NULL) alloc_error(__FILE__, __LINE__);
+    
+    /* Compute time variable using actual units */
+    istat = utScan(data->conf->time_units, &dataunits);
+    for (t=0; t<data->learning->data[s].ntime; t++)
+      istat = utInvCalendar(data->learning->data[s].time_s->year[t], data->learning->data[s].time_s->month[t],
+                            data->learning->data[s].time_s->day[t], data->learning->data[s].time_s->hour[t],
+                            data->learning->data[s].time_s->minutes[t], data->learning->data[s].time_s->seconds[t],
+                            &dataunits, &(timeval[t]));
+
     /* Write clust_learn */
     start[0] = 0;
     start[1] = 0;
@@ -574,6 +586,16 @@ write_learning_fields(data_struct *data) {
     count[1] = 0;
     count[2] = 0;
     istat = nc_put_vara_int(ncoutid, clustoutid[s], start, count, data->learning->data[s].class_clusters);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    /* Write time */
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) data->learning->data[s].ntime;
+    count[1] = 0;
+    count[2] = 0;
+    istat = nc_put_vara_double(ncoutid, timeoutid[s], start, count, data->learning->data[s].time);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }  
 

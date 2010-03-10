@@ -130,6 +130,8 @@ wt_learning(data_struct *data) {
   int pt;
   int npt;
 
+  utUnit dataunits; /* Time data units (udunits) */
+
   int niter = 2;
 
   int istat; /** Return status. */
@@ -207,9 +209,11 @@ wt_learning(data_struct *data) {
                             &(data->learning->nlon), &(data->learning->nlat), data->learning->obs->ntime);
     (void) free(data->learning->lon);
     (void) free(data->learning->lat);
+    if (istat == -1) return -1;
     istat = read_obs_period(&precip_solid_obs, &(data->learning->lon), &(data->learning->lat), &missing_value_precip, data, "prsn",
                             data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
                             &(data->learning->nlon), &(data->learning->nlat), data->learning->obs->ntime);
+    if (istat == -1) return -1;
 
     /* Calculate total precipitation */
     (void) printf("%s: Calculating total precipitation from solid and liquid.\n", __FILE__);
@@ -342,11 +346,6 @@ wt_learning(data_struct *data) {
       /* Process separately each season */
 
       /* Select season months in the whole time period and create sub-period fields */
-      (void) extract_subperiod_months(&(data->learning->data[s].time), &(ntime_sub[s]), buf_learn_obs,
-                                      data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
-                                      data->conf->season[s].month,
-                                      1, 1, data->learning->obs_neof, ntime_learn_all,
-                                      data->conf->season[s].nmonths);
       (void) extract_subperiod_months(&buf_learn_obs_sub, &(ntime_sub[s]), buf_learn_obs,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
                                       data->conf->season[s].month,
@@ -387,6 +386,8 @@ wt_learning(data_struct *data) {
 
       /** Construct time vectors **/
       data->learning->data[s].ntime = ntime_sub[s];
+      data->learning->data[s].time = (double *) malloc(ntime_sub[s] * sizeof(double));
+      if (data->learning->data[s].time == NULL) alloc_error(__FILE__, __LINE__);
       data->learning->data[s].time_s->year = (int *) malloc(ntime_sub[s] * sizeof(int));
       if (data->learning->data[s].time_s->year == NULL) alloc_error(__FILE__, __LINE__);
       data->learning->data[s].time_s->month = (int *) malloc(ntime_sub[s] * sizeof(int));
@@ -401,6 +402,9 @@ wt_learning(data_struct *data) {
       if (data->learning->data[s].time_s->seconds == NULL) alloc_error(__FILE__, __LINE__);
       /* Retrieve time index spanning selected months and assign time structure values */
       t = 0;
+      if (utIsInit() != TRUE)
+        istat = utInit("");
+      istat = utScan(data->conf->time_units, &dataunits);
       for (nt=0; nt<ntime_learn_all; nt++)
         for (ntt=0; ntt<data->conf->season[s].nmonths; ntt++)
           if (data->learning->time_s->month[nt] == data->conf->season[s].month[ntt]) {
@@ -410,8 +414,13 @@ wt_learning(data_struct *data) {
             data->learning->data[s].time_s->hour[t] = data->learning->time_s->hour[nt];
             data->learning->data[s].time_s->minutes[t] = data->learning->time_s->minutes[nt];
             data->learning->data[s].time_s->seconds[t] = data->learning->time_s->seconds[nt];
+            istat = utInvCalendar(data->learning->data[s].time_s->year[t], data->learning->data[s].time_s->month[t],
+                                  data->learning->data[s].time_s->day[t], data->learning->data[s].time_s->hour[t],
+                                  data->learning->data[s].time_s->minutes[t], data->learning->data[s].time_s->seconds[t],
+                                  &dataunits, &(data->learning->data[s].time[t]));
             t++;
           }
+      (void) utTerm();
       
       /** Merge observation and reanalysis principal components for clustering algorithm and normalize using first Singular Value **/
 
