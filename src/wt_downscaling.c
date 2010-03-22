@@ -534,7 +534,7 @@ wt_downscaling(data_struct *data) {
                                data->conf->season[s].month, data->conf->season[s].nmonths,
                                data->conf->season[s].ndays, data->conf->season[s].ndayschoices, data->reg->npts,
                                data->conf->season[s].shuffle, data->conf->season[s].secondary_choice,
-                               data->conf->season[s].secondary_main_choice);
+                               data->conf->season[s].secondary_main_choice, data->conf->use_downscaled_year);
         }
     }
 

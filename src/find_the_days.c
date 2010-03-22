@@ -55,7 +55,7 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
               double *sup_field_index_learn, int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
               int *year_learn, int *month_learn, int *day_learn, char *time_units,
               int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
-              int sup_choice) {
+              int sup_choice, int use_downscaled_year) {
   /**
      @param[out]  analog_days           Analog days time indexes and dates, as well as corresponding downscale dates
      @param[in]   precip_index          Precipitation index of days to downscale
@@ -81,6 +81,7 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
      @param[in]   shuffle               shuffle or not the days of the first selection
      @param[in]   sup                   if we want to use the secondary large-scale field in the final selection of the analog day
      @param[in]   sup_choice            if we want to use the secondary large-scale field in the first selection of the analog day
+     @param[in]   use_downscaled_year   if we want to also search the analog day in the year of the current downscaled year
   */
   
   int *buf_sub_i = NULL; /* Temporary buffer for time index of subperiod */
@@ -193,90 +194,94 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
     /* Search analog days in learning period */
     for (tl=0; tl<ntime_learn_sub; tl++) {
 
-      /* Compute the learning period day of year and compute the difference with the current processed day of year */
-      learn_dayofy = dayofclimyear(day_learn[buf_learn_sub_i[tl]], month_learn[buf_learn_sub_i[tl]]);
-      diff_day_learn = abs(cur_dayofy - learn_dayofy);
+      /* If use_downscaled_year != 1, check that we don't search the analog day in the downscaled year. */
+      if (use_downscaled_year != 0 || (use_downscaled_year == 0 && year_learn[buf_learn_sub_i[tl]] != year[buf_sub_i[t]])) {
 
-      /* We are within the day of year range */
-      if (diff_day_learn <= ndays) {
+        /* Compute the learning period day of year and compute the difference with the current processed day of year */
+        learn_dayofy = dayofclimyear(day_learn[buf_learn_sub_i[tl]], month_learn[buf_learn_sub_i[tl]]);
+        diff_day_learn = abs(cur_dayofy - learn_dayofy);
+
+        /* We are within the day of year range */
+        if (diff_day_learn <= ndays) {
         
-        /* Allocate memory */
-        metric = (double *) realloc(metric, (ntime_days+1) * sizeof(double));
-        if (metric == NULL) alloc_error(__FILE__, __LINE__);
-        metric_norm = (double *) realloc(metric_norm, (ntime_days+1) * sizeof(double));
-        if (metric_norm == NULL) alloc_error(__FILE__, __LINE__);
-
-        /* Compute precipitation index difference and precipitation index metric */
-        precip_diff = 0.0;
-        for (pts=0; pts<npts; pts++) {
-          diff_precip_pt = precip_index[pts+t*npts] - precip_index_learn[pts+tl*npts];
-          precip_diff += (diff_precip_pt*diff_precip_pt);
-          /*
-            if (t == 4595 && year_learn[buf_learn_sub_i[tl]] == 2005 && month_learn[buf_learn_sub_i[tl]] == 5 && day_learn[buf_learn_sub_i[tl]] == 29) {
-            printf("%d %d %lf %lf %lf %lf\n",t,pts,precip_diff,diff_precip_pt,precip_index[pts+t*npts],precip_index_learn[pts+tl*npts]);
-            }
-          */
-          /*          if (t == 4595)
-                      printf("%d %d %lf %lf %lf %lf\n",t,pts,precip_diff,diff_precip_pt,precip_index[pts+t*npts],precip_index_learn[pts+tl*npts]);*/
-            
-        }
-        metric[ntime_days] = sqrt(precip_diff);
-        //        if (t == (ntime_sub-1))
-        //          printf("metric before max %d %lf\n",ntime_days,metric[ntime_days]);
-        
-        /* Store the maximum metric value and its index */
-        if (metric[ntime_days] > max_metric) {
-          //          if (t == (ntime_sub-1))
-          //            printf("%d %lf %lf\n",ntime_days,max_metric,metric[ntime_days]);
-          max_metric = metric[ntime_days];
-          max_metric_index = ntime_days;
-        }
-
-        /* If we want to also use the secondary large-scale fields in the first selection of days */
-        if (sup_choice == TRUE || sup == TRUE) {
           /* Allocate memory */
-          metric_sup = (double *) realloc(metric_sup, (ntime_days+1) * sizeof(double));
-          if (metric_sup == NULL) alloc_error(__FILE__, __LINE__);
-          metric_sup_norm = (double *) realloc(metric_sup_norm, (ntime_days+1) * sizeof(double));
-          if (metric_sup_norm == NULL) alloc_error(__FILE__, __LINE__);
+          metric = (double *) realloc(metric, (ntime_days+1) * sizeof(double));
+          if (metric == NULL) alloc_error(__FILE__, __LINE__);
+          metric_norm = (double *) realloc(metric_norm, (ntime_days+1) * sizeof(double));
+          if (metric_norm == NULL) alloc_error(__FILE__, __LINE__);
 
-          /* Compute supplemental field index difference */
-          sup_diff = sup_field_index[t] - sup_field_index_learn[buf_learn_sub_i[tl]];
-          metric_sup[ntime_days] = sqrt(sup_diff * sup_diff);
-          /* Store the maximum value and its index */
-          if (metric_sup[ntime_days] > max_metric_sup)
-            max_metric_sup = metric_sup[ntime_days];
+          /* Compute precipitation index difference and precipitation index metric */
+          precip_diff = 0.0;
+          for (pts=0; pts<npts; pts++) {
+            diff_precip_pt = precip_index[pts+t*npts] - precip_index_learn[pts+tl*npts];
+            precip_diff += (diff_precip_pt*diff_precip_pt);
+            /*
+              if (t == 4595 && year_learn[buf_learn_sub_i[tl]] == 2005 && month_learn[buf_learn_sub_i[tl]] == 5 && day_learn[buf_learn_sub_i[tl]] == 29) {
+              printf("%d %d %lf %lf %lf %lf\n",t,pts,precip_diff,diff_precip_pt,precip_index[pts+t*npts],precip_index_learn[pts+tl*npts]);
+              }
+            */
+            /*          if (t == 4595)
+                        printf("%d %d %lf %lf %lf %lf\n",t,pts,precip_diff,diff_precip_pt,precip_index[pts+t*npts],precip_index_learn[pts+tl*npts]);*/
+            
+          }
+          metric[ntime_days] = sqrt(precip_diff);
+          //        if (t == (ntime_sub-1))
+          //          printf("metric before max %d %lf\n",ntime_days,metric[ntime_days]);
+        
+          /* Store the maximum metric value and its index */
+          if (metric[ntime_days] > max_metric) {
+            //          if (t == (ntime_sub-1))
+            //            printf("%d %lf %lf\n",ntime_days,max_metric,metric[ntime_days]);
+            max_metric = metric[ntime_days];
+            max_metric_index = ntime_days;
+          }
+
+          /* If we want to also use the secondary large-scale fields in the first selection of days */
+          if (sup_choice == TRUE || sup == TRUE) {
+            /* Allocate memory */
+            metric_sup = (double *) realloc(metric_sup, (ntime_days+1) * sizeof(double));
+            if (metric_sup == NULL) alloc_error(__FILE__, __LINE__);
+            metric_sup_norm = (double *) realloc(metric_sup_norm, (ntime_days+1) * sizeof(double));
+            if (metric_sup_norm == NULL) alloc_error(__FILE__, __LINE__);
+
+            /* Compute supplemental field index difference */
+            sup_diff = sup_field_index[t] - sup_field_index_learn[buf_learn_sub_i[tl]];
+            metric_sup[ntime_days] = sqrt(sup_diff * sup_diff);
+            /* Store the maximum value and its index */
+            if (metric_sup[ntime_days] > max_metric_sup)
+              max_metric_sup = metric_sup[ntime_days];
           
-          //            if (t >= (ntime_sub-5))
-              // if (year_learn[buf_learn_sub_i[tl]] == 2005 && month_learn[buf_learn_sub_i[tl]] == 5 && day_learn[buf_learn_sub_i[tl]] == 29) {
-          //            printf("%d %lf %lf %lf %lf %lf %lf\n",ntime_days,max_metric_sup,metric_sup[ntime_days],sup_field_index[t],sup_field_index_learn[buf_learn_sub_i[tl]],metric[ntime_days],precip_diff);
+            //            if (t >= (ntime_sub-5))
+            // if (year_learn[buf_learn_sub_i[tl]] == 2005 && month_learn[buf_learn_sub_i[tl]] == 5 && day_learn[buf_learn_sub_i[tl]] == 29) {
+            //            printf("%d %lf %lf %lf %lf %lf %lf\n",ntime_days,max_metric_sup,metric_sup[ntime_days],sup_field_index[t],sup_field_index_learn[buf_learn_sub_i[tl]],metric[ntime_days],precip_diff);
             //  }
           
+          }
+
+          /* Compute cluster difference */
+          clust_diff = (int *) realloc(clust_diff, (ntime_days+1) * sizeof(int));
+          if (clust_diff == NULL) alloc_error(__FILE__, __LINE__);
+
+          clust_diff[ntime_days] = class_clusters_learn[tl] - class_clusters[t];
+
+          /* Store the index in the time vector of the selected day */
+          ntime_days_learn = (int *) realloc(ntime_days_learn, (ntime_days+1) * sizeof(int));
+          if (ntime_days_learn == NULL) alloc_error(__FILE__, __LINE__);
+
+          ntime_days_learn[ntime_days] = buf_learn_sub_i[tl];
+
+          /*        
+                    if (t == (ntime_sub-1)) {
+                    printf("!clust %d %d %d %d %d %d day=%d\n",year_learn[buf_learn_sub_i[tl]], month_learn[buf_learn_sub_i[tl]], day_learn[buf_learn_sub_i[tl]], clust_diff[ntime_days], class_clusters_learn[tl], class_clusters[t],t);
+                    if (year_learn[buf_learn_sub_i[tl]] == 1986 && month_learn[buf_learn_sub_i[tl]] == 5 && day_learn[buf_learn_sub_i[tl]] == 25)
+                    for (pts=0; pts<npts; pts++)
+                    printf("!!! %d %d %d %d %d %lf %lf %lf %lf %lf\n",pts,ntime_days,year_learn[buf_learn_sub_i[tl]], month_learn[buf_learn_sub_i[tl]], day_learn[buf_learn_sub_i[tl]], (precip_index[pts+t*npts] - precip_index_learn[pts+tl*npts]), (precip_index[pts+t*npts] - precip_index_learn[pts+tl*npts])*(precip_index[pts+t*npts] - precip_index_learn[pts+tl*npts]), metric[ntime_days], precip_index[pts+t*npts],precip_index_learn[pts+tl*npts]);
+                    }
+          */
+
+          /* Count days within day of year range */
+          ntime_days++;
         }
-
-        /* Compute cluster difference */
-        clust_diff = (int *) realloc(clust_diff, (ntime_days+1) * sizeof(int));
-        if (clust_diff == NULL) alloc_error(__FILE__, __LINE__);
-
-        clust_diff[ntime_days] = class_clusters_learn[tl] - class_clusters[t];
-
-        /* Store the index in the time vector of the selected day */
-        ntime_days_learn = (int *) realloc(ntime_days_learn, (ntime_days+1) * sizeof(int));
-        if (ntime_days_learn == NULL) alloc_error(__FILE__, __LINE__);
-
-        ntime_days_learn[ntime_days] = buf_learn_sub_i[tl];
-
-        /*        
-        if (t == (ntime_sub-1)) {
-          printf("!clust %d %d %d %d %d %d day=%d\n",year_learn[buf_learn_sub_i[tl]], month_learn[buf_learn_sub_i[tl]], day_learn[buf_learn_sub_i[tl]], clust_diff[ntime_days], class_clusters_learn[tl], class_clusters[t],t);
-          if (year_learn[buf_learn_sub_i[tl]] == 1986 && month_learn[buf_learn_sub_i[tl]] == 5 && day_learn[buf_learn_sub_i[tl]] == 25)
-            for (pts=0; pts<npts; pts++)
-              printf("!!! %d %d %d %d %d %lf %lf %lf %lf %lf\n",pts,ntime_days,year_learn[buf_learn_sub_i[tl]], month_learn[buf_learn_sub_i[tl]], day_learn[buf_learn_sub_i[tl]], (precip_index[pts+t*npts] - precip_index_learn[pts+tl*npts]), (precip_index[pts+t*npts] - precip_index_learn[pts+tl*npts])*(precip_index[pts+t*npts] - precip_index_learn[pts+tl*npts]), metric[ntime_days], precip_index[pts+t*npts],precip_index_learn[pts+tl*npts]);
-        }
-        */
-
-        /* Count days within day of year range */
-        ntime_days++;
       }
     }
 

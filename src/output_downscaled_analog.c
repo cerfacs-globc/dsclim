@@ -470,7 +470,6 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
 
       /* Loop over hours if needed */
       for (hour=minh; hour<=maxh; hour++) {
-        
         found = FALSE;
         tl = 0;
         

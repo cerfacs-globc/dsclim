@@ -362,6 +362,17 @@ load_conf(data_struct *data, char *fileconf) {
   if (val != NULL)
     (void) xmlFree(val);    
 
+  /** use_downscaled_year **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "use_downscaled_year");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->use_downscaled_year = xmlXPathCastStringToNumber(val);
+  else
+    data->conf->use_downscaled_year = 1;
+  (void) fprintf(stdout, "%s: Use_downscaled_year = %d\n", __FILE__, data->conf->use_downscaled_year);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
   /** base_time_units **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "base_time_units");
   val = xml_get_setting(conf, path);

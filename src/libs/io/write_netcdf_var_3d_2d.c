@@ -140,8 +140,8 @@ write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *file
 
   /** Open already existing output file **/
   istat = nc_open(filename, NC_WRITE, &ncoutid);
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
+
   /* Get dimension lengths */
   istat = nc_inq_dimid(ncoutid, timename, &timedimoutid);  /* get ID for time dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);

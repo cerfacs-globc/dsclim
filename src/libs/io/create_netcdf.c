@@ -98,7 +98,7 @@ create_netcdf(char *title, char *title_french, char *summary, char *summary_fren
      \return           Status.
   */
 
-  int istat; /* Diagnostic status */
+  int istat = 0; /* Diagnostic status */
   int ncoutid; /* NetCDF output file handle ID */
   char *tmpstr = NULL; /* Temporary string */
 
@@ -118,7 +118,10 @@ create_netcdf(char *title, char *title_french, char *summary, char *summary_fren
 #endif
   else
 #ifdef NC_NETCDF4
-    istat = nc_create(filename, NC_CLOBBER | NC_NETCDF4 | NC_CLASSIC_MODEL, &ncoutid);
+    if (format == 4)
+      istat = nc_create(filename, NC_CLOBBER | NC_NETCDF4 | NC_CLASSIC_MODEL, &ncoutid);
+    else
+      istat = nc_create(filename, NC_CLOBBER, &ncoutid);
 #else
     istat = nc_create(filename, NC_CLOBBER, &ncoutid);
 #endif

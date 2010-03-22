@@ -11,7 +11,7 @@
 include $(top_srcdir)/doxygen-include.am
 
 ACLOCAL_AMFLAGS = -I m4
-DISTCHECK_CONFIGURE_FLAGS = --prefix=/home/page/codes/local --with-zlib=/opt2/glob/uti/local64 --with-szlib=/opt2/glob/uti/local64 --with-hdf5=/opt2/glob/uti/local64 --with-netcdf=/opt2/glob/uti/local64 --with-udunits=/opt2/glob/uti/local64 --disable-doxygen 
+DISTCHECK_CONFIGURE_FLAGS = --prefix=/home/page/codes/local --with-zlib=/contrex/local64 --with-szlib=/contrex/local64 --with-hdf5=/contrex/local64 --with-netcdf=/contrex/local64 --with-udunits=/contrex/local64 --disable-doxygen 
 
 #EXTRA_DIST = reconf configure $(DX_CONFIG) doc/html
 EXTRA_DIST = configure $(DX_CONFIG) etc doc/html

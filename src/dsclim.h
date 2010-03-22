@@ -447,6 +447,7 @@ typedef struct {
   int output_only; /**< If we just want to output downscaled data using only analog data and observation database. */
   char *analog_file_ctrl; /**< Analog data filename for control run. */
   char *analog_file_other; /**< Analog data filename for control run. */
+  int use_downscaled_year; /**< If we want to also search the analog day in the year of the current downscaled year. */
 } conf_struct;
 
 /** MASTER data structure data_struct. */
@@ -481,7 +482,7 @@ void find_the_days(analog_day_struct analog_days, double *precip_index, double *
                    double *sup_field_index_learn, int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
                    int *year_learn, int *month_learn, int *day_learn, char *time_units,
                    int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts,
-                   int shuffle, int sup, int sup_choice);
+                   int shuffle, int sup, int sup_choice, int use_downscaled_year);
 void compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days, double *sup_field_index,
                                         double *sup_field_index_learn, double sup_field_var, double sup_field_var_learn, int ntimes);
 int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int ntimes_merged, int ntimes);
