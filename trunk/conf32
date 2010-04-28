@@ -1,2 +1,0 @@
-./configure --prefix=/home/page/codes/local --with-zlib=/opt2/glob/uti/local --with-szlib=/opt2/glob/uti/local --with-hdf5=/opt2/glob/uti/local --with-netcdf=/opt2/glob/uti/local --with-udunits=/opt2/glob/uti/local
-#./configure --prefix=/home/page/codes/local --with-debugging=6 --with-zlib=/opt2/glob/uti/local --with-szlib=/opt2/glob/uti/local --with-hdf5=/opt2/glob/uti/local --with-netcdf=/opt2/glob/uti/local --with-udunits=/opt2/glob/uti/local

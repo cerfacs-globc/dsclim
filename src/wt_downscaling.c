@@ -285,9 +285,10 @@ wt_downscaling(data_struct *data) {
       /* Compute spatial mean of secondary large-scale fields */
       data->field[cat].data[i].down->smean = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
       if (data->field[cat].data[i].down->smean == NULL) alloc_error(__FILE__, __LINE__);
+
       (void) mean_field_spatial(data->field[cat].data[i].down->smean, data->field[cat].data[i].field_ls, mask_sub,
                                 data->field[cat].nlon_ls, data->field[cat].nlat_ls, data->field[cat].ntime_ls);
-    
+
       for (s=0; s<data->conf->nseasons; s++) {
       
         /* Compute seasonal mean and variance of principal components of selected large-scale fields */
@@ -304,6 +305,16 @@ wt_downscaling(data_struct *data) {
         /* Compute seasonal mean and variance of spatially-averaged secondary field */
         (void) mean_variance_field_spatial(&(data->field[cat].data[i].down->mean[s]), &(data->field[cat].data[i].down->var[s]), buf_sub,
                                            mask_sub, data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_sub_learn);
+        
+        /* Compute mean and variance over time for each point of secondary field */
+        data->field[cat].data[i].down->smean_2d[s] = (double *)
+          malloc(data->field[cat].nlon_ls*data->field[cat].nlat_ls*ntime_sub_learn * sizeof(double));
+        if (data->field[cat].data[i].down->smean_2d[s] == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].data[i].down->svar_2d[s] = (double *)
+          malloc(data->field[cat].nlon_ls*data->field[cat].nlat_ls*ntime_sub_learn * sizeof(double));
+        if (data->field[cat].data[i].down->svar_2d[s] == NULL) alloc_error(__FILE__, __LINE__);
+        (void) time_mean_variance_field_2d(data->field[cat].data[i].down->smean_2d[s], data->field[cat].data[i].down->svar_2d[s],
+                                           buf_sub, data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_sub_learn);
 
         /* Diagnostic output */
         (void) printf("Control run:: Season: %d  TAS mean=%lf variance=%lf cat=%d field=%d\n", s, data->field[cat].data[i].down->mean[s],
@@ -412,6 +423,22 @@ wt_downscaling(data_struct *data) {
           (void) normalize_field(data->field[cat].data[i].down->smean_norm[s], buf_sub,
                                  data->field[CTRL_SEC_FIELD_LS].data[i].down->mean[s], data->field[CTRL_SEC_FIELD_LS].data[i].down->var[s],
                                  1, 1, ntime_sub[cat][s]);
+          /* Free temporary buffer */
+          (void) free(buf_sub);
+
+          /* Select season months in the whole time period to create a 2D sub-period buffer */
+          (void) extract_subperiod_months(&buf_sub, &(ntime_sub[cat][s]), data->field[cat].data[i].field_ls,
+                                          data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
+                                          data->conf->season[s].month, 3, data->field[cat].nlon_ls, data->field[cat].nlat_ls,
+                                          data->field[cat].ntime_ls, data->conf->season[s].nmonths);
+          /* Normalize the secondary large-scale fields */
+          data->field[cat].data[i].down->sup_val_norm[s] =
+            (double *) malloc(data->field[cat].nlon_ls*data->field[cat].nlat_ls*data->field[cat].ntime_ls * sizeof(double));
+          if (data->field[cat].data[i].down->sup_val_norm[s] == NULL) alloc_error(__FILE__, __LINE__);
+          (void) normalize_field_2d(data->field[cat].data[i].down->sup_val_norm[s], buf_sub,
+                                    data->field[CTRL_SEC_FIELD_LS].data[i].down->smean_2d[s],
+                                    data->field[CTRL_SEC_FIELD_LS].data[i].down->svar_2d[s],
+                                    data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_sub[cat][s]);
           /* Free temporary buffer */
           (void) free(buf_sub);
         }
@@ -526,6 +553,7 @@ wt_downscaling(data_struct *data) {
           (void) printf("%s: Searching analog days for season #%d\n", __FILE__, s);
           (void) find_the_days(data->field[cat].analog_days[s], data->field[cat].precip_index[s], data->learning->data[s].precip_index,
                                data->field[cat+2].data[i].down->smean_norm[s], data->learning->data[s].sup_index,
+                               data->field[cat+2].data[i].down->sup_val_norm[s], data->learning->data[s].sup_val, mask_sub,
                                data->field[cat].data[i].down->days_class_clusters[s], data->learning->data[s].class_clusters,
                                data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
                                data->learning->data[s].time_s->year, data->learning->data[s].time_s->month,
@@ -534,7 +562,8 @@ wt_downscaling(data_struct *data) {
                                data->conf->season[s].month, data->conf->season[s].nmonths,
                                data->conf->season[s].ndays, data->conf->season[s].ndayschoices, data->reg->npts,
                                data->conf->season[s].shuffle, data->conf->season[s].secondary_choice,
-                               data->conf->season[s].secondary_main_choice, data->conf->use_downscaled_year);
+                               data->conf->season[s].secondary_main_choice, data->conf->season[s].secondary_cov,
+                               data->conf->use_downscaled_year, data->field[cat+2].nlon_ls, data->field[cat+2].nlat_ls);
         }
     }
 

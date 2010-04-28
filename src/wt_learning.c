@@ -94,6 +94,7 @@ wt_learning(data_struct *data) {
   double rea_first_sing;
 
   double *tas_rea = NULL;
+  double *tas_rea_sub = NULL;
   double *tas_rea_mean = NULL;
   double *tas_rea_mean_sub = NULL;
   double *lat_rea = NULL;
@@ -118,6 +119,9 @@ wt_learning(data_struct *data) {
 
   int ntime_learn_all;
   int *ntime_sub = NULL;
+
+  double *sup_mean = NULL;
+  double *sup_var = NULL;
 
   int eof;
   int clust;
@@ -335,7 +339,6 @@ wt_learning(data_struct *data) {
       printf("%s: Using a mask for secondary large-scale fields.\n", __FILE__);
 
     (void) mean_field_spatial(tas_rea_mean, tas_rea, mask_sub, nlon, nlat, data->learning->obs->ntime);
-    (void) free(tas_rea);
     if (mask_sub != NULL)
       (void) free(mask_sub);
 
@@ -366,6 +369,11 @@ wt_learning(data_struct *data) {
                                       data->conf->season[s].month,
                                       1, 1, 1, data->learning->obs->ntime,
                                       data->conf->season[s].nmonths);
+      (void) extract_subperiod_months(&tas_rea_sub, &(ntime_sub[s]), tas_rea,
+                                      data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
+                                      data->conf->season[s].month,
+                                      1, nlon, nlat, data->learning->obs->ntime,
+                                      data->conf->season[s].nmonths);
       (void) extract_subperiod_months(&mean_precip_sub, &(ntime_sub[s]), mean_precip,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
                                       data->conf->season[s].month,
@@ -375,6 +383,8 @@ wt_learning(data_struct *data) {
       /** Normalize secondary large-scale fields for re-analysis learning data **/
       data->learning->data[s].sup_index = (double *) malloc(ntime_sub[s] * sizeof(double));
       if (data->learning->data[s].sup_index == NULL) alloc_error(__FILE__, __LINE__);
+      data->learning->data[s].sup_val = (double *) malloc(nlon*nlat*ntime_sub[s] * sizeof(double));
+      if (data->learning->data[s].sup_val == NULL) alloc_error(__FILE__, __LINE__);
 
       /* Compute mean and variance over time */
       data->learning->data[s].sup_index_mean = gsl_stats_mean(tas_rea_mean_sub, 1, ntime_sub[s]);
@@ -383,6 +393,22 @@ wt_learning(data_struct *data) {
       /* Normalize using mean and variance */
       (void) normalize_field(data->learning->data[s].sup_index, tas_rea_mean_sub, data->learning->data[s].sup_index_mean,
                              data->learning->data[s].sup_index_var, 1, 1, ntime_sub[s]);
+
+      /* Compute mean and variance over time for each point */
+      sup_mean = (double *) malloc(nlon*nlat*ntime_sub[s] * sizeof(double));
+      if (sup_mean == NULL) alloc_error(__FILE__, __LINE__);
+      sup_var = (double *) malloc(nlon*nlat*ntime_sub[s] * sizeof(double));
+      if (sup_var == NULL) alloc_error(__FILE__, __LINE__);
+      (void) time_mean_variance_field_2d(sup_mean, sup_var, tas_rea_sub, nlon, nlat, ntime_sub[s]);
+
+      /* Normalize whole secondary 2D field using mean and variance at each point */
+      (void) normalize_field_2d(data->learning->data[s].sup_val, tas_rea_sub, sup_mean,
+                                sup_var, nlon, nlat, ntime_sub[s]);
+      
+      (void) free(sup_mean);
+      sup_mean = NULL;
+      (void) free(sup_var);
+      sup_var = NULL;
 
       /** Construct time vectors **/
       data->learning->data[s].ntime = ntime_sub[s];
@@ -568,10 +594,13 @@ wt_learning(data_struct *data) {
       buf_learn_pc_sub = NULL;
       (void) free(tas_rea_mean_sub);
       tas_rea_mean_sub = NULL;
+      (void) free(tas_rea_sub);
+      tas_rea_sub = NULL;
       (void) free(mean_precip_sub);
       mean_precip_sub = NULL;
     }
 
+    (void) free(tas_rea);
     (void) free(tas_rea_mean);
     (void) free(mean_precip);
     (void) free(buf_weight);

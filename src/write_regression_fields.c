@@ -224,14 +224,14 @@ write_regression_fields(data_struct *data, char *filename, double **timeval, int
 
     /* Define distances to clusters variable */
     (void) sprintf(nomvar, "cluster_distance_%d", s+1);
-    vardimids[0] = timedimoutid[s];
-    vardimids[1] = ptsdimoutid;
+    vardimids[0] = clustdimoutid[s];
+    vardimids[1] = timedimoutid[s];
     istat = nc_def_var(ncoutid, nomvar, NC_DOUBLE, 2, vardimids, &(distclustoutid[s]));
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
     istat = nc_put_att_double(ncoutid, distclustoutid[s], "missing_value", NC_DOUBLE, 1, &fillvalue);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-    istat = sprintf(tmpstr, "%s %s_%d", data->conf->ptsname, data->reg->timename, s+1);
+    istat = sprintf(tmpstr, "%s_%d %s_%d", data->reg->timename, s+1, data->conf->clustname, s+1);
     istat = nc_put_att_text(ncoutid, distclustoutid[s], "coordinates", strlen(tmpstr), tmpstr);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = sprintf(tmpstr, "none");
@@ -301,7 +301,7 @@ write_regression_fields(data_struct *data, char *filename, double **timeval, int
     start[1] = 0;
     start[2] = 0;
     count[0] = (size_t) data->conf->season[s].nclusters;
-    count[1] = (size_t) data->reg->npts;
+    count[1] = (size_t) ntime[s];
     count[2] = 0;
     istat = nc_put_vara_double(ncoutid, distclustoutid[s], start, count, distclust[s]);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);

@@ -3049,6 +3049,15 @@ load_conf(data_struct *data, char *fileconf) {
           if (data->field[cat].data[i].down->var == NULL) alloc_error(__FILE__, __LINE__);
           data->field[cat].data[i].down->delta = (double **) malloc(data->conf->nseasons * sizeof(double *));
           if (data->field[cat].data[i].down->delta == NULL) alloc_error(__FILE__, __LINE__);
+          data->field[cat].data[i].down->sup_val_norm = (double **) malloc(data->conf->nseasons * sizeof(double));
+          if (data->field[cat].data[i].down->sup_val_norm == NULL) alloc_error(__FILE__, __LINE__);
+          /* Only needed for secondary large-scale control field */
+          if (cat == 3) {
+            data->field[cat].data[i].down->smean_2d = (double **) malloc(data->conf->nseasons * sizeof(double));
+            if (data->field[cat].data[i].down->smean_2d == NULL) alloc_error(__FILE__, __LINE__);
+            data->field[cat].data[i].down->svar_2d = (double **) malloc(data->conf->nseasons * sizeof(double));
+            if (data->field[cat].data[i].down->svar_2d == NULL) alloc_error(__FILE__, __LINE__);
+          }
         }
       }
     }
@@ -3154,6 +3163,17 @@ load_conf(data_struct *data, char *fileconf) {
           data->conf->season[i].secondary_main_choice = TRUE;
         else
           data->conf->season[i].secondary_main_choice = FALSE;
+
+      /** secondary_covariance **/
+      (void) sprintf(path, "/configuration/%s/%s[@id=\"%d\"]", "setting", "secondary_covariance", i+1);
+      val = xml_get_setting(conf, path);
+      if (val != NULL) {
+        data->conf->season[i].secondary_cov = xmlXPathCastStringToNumber(val);
+        (void) fprintf(stdout, "%s: season #%d secondary_covariance = %d\n", __FILE__, i+1, data->conf->season[i].secondary_cov);
+        (void) xmlFree(val);
+      }
+      else
+        data->conf->season[i].secondary_cov = FALSE;
 
       /** season **/
       (void) sprintf(path, "/configuration/%s/%s[@id=\"%d\"]/@nmonths", "setting", "season", i+1);

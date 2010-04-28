@@ -116,6 +116,8 @@ read_field_subdomain_period(double **buffer, double **lon, double **lat, double 
   *lat = NULL;
   *buffer = NULL;
 
+  *nlon = *nlat = -1;
+
   info = (info_struct *) malloc(sizeof(info_struct));
   if (info == NULL) alloc_error(__FILE__, __LINE__);
 
@@ -196,6 +198,27 @@ read_field_subdomain_period(double **buffer, double **lon, double **lat, double 
         break;
       }
     }
+  }
+
+  if (*nlat == -1 || *nlon == -1) {
+    /* In case of failure */
+    (void) free(lon_total);
+    (void) free(lat_total);
+    (void) free(time_ls);
+    (void) free(time_units);
+    (void) free(cal_type);
+    (void) free(time_s->year);
+    (void) free(time_s->month);
+    (void) free(time_s->day);
+    (void) free(time_s->hour);
+    (void) free(time_s->minutes);
+    (void) free(time_s->seconds);
+    (void) free(time_s);
+    (void) free(info_field);
+    
+    (void) fprintf(stderr, "%s: Cannot find any date!! Dates we try to find:: At index 0: %d %d %d, at last index: %d %d %d. Dates we are searching in (in the file):: At index 0: %d %d %d, at last index: %d %d %d. \n", __FILE__, year[0], month[0], day[0], year[ntime-1], month[ntime-1], day[ntime-1], time_s->year[0], time_s->month[0], time_s->day[0], time_s->year[ntime_file-1], time_s->month[ntime_file-1], time_s->day[ntime_file-1]);
+
+    return -1;
   }
 
   (void) free(lon_total);
