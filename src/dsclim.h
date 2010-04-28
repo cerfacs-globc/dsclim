@@ -199,9 +199,12 @@ typedef struct {
   double **dist; /**< Cluster distances, seasonal-dependent. */
   double *dist_all; /**< Cluster distances. */
   double **smean_norm; /**< Normalized spatial mean of secondary large-scale fields, seasonal-dependent. */
+  double **sup_val_norm; /**< Normalized time mean of secondary large-scale fields, seasonal-dependent. */
   int **days_class_clusters; /**< Classification of days into clusters, seasonal-dependent. */
   int *days_class_clusters_all; /**< Classification of days into clusters. */
   double *smean; /**< Spatial mean of secondary large-scale fields. */
+  double **smean_2d; /**< Time mean of secondary large-scale fields. */
+  double **svar_2d; /**< Seasonal time variance of secondary fields. */
   double *mean; /**< Seasonal mean of spatially-averaged secondary fields. */
   double *var; /**< Seasonal variance of spatially-averaged secondary fields. */
   double *var_pc_norm; /**< Normalization for EOF-projected large-scale fields. */
@@ -272,6 +275,7 @@ typedef struct {
   double *sup_index; /**< Secondary field index. */
   double sup_index_mean; /**< Mean of secondary field index. */
   double sup_index_var; /**< Variance of secondary field index. */
+  double *sup_val; /**< Values of secondary field. */
 } learning_data_struct;
 
 /** Data structure for EOF-related learning data learning_eof_struct. */
@@ -382,6 +386,7 @@ typedef struct {
   int shuffle; /**< Shuffle (1) or sort (0) when choosing the analog day. */
   int secondary_choice; /**< Choose analog day in remaining days using the secondary large-scale field. */
   int secondary_main_choice; /**< Choose analog days using main and secondary large-scale fields. */
+  int secondary_cov; /**< Use covariance instead of spatially-averaged secondary large-scale field. */
   int ndayschoices; /**< Number of days to choose before shuffling or sorting. */
   int ndays; /**< Number of +- days around current *day of year* being downscaled to search. Hard-bounded by seasons.. */
 } season_struct;
@@ -478,11 +483,12 @@ int read_field_subdomain_period(double **buffer, double **lon, double **lat, dou
 int remove_clim(data_struct *data);
 int read_regression_points(reg_struct *reg);
 int read_mask(mask_struct *mask);
-void find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn, double *sup_field_index,
-                   double *sup_field_index_learn, int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
+void find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn,
+                   double *sup_field_index, double *sup_field_index_learn, double *sup_field, double *sup_field_learn, short int *mask,
+                   int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
                    int *year_learn, int *month_learn, int *day_learn, char *time_units,
-                   int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts,
-                   int shuffle, int sup, int sup_choice, int use_downscaled_year);
+                   int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
+                   int sup_choice, int sup_cov, int use_downscaled_year, int nlon, int nlat);
 void compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days, double *sup_field_index,
                                         double *sup_field_index_learn, double sup_field_var, double sup_field_var_learn, int ntimes);
 int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int ntimes_merged, int ntimes);

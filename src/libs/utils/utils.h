@@ -120,6 +120,9 @@ int get_calendar_ts(tstruct *timeout, char *tunits, double *timein, int ntime);
 void change_date_origin(double *timeout, char *tunits_out, double *timein, char *tunits_in, int ntime);
 void mean_variance_field_spatial(double *buf_mean, double *buf_var, double *buf, short int *mask, int ni, int nj, int ntime);
 void mean_field_spatial(double *buf_mean, double *buf, short int *mask, int ni, int nj, int ntime);
+void normalize_field_2d(double *nbuf, double *buf, double *mean, double *var, int ndima, int ndimb, int ntime);
+void time_mean_variance_field_2d(double *bufmean, double *bufvar, double *buf, int ni, int nj, int nt);
+void covariance_fields_spatial(double *cov, double *buf1, double *buf2, short int *mask, int t1, int t2, int ni, int nj);
 int sub_period_common(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
                       int *year_learn, int *month_learn, int *day_learn, int timedim, int ndima, int ndimb, int ntime, int ntime_learn);
 void extract_subdomain(double **buf_sub, double **lon_sub, double **lat_sub, int *nlon_sub, int *nlat_sub, double *buf,

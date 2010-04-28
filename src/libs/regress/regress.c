@@ -1,13 +1,13 @@
 /* ***************************************************** */
 /* Compute regression coefficients with a regression     */
-/* constant given two vectors, and do it for npts        */
-/* regression points.                                    */
+/* constant given two vectors, having nterm variables    */
+/* and npts dimension (usually time)                     */
 /* regress.c                                             */
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
 /*! \file regress.c
-    \brief Compute regression coefficients with a regression constant given two vectors, and do it for npts regression points.
+    \brief Compute regression coefficients with a regression constant given two vectors, having nterm variables and npts dimension (usually time).
 */
 
 /* LICENSE BEGIN
@@ -50,19 +50,20 @@ LICENSE END */
 
 #include <regress.h>
 
-/** Compute regression coefficients with a regression constant given two vectors, and do it for npts regression points. */
+/** Compute regression coefficients with a regression constant given two vectors,
+    having nterm variables and npts dimension (usually time). */
 int
 regress(double *coef, double *x, double *y, double *cte, double *yreg, double *yerr, double *chisq, int nterm, int npts) {
   /**
      @param[out]  coef      Regression coefficients
-     @param[in]   x         X vectors (npts regression points)
-     @param[in]   y         Y vectors (npts regression points)
+     @param[in]   x         X vectors (nterm X npts)
+     @param[in]   y         Y vectors (npts)
      @param[out]  cte       Regression constant
      @param[out]  yreg      Y vector reconstructed with regression
      @param[out]  yerr      Y error vector when reconstructing Y vector with regression
      @param[out]  chisq     Chi-square diagnostic
-     @param[in]   nterm     Vector dimension
-     @param[in]   npts      Number of regression points
+     @param[in]   nterm     Variables dimension
+     @param[in]   npts      Vector dimension
 
      \return      Status
   */
@@ -78,8 +79,8 @@ regress(double *coef, double *x, double *y, double *cte, double *yreg, double *y
   gsl_vector *ccoef; /* Coefficients vector */
 
   int istat; /* Diagnostic status */
-  int term; /* Loop counter for vector dimension */
-  int pts; /* Loop counter for regression points */
+  int term; /* Loop counter for variables dimension */
+  int pts; /* Loop counter for vector dimension */
 
   double val; /* Value retrieved */
 
@@ -101,7 +102,7 @@ regress(double *coef, double *x, double *y, double *cte, double *yreg, double *y
   for (pts=0; pts<npts; pts++)
     (void) gsl_matrix_set(xx, pts, 0, 1.0);  
   
-  /* Create Y vector for all regression points */
+  /* Create Y vector for all vector dimension */
   for (pts=0; pts<npts; pts++) {
     val = y[pts];
     (void) gsl_vector_set(yy, pts, val);

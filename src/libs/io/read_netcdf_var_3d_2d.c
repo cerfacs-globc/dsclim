@@ -145,7 +145,7 @@ read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *
   istat = nc_inq_dimlen(ncinid, londiminid, &dimval); /* get lon length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   *nlon = (int) dimval;
-  
+
   /* Get main variable ID */
   istat = nc_inq_varid(ncinid, varname, &varinid);
   if (istat != NC_NOERR) {

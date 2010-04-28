@@ -166,10 +166,22 @@ free_main_data(data_struct *data) {
       else {
         if (data->conf->period_ctrl->downscale == TRUE || i == 2)
           if (data->conf->output_only != TRUE)
-            for (s=0; s<data->conf->nseasons; s++)
+            for (s=0; s<data->conf->nseasons; s++) {
               (void) free(data->field[i].data[j].down->smean_norm[s]);
-        if (data->conf->output_only != TRUE)
+              (void) free(data->field[i].data[j].down->sup_val_norm[s]);
+            }
+        if (data->conf->output_only != TRUE) {
+          if (i == 3) {
+            /* Only for secondary large-scale control field */
+            for (s=0; s<data->conf->nseasons; s++) {
+              (void) free(data->field[i].data[j].down->smean_2d[s]);
+              (void) free(data->field[i].data[j].down->svar_2d[s]);
+            }
+            (void) free(data->field[i].data[j].down->smean_2d);
+            (void) free(data->field[i].data[j].down->svar_2d);
+          }
           (void) free(data->field[i].data[j].down->smean);
+        }
         
         if (data->conf->period_ctrl->downscale == TRUE || i == 2)
           if (data->conf->output_only != TRUE)
@@ -177,6 +189,7 @@ free_main_data(data_struct *data) {
               (void) free(data->field[i].data[j].down->delta[s]);
 
         (void) free(data->field[i].data[j].down->smean_norm);
+        (void) free(data->field[i].data[j].down->sup_val_norm);
         (void) free(data->field[i].data[j].down->mean);
         (void) free(data->field[i].data[j].down->var);
         (void) free(data->field[i].data[j].down->delta);
@@ -289,6 +302,7 @@ free_main_data(data_struct *data) {
       (void) free(data->learning->data[s].precip_reg_cst);
       (void) free(data->learning->data[s].precip_index);
       (void) free(data->learning->data[s].sup_index);
+      (void) free(data->learning->data[s].sup_val);
       
     }
   }

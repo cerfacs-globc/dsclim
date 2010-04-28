@@ -51,17 +51,21 @@ LICENSE END */
 
 /** Find analog days given cluster, supplemental large-scale field, and precipitation distances. */
 void
-find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn, double *sup_field_index,
-              double *sup_field_index_learn, int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
+find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn,
+              double *sup_field_index, double *sup_field_index_learn, double *sup_field, double *sup_field_learn, short int *mask,
+              int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
               int *year_learn, int *month_learn, int *day_learn, char *time_units,
               int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
-              int sup_choice, int use_downscaled_year) {
+              int sup_choice, int sup_cov, int use_downscaled_year, int nlon, int nlat) {
   /**
      @param[out]  analog_days           Analog days time indexes and dates, as well as corresponding downscale dates
      @param[in]   precip_index          Precipitation index of days to downscale
      @param[in]   precip_index_learn    Precipitation index of learning period
      @param[in]   sup_field_index       Secondary large-scale field index of days to downscale
      @param[in]   sup_field_index_learn Secondary large-scale field index of learning period
+     @param[in]   sup_field             Secondary large-scale field of days to downscale
+     @param[in]   sup_field_learn       Secondary large-scale field of learning period
+     @param[in]   mask                  Mask for covariance of secondary large-scale field
      @param[in]   class_clusters        Days classification cluster index of days to downscale
      @param[in]   class_clusters_learn  Days classification cluster index of learning period
      @param[in]   year                  years of days to downscale
@@ -81,7 +85,10 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
      @param[in]   shuffle               shuffle or not the days of the first selection
      @param[in]   sup                   if we want to use the secondary large-scale field in the final selection of the analog day
      @param[in]   sup_choice            if we want to use the secondary large-scale field in the first selection of the analog day
+     @param[in]   sup_cov               if we want to use covariance of fields instead of averaged-field differences
      @param[in]   use_downscaled_year   if we want to also search the analog day in the year of the current downscaled year
+     @param[in]   nlon                  longitude dimension
+     @param[in]   nlat                  latitude dimension
   */
   
   int *buf_sub_i = NULL; /* Temporary buffer for time index of subperiod */
@@ -244,9 +251,16 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
             metric_sup_norm = (double *) realloc(metric_sup_norm, (ntime_days+1) * sizeof(double));
             if (metric_sup_norm == NULL) alloc_error(__FILE__, __LINE__);
 
-            /* Compute supplemental field index difference */
-            sup_diff = sup_field_index[t] - sup_field_index_learn[buf_learn_sub_i[tl]];
-            metric_sup[ntime_days] = sqrt(sup_diff * sup_diff);
+            if (sup_cov != TRUE) {
+              /* Compute supplemental field index difference */
+              sup_diff = sup_field_index[t] - sup_field_index_learn[buf_learn_sub_i[tl]];
+              metric_sup[ntime_days] = sqrt(sup_diff * sup_diff);
+            }
+            else {
+              /* Compute covariance of supplemental field */
+              (void) covariance_fields_spatial(&sup_diff, sup_field, sup_field_learn, mask, t, tl, nlon, nlat);
+              metric_sup[ntime_days] = sqrt(sup_diff * sup_diff);
+            }
             /* Store the maximum value and its index */
             if (metric_sup[ntime_days] > max_metric_sup)
               max_metric_sup = metric_sup[ntime_days];
