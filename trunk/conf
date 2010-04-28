@@ -1,0 +1,7 @@
+#./configure --prefix=/home/page/codes/local --with-zlib=/contrex/local64 --with-szlib=/contrex/local64 --with-hdf5=/contrex/local64 --with-netcdf=/contrex/local64 --with-udunits=/contrex/local64
+
+setenv CC gcc
+setenv F77 gfortran
+setenv FC gfortran
+
+./configure --prefix=/home/page/codes/local --with-debugging=4 --with-zlib=/contrex/local64 --with-szlib=/contrex/local64 --with-hdf5=/contrex/local64 --with-netcdf=/contrex/local64 --with-udunits=/contrex/local64
