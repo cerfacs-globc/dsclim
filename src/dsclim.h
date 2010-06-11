@@ -307,6 +307,7 @@ typedef struct {
   char *nomvar_precip_index; /**< NetCDF variable name for precipitation index. */
   char *nomvar_precip_index_obs; /**< NetCDF variable name for observed precipitation index. */
   char *nomvar_sup_index; /**< NetCDF variable name for secondary large-scale field index. */
+  char *nomvar_sup_val; /**< NetCDF variable name for secondary large-scale 2D field. */
   char *nomvar_sup_index_mean; /**< NetCDF variable name for secondary large-scale field mean. */
   char *nomvar_sup_index_var; /**< NetCDF variable name for secondary large-scale field variance. */
   char *nomvar_pc_normalized_var; /**< NetCDF variable name for the variance of EOF-projected large-scale fields after normalization with the first EOF. */
@@ -318,6 +319,12 @@ typedef struct {
   int nlon; /**< Number of longitudes. */
   int nlat; /**< Number of latitudes. */
   int ntime; /**< Number of times. */
+  double *sup_lon; /**< Secondary large-scale field longitudes. */
+  double *sup_lat; /**< Secondary large-scale field latitudes. */
+  int sup_nlon; /**< Secondary large-scale field number of longitudes. */
+  int sup_nlat; /**< Secondary large-scale field number of latitudes. */
+  char *sup_lonname; /**< Secondary large-scale field longitude name. */
+  char *sup_latname; /**< Secondary large-scale field latitude name. */
   time_vect_struct *time_s; /**< Time structure of the whole learning period. */
   int obs_neof; /**< Number of EOFs for observation data. */
   int rea_neof; /**< Number of EOFs reanalysis data. */
@@ -483,12 +490,12 @@ int read_field_subdomain_period(double **buffer, double **lon, double **lat, dou
 int remove_clim(data_struct *data);
 int read_regression_points(reg_struct *reg);
 int read_mask(mask_struct *mask);
-void find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn,
-                   double *sup_field_index, double *sup_field_index_learn, double *sup_field, double *sup_field_learn, short int *mask,
-                   int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
-                   int *year_learn, int *month_learn, int *day_learn, char *time_units,
-                   int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
-                   int sup_choice, int sup_cov, int use_downscaled_year, int nlon, int nlat);
+int find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn,
+                  double *sup_field_index, double *sup_field_index_learn, double *sup_field, double *sup_field_learn, short int *mask,
+                  int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
+                  int *year_learn, int *month_learn, int *day_learn, char *time_units,
+                  int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
+                  int sup_choice, int sup_cov, int use_downscaled_year, int nlon, int nlat, int sup_nlon, int sup_nlat);
 void compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days, double *sup_field_index,
                                         double *sup_field_index_learn, double sup_field_var, double sup_field_var_learn, int ntimes);
 int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int ntimes_merged, int ntimes);

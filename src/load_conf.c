@@ -2048,6 +2048,32 @@ load_conf(data_struct *data, char *fileconf) {
     (void) fprintf(stdout, "%s: Learning obs_eof_name = %s\n", __FILE__, data->learning->obs_eofname);
   }
 
+  /** sup_lonname **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "sup_lonname");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->sup_lonname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->sup_lonname == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->sup_lonname, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->sup_lonname = strdup("lon");
+  (void) fprintf(stdout, "%s: Learning sup_lonname = %s\n", __FILE__, data->learning->sup_lonname);
+
+  /** sup_latname **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "sup_latname");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->sup_latname = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->sup_latname == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->sup_latname, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->sup_latname = strdup("lat");
+  (void) fprintf(stdout, "%s: Learning sup_latname = %s\n", __FILE__, data->learning->sup_latname);
+
   /** nomvar_time **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_time");
   val = xml_get_setting(conf, path);
@@ -2151,6 +2177,19 @@ load_conf(data_struct *data, char *fileconf) {
   else
     data->learning->nomvar_sup_index = strdup("ta");
   (void) fprintf(stdout, "%s: Learning nomvar_sup_index = %s\n", __FILE__, data->learning->nomvar_sup_index);
+
+  /** nomvar_sup_val **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_sup_val");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_sup_val = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_sup_val == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_sup_val, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_sup_val = strdup("tad");
+  (void) fprintf(stdout, "%s: Learning nomvar_sup_val = %s\n", __FILE__, data->learning->nomvar_sup_val);
 
   /** nomvar_sup_index_mean **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_sup_index_mean");

@@ -84,6 +84,8 @@ read_learning_fields(data_struct *data) {
   int nclusters; /* Clusters dimension */
   int neof_file; /* EOF dimension in input file */
 
+  data->learning->sup_lat = data->learning->sup_lon = NULL;
+
   /* Allocate memory for temporary strings */
   nomvar = (char *) malloc(500 * sizeof(char));
   if (nomvar == NULL) alloc_error(__FILE__, __LINE__);
@@ -99,6 +101,37 @@ read_learning_fields(data_struct *data) {
 
   /* Loop over all the seasons */
   for (i=0; i<data->conf->nseasons; i++) {
+
+    if (data->conf->season[i].secondary_cov == TRUE && data->learning->sup_lat == NULL) {
+      /* Read lat variable */
+      istat = read_netcdf_var_2d(&(data->learning->sup_lat), (info_field_struct *) NULL, (proj_struct *) NULL,
+                                 data->learning->filename_open_learn,
+                                 data->learning->sup_latname, data->learning->sup_lonname, data->learning->sup_latname,
+                                 &(data->learning->sup_nlon), &(data->learning->sup_nlat), TRUE);
+      if (istat != 0) {
+        /* In case of failure */
+        (void) free(nomvar);
+        (void) free(nomvar_time);
+        (void) free(nomvar_season);
+        (void) free(name);
+        return istat;
+      }
+    }
+    if (data->conf->season[i].secondary_cov == TRUE && data->learning->sup_lon == NULL) {
+      /* Read lon variable */
+      istat = read_netcdf_var_2d(&(data->learning->sup_lon), (info_field_struct *) NULL, (proj_struct *) NULL,
+                                 data->learning->filename_open_learn,
+                                 data->learning->sup_lonname, data->learning->sup_lonname, data->learning->sup_latname,
+                                 &(data->learning->sup_nlon), &(data->learning->sup_nlat), TRUE);
+      if (istat != 0) {
+        /* In case of failure */
+        (void) free(nomvar);
+        (void) free(nomvar_time);
+        (void) free(nomvar_season);
+        (void) free(name);
+        return istat;
+      }
+    }
 
     /* Read time data and info */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_time, i+1);
@@ -275,6 +308,27 @@ read_learning_fields(data_struct *data) {
       return istat;
     }
 
+    if (data->conf->season[i].secondary_cov == TRUE) {
+      (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_sup_val, i+1);
+      istat = read_netcdf_var_3d(&(data->learning->data[i].sup_val), (info_field_struct *) NULL, (proj_struct *) NULL,
+                                 data->learning->filename_open_learn,
+                                 nomvar, data->learning->sup_lonname, data->learning->sup_latname, nomvar_time,
+                                 &(data->learning->sup_nlon), &(data->learning->sup_nlat), &(data->learning->data[i].ntime), TRUE);
+      if (istat != 0) {
+        /* In case of failure */
+        (void) free(nomvar);
+        (void) free(nomvar_time);
+        (void) free(nomvar_season);
+        (void) free(name);
+        return istat;
+      }
+    }
+    else
+      data->learning->data[i].sup_val = NULL;
+
+
+    /** We read as many season times the same variable to have the same values available for each season! **/
+
     /* Read sup_index_mean data (secondary large-scale field index spatial mean for learning period) */
     istat = read_netcdf_var_generic_val(&(data->learning->data[i].sup_index_mean), (info_field_struct *) NULL,
                                         data->learning->filename_open_learn, data->learning->nomvar_sup_index_mean, i);
@@ -286,7 +340,7 @@ read_learning_fields(data_struct *data) {
       (void) free(name);
       return istat;
     }
-  
+    
     /* Read sup_index_var data (secondary large-scale field index spatial variance for learning period) */
     istat = read_netcdf_var_generic_val(&(data->learning->data[i].sup_index_var), (info_field_struct *) NULL,
                                         data->learning->filename_open_learn, data->learning->nomvar_sup_index_var, i);

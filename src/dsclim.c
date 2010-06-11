@@ -90,7 +90,7 @@ int main(int argc, char **argv)
   /* license_accept == 2 when user had already accepted the license in a previous execution of the program. */
 
   /* Print BEGIN banner */
-  (void) banner(basename(argv[0]), "1.5.8", "BEGIN");
+  (void) banner(basename(argv[0]), "1.5.9", "BEGIN");
 
   /* Allocate memory */
   data = (data_struct *) malloc(sizeof(data_struct));

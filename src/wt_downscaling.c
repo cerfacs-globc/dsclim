@@ -551,19 +551,21 @@ wt_downscaling(data_struct *data) {
             data->field[cat].analog_days[s].metric_norm[ii] = (float *) NULL;            
           }
           (void) printf("%s: Searching analog days for season #%d\n", __FILE__, s);
-          (void) find_the_days(data->field[cat].analog_days[s], data->field[cat].precip_index[s], data->learning->data[s].precip_index,
-                               data->field[cat+2].data[i].down->smean_norm[s], data->learning->data[s].sup_index,
-                               data->field[cat+2].data[i].down->sup_val_norm[s], data->learning->data[s].sup_val, mask_sub,
-                               data->field[cat].data[i].down->days_class_clusters[s], data->learning->data[s].class_clusters,
-                               data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
-                               data->learning->data[s].time_s->year, data->learning->data[s].time_s->month,
-                               data->learning->data[s].time_s->day, data->conf->time_units,
-                               data->field[cat].ntime_ls, data->learning->data[s].ntime,
-                               data->conf->season[s].month, data->conf->season[s].nmonths,
-                               data->conf->season[s].ndays, data->conf->season[s].ndayschoices, data->reg->npts,
-                               data->conf->season[s].shuffle, data->conf->season[s].secondary_choice,
-                               data->conf->season[s].secondary_main_choice, data->conf->season[s].secondary_cov,
-                               data->conf->use_downscaled_year, data->field[cat+2].nlon_ls, data->field[cat+2].nlat_ls);
+          istat = find_the_days(data->field[cat].analog_days[s], data->field[cat].precip_index[s], data->learning->data[s].precip_index,
+                                data->field[cat+2].data[i].down->smean_norm[s], data->learning->data[s].sup_index,
+                                data->field[cat+2].data[i].down->sup_val_norm[s], data->learning->data[s].sup_val, mask_sub,
+                                data->field[cat].data[i].down->days_class_clusters[s], data->learning->data[s].class_clusters,
+                                data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
+                                data->learning->data[s].time_s->year, data->learning->data[s].time_s->month,
+                                data->learning->data[s].time_s->day, data->conf->time_units,
+                                data->field[cat].ntime_ls, data->learning->data[s].ntime,
+                                data->conf->season[s].month, data->conf->season[s].nmonths,
+                                data->conf->season[s].ndays, data->conf->season[s].ndayschoices, data->reg->npts,
+                                data->conf->season[s].shuffle, data->conf->season[s].secondary_choice,
+                                data->conf->season[s].secondary_main_choice, data->conf->season[s].secondary_cov,
+                                data->conf->use_downscaled_year, data->field[cat+2].nlon_ls, data->field[cat+2].nlat_ls,
+                                data->learning->sup_nlon, data->learning->sup_nlat);
+          if (istat != 0) return istat;
         }
     }
 

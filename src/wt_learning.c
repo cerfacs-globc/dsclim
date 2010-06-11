@@ -97,10 +97,6 @@ wt_learning(data_struct *data) {
   double *tas_rea_sub = NULL;
   double *tas_rea_mean = NULL;
   double *tas_rea_mean_sub = NULL;
-  double *lat_rea = NULL;
-  double *lon_rea = NULL;
-  int nlon;
-  int nlat;
 
   double missing_value;
   double missing_value_precip;
@@ -295,7 +291,8 @@ wt_learning(data_struct *data) {
 
     /* Select common time period between the re-analysis and the observation data periods for */
     /* secondary large-scale field and extract subdomain */
-    istat = read_field_subdomain_period(&tas_rea, &lon_rea, &lat_rea, &missing_value, data->learning->nomvar_rea_sup,
+    istat = read_field_subdomain_period(&tas_rea, &(data->learning->sup_lon), &(data->learning->sup_lat),
+                                        &missing_value, data->learning->nomvar_rea_sup,
                                         data->learning->obs->time_s->year, data->learning->obs->time_s->month,
                                         data->learning->obs->time_s->day,
                                         data->conf->secondary_longitude_min, data->conf->secondary_longitude_max,
@@ -304,9 +301,7 @@ wt_learning(data_struct *data) {
                                         data->learning->rea_lonname, data->learning->rea_latname,
                                         data->learning->rea_dimxname, data->learning->rea_dimyname,
                                         data->learning->rea_timename, data->learning->filename_rea_sup,
-                                        &nlon, &nlat, data->learning->obs->ntime);
-    (void) free(lon_rea);
-    (void) free(lat_rea);
+                                        &(data->learning->sup_nlon), &(data->learning->sup_nlat), data->learning->obs->ntime);
 
     /* Perform spatial mean of secondary large-scale fields */
     tas_rea_mean = (double *) malloc(data->learning->obs->ntime * sizeof(double));
@@ -318,14 +313,15 @@ wt_learning(data_struct *data) {
                                data->conf->secondary_longitude_min, data->conf->secondary_longitude_max,
                                data->conf->secondary_latitude_min, data->conf->secondary_latitude_max, 
                                data->secondary_mask->nlon, data->secondary_mask->nlat, 1);
-      if (nlon != nlon_mask || nlat != nlat_mask) {
-        (void) fprintf(stderr, "%s: IMPORTANT WARNING: The mask for secondary large-scale fields after selecting subdomain has invalid dimensions: nlon=%d nlat=%d. Expected: nlon=%d nlat=%d\nReverting to no-mask processing.", __FILE__, nlon_mask, nlat_mask, nlon, nlat);
+      if (data->learning->sup_nlon != nlon_mask || data->learning->sup_nlat != nlat_mask) {
+        (void) fprintf(stderr, "%s: IMPORTANT WARNING: The mask for secondary large-scale fields after selecting subdomain has invalid dimensions: nlon=%d nlat=%d. Expected: nlon=%d nlat=%d\nReverting to no-mask processing.", __FILE__, nlon_mask, nlat_mask,
+                       data->learning->sup_nlon, data->learning->sup_nlat);
         mask_sub = (short int *) NULL;
       }
       else {
-        mask_sub = (short int *) malloc(nlat*nlon * sizeof(short int));
+        mask_sub = (short int *) malloc(data->learning->sup_nlat*data->learning->sup_nlon * sizeof(short int));
         if (mask_sub == NULL) alloc_error(__FILE__, __LINE__);
-        for (i=0; i<nlat*nlon; i++)
+        for (i=0; i<data->learning->sup_nlat*data->learning->sup_nlon; i++)
           mask_sub[i] = (short int) mask_subd[i];
       }
       (void) free(mask_subd);
@@ -338,7 +334,8 @@ wt_learning(data_struct *data) {
     if (mask_sub != NULL)
       printf("%s: Using a mask for secondary large-scale fields.\n", __FILE__);
 
-    (void) mean_field_spatial(tas_rea_mean, tas_rea, mask_sub, nlon, nlat, data->learning->obs->ntime);
+    (void) mean_field_spatial(tas_rea_mean, tas_rea, mask_sub, data->learning->sup_nlon, data->learning->sup_nlat,
+                              data->learning->obs->ntime);
     if (mask_sub != NULL)
       (void) free(mask_sub);
 
@@ -372,7 +369,7 @@ wt_learning(data_struct *data) {
       (void) extract_subperiod_months(&tas_rea_sub, &(ntime_sub[s]), tas_rea,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
                                       data->conf->season[s].month,
-                                      1, nlon, nlat, data->learning->obs->ntime,
+                                      1, data->learning->sup_nlon, data->learning->sup_nlat, data->learning->obs->ntime,
                                       data->conf->season[s].nmonths);
       (void) extract_subperiod_months(&mean_precip_sub, &(ntime_sub[s]), mean_precip,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
@@ -383,7 +380,7 @@ wt_learning(data_struct *data) {
       /** Normalize secondary large-scale fields for re-analysis learning data **/
       data->learning->data[s].sup_index = (double *) malloc(ntime_sub[s] * sizeof(double));
       if (data->learning->data[s].sup_index == NULL) alloc_error(__FILE__, __LINE__);
-      data->learning->data[s].sup_val = (double *) malloc(nlon*nlat*ntime_sub[s] * sizeof(double));
+      data->learning->data[s].sup_val = (double *) malloc(data->learning->sup_nlon*data->learning->sup_nlat*ntime_sub[s] * sizeof(double));
       if (data->learning->data[s].sup_val == NULL) alloc_error(__FILE__, __LINE__);
 
       /* Compute mean and variance over time */
@@ -395,15 +392,15 @@ wt_learning(data_struct *data) {
                              data->learning->data[s].sup_index_var, 1, 1, ntime_sub[s]);
 
       /* Compute mean and variance over time for each point */
-      sup_mean = (double *) malloc(nlon*nlat*ntime_sub[s] * sizeof(double));
+      sup_mean = (double *) malloc(data->learning->sup_nlon*data->learning->sup_nlat*ntime_sub[s] * sizeof(double));
       if (sup_mean == NULL) alloc_error(__FILE__, __LINE__);
-      sup_var = (double *) malloc(nlon*nlat*ntime_sub[s] * sizeof(double));
+      sup_var = (double *) malloc(data->learning->sup_nlon*data->learning->sup_nlat*ntime_sub[s] * sizeof(double));
       if (sup_var == NULL) alloc_error(__FILE__, __LINE__);
-      (void) time_mean_variance_field_2d(sup_mean, sup_var, tas_rea_sub, nlon, nlat, ntime_sub[s]);
+      (void) time_mean_variance_field_2d(sup_mean, sup_var, tas_rea_sub, data->learning->sup_nlon, data->learning->sup_nlat, ntime_sub[s]);
 
       /* Normalize whole secondary 2D field using mean and variance at each point */
       (void) normalize_field_2d(data->learning->data[s].sup_val, tas_rea_sub, sup_mean,
-                                sup_var, nlon, nlat, ntime_sub[s]);
+                                sup_var, data->learning->sup_nlon, data->learning->sup_nlat, ntime_sub[s]);
       
       (void) free(sup_mean);
       sup_mean = NULL;

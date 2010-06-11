@@ -50,13 +50,13 @@ LICENSE END */
 #include <dsclim.h>
 
 /** Find analog days given cluster, supplemental large-scale field, and precipitation distances. */
-void
+int
 find_the_days(analog_day_struct analog_days, double *precip_index, double *precip_index_learn,
               double *sup_field_index, double *sup_field_index_learn, double *sup_field, double *sup_field_learn, short int *mask,
               int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
               int *year_learn, int *month_learn, int *day_learn, char *time_units,
               int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
-              int sup_choice, int sup_cov, int use_downscaled_year, int nlon, int nlat) {
+              int sup_choice, int sup_cov, int use_downscaled_year, int nlon, int nlat, int sup_nlon, int sup_nlat) {
   /**
      @param[out]  analog_days           Analog days time indexes and dates, as well as corresponding downscale dates
      @param[in]   precip_index          Precipitation index of days to downscale
@@ -89,6 +89,8 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
      @param[in]   use_downscaled_year   if we want to also search the analog day in the year of the current downscaled year
      @param[in]   nlon                  longitude dimension
      @param[in]   nlat                  latitude dimension
+     @param[in]   sup_nlon              secondary large-scale field longitude dimension (for covariance)
+     @param[in]   sup_nlat              secondary large-scale field latitude dimension (for covariance)
   */
   
   int *buf_sub_i = NULL; /* Temporary buffer for time index of subperiod */
@@ -258,7 +260,11 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
             }
             else {
               /* Compute covariance of supplemental field */
-              (void) covariance_fields_spatial(&sup_diff, sup_field, sup_field_learn, mask, t, tl, nlon, nlat);
+              if (nlon != sup_nlon || nlat != sup_nlat) {
+                (void) fprintf(stderr, "%s: Dimensions of downscaled large-scale secondary field (nlat=%d nlon=%d) are not the same as the learning field (nlat=%d nlon=%d. Cannot proceed...\n", __FILE__, nlat, nlon, sup_nlat, sup_nlon);
+                return -1;
+              }
+              (void) covariance_fields_spatial(&sup_diff, sup_field, sup_field_learn, mask, t, tl, sup_nlon, sup_nlat);
               metric_sup[ntime_days] = sqrt(sup_diff * sup_diff);
             }
             /* Store the maximum value and its index */
@@ -505,4 +511,6 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
   (void) free(buf_learn_sub_i);
 
   (void) utTerm();
+
+  return 0;
 }

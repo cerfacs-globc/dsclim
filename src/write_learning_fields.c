@@ -59,17 +59,22 @@ write_learning_fields(data_struct *data) {
 
   int ncoutid; /* NetCDF output file handle ID */
   int *timedimoutid; /* NetCDF time dimension output ID */
+  int latdimoutid; /* NetCDF latitude dimension output ID */
+  int londimoutid; /* NetCDF longitude dimension output ID */
   int sdimoutid; /* NetCDF season dimension output ID */
   int eofdimoutid; /* NetCDF EOF dimension output ID */
   int ptsdimoutid; /* NetCDF points dimension output ID */
   int *clustdimoutid; /* NetCDF clusters dimension output ID */
   int *weightdimoutid; /* NetCDF weight dimension output ID */
   int *timeoutid; /* NetCDF time variable ID */
+  int latoutid; /* NetCDF latitude variable ID */
+  int lonoutid; /* NetCDF longitude variable ID */
   int *cstoutid; /* NetCDF regression constant variable ID */
   int *regoutid; /* NetCDF regression coefficients variable ID */
   int *rrdoutid; /* NetCDF precipitation index variable ID */
   int *rrooutid; /* NetCDF observed precipitation index variable ID */
   int *taoutid; /* NetCDF secondary large-scale field index variable ID */
+  int *tadoutid; /* NetCDF secondary large-scale 2D field variable ID */
   int pcoutid; /* NetCDF pc_normalized_var variable ID */
   int tamoutid; /* NetCDF secondary large-scale field index mean variable ID */
   int tavoutid; /* NetCDF secondary large-scale field index variance variable ID */
@@ -119,6 +124,8 @@ write_learning_fields(data_struct *data) {
   if (rrooutid == NULL) alloc_error(__FILE__, __LINE__);
   taoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
   if (taoutid == NULL) alloc_error(__FILE__, __LINE__);
+  tadoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
+  if (tadoutid == NULL) alloc_error(__FILE__, __LINE__);
   clustoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
   if (clustoutid == NULL) alloc_error(__FILE__, __LINE__);
   weightoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
@@ -157,6 +164,38 @@ write_learning_fields(data_struct *data) {
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   istat = nc_def_dim(ncoutid, data->conf->ptsname, data->reg->npts, &ptsdimoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  istat = nc_def_dim(ncoutid, data->learning->sup_latname, data->learning->nlat, &latdimoutid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  istat = nc_def_dim(ncoutid, data->learning->sup_lonname, data->learning->nlon, &londimoutid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  /* Define lat and lon variables */
+  vardimids[0] = latdimoutid;
+  istat = nc_def_var(ncoutid, data->learning->sup_latname, NC_DOUBLE, 1, vardimids, &latoutid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  istat = sprintf(tmpstr, "degrees_north");
+  istat = nc_put_att_text(ncoutid, latoutid, "units", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  istat = sprintf(tmpstr, "latitude coordinate");
+  istat = nc_put_att_text(ncoutid, latoutid, "long_name", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  istat = sprintf(tmpstr, "latitude");
+  istat = nc_put_att_text(ncoutid, latoutid, "standard_name", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  vardimids[0] = londimoutid;
+  istat = nc_def_var(ncoutid, data->learning->sup_lonname, NC_DOUBLE, 1, vardimids, &lonoutid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  istat = sprintf(tmpstr, "degrees_east");
+  istat = nc_put_att_text(ncoutid, lonoutid, "units", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  istat = sprintf(tmpstr, "longitude coordinate");
+  istat = nc_put_att_text(ncoutid, lonoutid, "long_name", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  istat = sprintf(tmpstr, "longitude");
+  istat = nc_put_att_text(ncoutid, lonoutid, "standard_name", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
   for (s=0; s<data->conf->nseasons; s++) {
 
     /* Define time dimensions and variables */
@@ -259,6 +298,25 @@ write_learning_fields(data_struct *data) {
     istat = sprintf(tmpstr, "none");
     istat = nc_put_att_text(ncoutid, taoutid[s], "units", strlen(tmpstr), tmpstr);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    /* Define sup_val (secondary large-scale 2D field for learning period) */
+    if (data->learning->data[s].sup_val != NULL) {
+      (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_sup_val, s+1);
+      vardimids[0] = timedimoutid[s];
+      vardimids[1] = latdimoutid;
+      vardimids[2] = londimoutid;
+      istat = nc_def_var(ncoutid, nomvar, NC_DOUBLE, 3, vardimids, &(tadoutid[s]));
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      
+      istat = nc_put_att_double(ncoutid, tadoutid[s], "missing_value", NC_DOUBLE, 1, &fillvalue);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      istat = sprintf(tmpstr, "%s_%d %s %s", data->learning->nomvar_time, s+1, data->learning->sup_latname, data->learning->sup_lonname);
+      istat = nc_put_att_text(ncoutid, tadoutid[s], "coordinates", strlen(tmpstr), tmpstr);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      istat = sprintf(tmpstr, "none");
+      istat = nc_put_att_text(ncoutid, tadoutid[s], "units", strlen(tmpstr), tmpstr);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    }
   }
 
   /* Define pc_normalized_var */
@@ -310,6 +368,26 @@ write_learning_fields(data_struct *data) {
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
   /* Write variables */
+
+  /* Write lat and lon */
+  start[0] = 0;
+  start[1] = 0;
+  start[2] = 0;
+  count[0] = (size_t) data->learning->nlat;
+  count[1] = 0;
+  count[2] = 0;
+  istat = nc_put_vara_double(ncoutid, latoutid, start, count, data->learning->lat);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  start[0] = 0;
+  start[1] = 0;
+  start[2] = 0;
+  count[0] = (size_t) data->learning->nlon;
+  count[1] = 0;
+  count[2] = 0;
+  istat = nc_put_vara_double(ncoutid, lonoutid, start, count, data->learning->lon);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
   timeval = NULL;
   for (s=0; s<data->conf->nseasons; s++) {
 
@@ -384,6 +462,18 @@ write_learning_fields(data_struct *data) {
     istat = nc_put_vara_double(ncoutid, taoutid[s], start, count, data->learning->data[s].sup_index);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+    /* Write secondary field 2D field */
+    if (data->learning->data[s].sup_val != NULL) {
+      start[0] = 0;
+      start[1] = 0;
+      start[2] = 0;
+      count[0] = (size_t) data->learning->data[s].ntime;
+      count[1] = (size_t) data->learning->sup_nlat;
+      count[2] = (size_t) data->learning->sup_nlon;
+      istat = nc_put_vara_double(ncoutid, tadoutid[s], start, count, data->learning->data[s].sup_val);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    }
+      
     tancp_mean[s] = data->learning->data[s].sup_index_mean;
     tancp_var[s] = data->learning->data[s].sup_index_var;
   }
@@ -620,6 +710,7 @@ write_learning_fields(data_struct *data) {
   (void) free(rrdoutid);
   (void) free(rrooutid);
   (void) free(taoutid);
+  (void) free(tadoutid);
   (void) free(clustoutid);
   (void) free(weightoutid);
 

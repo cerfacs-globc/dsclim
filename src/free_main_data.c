@@ -302,8 +302,8 @@ free_main_data(data_struct *data) {
       (void) free(data->learning->data[s].precip_reg_cst);
       (void) free(data->learning->data[s].precip_index);
       (void) free(data->learning->data[s].sup_index);
-      (void) free(data->learning->data[s].sup_val);
-      
+      if (data->learning->data[s].sup_val != NULL)
+        (void) free(data->learning->data[s].sup_val);      
     }
   }
   
@@ -352,6 +352,11 @@ free_main_data(data_struct *data) {
     (void) free(data->learning->rea_latname);
     (void) free(data->learning->rea_timename);
 
+    if (data->learning->sup_lon != NULL)
+      (void) free(data->learning->sup_lon);
+    if (data->learning->sup_lat != NULL)
+      (void) free(data->learning->sup_lat);
+
     (void) free(data->learning->obs_dimxname);
     (void) free(data->learning->obs_dimyname);
     (void) free(data->learning->obs_lonname);
@@ -393,9 +398,13 @@ free_main_data(data_struct *data) {
   (void) free(data->learning->nomvar_precip_index);
   (void) free(data->learning->nomvar_precip_index_obs);
   (void) free(data->learning->nomvar_sup_index);
+  (void) free(data->learning->nomvar_sup_val);
   (void) free(data->learning->nomvar_sup_index_mean);
   (void) free(data->learning->nomvar_sup_index_var);
   (void) free(data->learning->nomvar_pc_normalized_var);
+
+  (void) free(data->learning->sup_latname);
+  (void) free(data->learning->sup_lonname);
 
   if (data->learning->learning_save == TRUE) {
     (void) free(data->learning->filename_save_weight);
