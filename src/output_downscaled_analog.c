@@ -304,7 +304,8 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
               
               /* Create output file */
               istat = create_netcdf(info->title, info->title_french, info->summary, info->summary_french,
-                                    info->keywords, info->processor, info->description, info->institution,
+                                    info->keywords, info->processor, info->software,
+                                    info->description, info->institution,
                                     info->creator_email, info->creator_url, info->creator_name,
                                     info->version, info->scenario, info->scenario_co2, info->model,
                                     info->institution_model, info->country, info->member,
@@ -322,7 +323,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                 return istat;
               }
             
-              /* Add algorithm configuration */
+              /** Add algorithm configuration **/
 
               istat = nc_open(outfile[var], NC_WRITE, &ncoutid);  /* open NetCDF file */
               if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -336,7 +337,23 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
               if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
               istat = nc_def_var(ncoutid, "dsclim_configuration", NC_CHAR, 1, &configstrdimid, &configstroutid);
               if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-              
+
+              /* Update also time_coverage_end and time_coverage_start global attribute */
+              tmpstr = (char *) malloc(MAXPATH * sizeof(char));
+              if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
+              hour=0;
+              minutes=0;
+              seconds=0;
+              (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year1, output_month_begin, 1, hour, minutes, (int) seconds);
+              istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_start", strlen(tmpstr), tmpstr);
+              hour=23;
+              minutes=59;
+              seconds=59;
+              (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year2, output_month_end, days_per_month_reg_year[output_month_end-1],
+                             hour, minutes, (int) seconds);
+              istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_end", strlen(tmpstr), tmpstr);
+              (void) free(tmpstr);
+        
               /* End definition mode */
               istat = nc_enddef(ncoutid);
               if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
@@ -354,36 +371,6 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
             istat = ncclose(ncoutid);
             if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
           }
-        }
-          
-        /* Complete time metadata time_coverage_end for previous output file and output whole config */
-        if (noutf[var] > 1 && t > 0) {
-          
-          istat = nc_open(outfiles[var][noutf[var]-1], NC_WRITE, &ncoutid);  /* open NetCDF file */
-          if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-          
-          istat = nc_redef(ncoutid);
-          if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-          
-          if (utIsInit() != TRUE)
-            istat = utInit("");
-          istat = utScan(time_units,  &dataunit);
-          istat = utCalendar(time_ls[t-1], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
-          (void) utTerm();
-          
-          tmpstr = (char *) malloc(MAXPATH * sizeof(char));
-          if (tmpstr == NULL) alloc_error(__FILE__, __LINE__);
-          (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, minutes, (int) seconds);
-          istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_end", strlen(tmpstr), tmpstr);
-          (void) free(tmpstr);
-          
-          /* End definition mode */
-          istat = nc_enddef(ncoutid);
-          if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-          
-          /* Close the output netCDF file. */
-          istat = ncclose(ncoutid);
-          if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
         }
       }
           

@@ -90,7 +90,7 @@ int main(int argc, char **argv)
   /* license_accept == 2 when user had already accepted the license in a previous execution of the program. */
 
   /* Print BEGIN banner */
-  (void) banner(basename(argv[0]), "1.5.9", "BEGIN");
+  (void) banner(PACKAGE_NAME, PACKAGE_VERSION, "BEGIN");
 
   /* Allocate memory */
   data = (data_struct *) malloc(sizeof(data_struct));
@@ -99,8 +99,8 @@ int main(int argc, char **argv)
   /* Get command-line arguments and set appropriate variables */
   (void) printf("\n**** PROCESS COMMAND-LINE ARGUMENTS ****\n\n");
   if (argc <= 1) {
-    (void) show_usage(basename(argv[0]));
-    (void) banner(basename(argv[0]), "ABORT", "END");
+    (void) show_usage(PACKAGE_NAME);
+    (void) banner(PACKAGE_NAME, "ABORT", "END");
     (void) exit(1);
   }
   else
@@ -109,9 +109,9 @@ int main(int argc, char **argv)
       if ( !strcmp(argv[i], "-conf") )
         (void) strcpy(fileconf, argv[++i]);
       else {
-        (void) fprintf(stderr, "%s:: Wrong arg %s.\n\n", basename(argv[0]), argv[i]);
-        (void) show_usage(basename(argv[0]));
-        (void) banner(basename(argv[0]), "ABORT", "END");
+        (void) fprintf(stderr, "%s:: Wrong arg %s.\n\n", PACKAGE_NAME, argv[i]);
+        (void) show_usage(PACKAGE_NAME);
+        (void) banner(PACKAGE_NAME, "ABORT", "END");
         (void) exit(1);
       }
     }
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
   istat = load_conf(data, fileconf);
   if (istat != 0) {
     (void) fprintf(stderr, "%s: Error in loading configuration file. Aborting.\n", __FILE__);
-    (void) banner(basename(argv[0]), "ABORT", "END");
+    (void) banner(PACKAGE_NAME, "ABORT", "END");
     (void) abort();
   }
 
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
       istat = read_regression_points(data->reg);
       if (istat != 0) {
         (void) fprintf(stderr, "%s: Error in reading regression points positions. Aborting.\n", __FILE__);
-        (void) banner(basename(argv[0]), "ABORT", "END");
+        (void) banner(PACKAGE_NAME, "ABORT", "END");
         (void) abort();
       }
     }
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
       istat = read_mask(data->secondary_mask);
       if (istat != 0) {
         (void) fprintf(stderr, "%s: Error in reading secondary large-scale mask file. Aborting.\n", __FILE__);
-        (void) banner(basename(argv[0]), "ABORT", "END");
+        (void) banner(PACKAGE_NAME, "ABORT", "END");
         (void) abort();
       }
     }
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
       istat = read_mask(data->conf->learning_maskfile);
       if (istat != 0) {
         (void) fprintf(stderr, "%s: Error in reading learning mask file. Aborting.\n", __FILE__);
-        (void) banner(basename(argv[0]), "ABORT", "END");
+        (void) banner(PACKAGE_NAME, "ABORT", "END");
         (void) abort();
       }
     }
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
     istat = wt_learning(data);
     if (istat != 0) {
       (void) fprintf(stderr, "%s: Error in computing or reading learning data needed for downscaling. Aborting.\n", __FILE__);
-      (void) banner(basename(argv[0]), "ABORT", "END");
+      (void) banner(PACKAGE_NAME, "ABORT", "END");
       (void) abort();
     }
   }
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
     istat = wt_downscaling(data);
     if (istat != 0) {
       (void) fprintf(stderr, "%s: Error in performing downscaling. Aborting.\n", __FILE__);
-      (void) banner(basename(argv[0]), "ABORT", "END");
+      (void) banner(PACKAGE_NAME, "ABORT", "END");
       (void) abort();
     }
   }
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
   (void) free(data);
 
   /* Print END banner */
-  (void) banner(basename(argv[0]), "OK", "END");
+  (void) banner(PACKAGE_NAME, "OK", "END");
   
   return 0;
 }

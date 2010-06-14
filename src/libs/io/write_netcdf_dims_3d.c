@@ -104,15 +104,6 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *tim
   size_t start[3];
   size_t count[3];
 
-  utUnit dataunit;
-
-  int year;
-  int month;
-  int day;
-  int hour;
-  int minutes;
-  float seconds;
-
   int vali;
   int i;
 
@@ -222,29 +213,6 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *tim
   istat = nc_put_att_text(ncoutid, timeoutid, "calendar", strlen(cal_type), cal_type);
   (void) sprintf(tmpstr, "time in %s", time_units);
   istat = nc_put_att_text(ncoutid, timeoutid, "long_name", strlen(tmpstr), tmpstr);
-
-  /* Set time global attributes */
-  if (utIsInit() != TRUE)
-    istat = utInit("");
-  
-  istat = utScan(time_units,  &dataunit);
-
-  istat = utCalendar(timein[0], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
-  (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, minutes, (int) seconds);
-  istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_start", strlen(tmpstr), tmpstr);
-
-  if (ntime > 0) {
-    istat = utCalendar(timein[ntime-1], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
-    (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, minutes, (int) seconds);
-    istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_end", strlen(tmpstr), tmpstr);
-  }
-  else {
-    istat = utCalendar(timein[0], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
-    (void) sprintf(tmpstr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, minutes, (int) seconds);
-    istat = nc_put_att_text(ncoutid, NC_GLOBAL, "time_coverage_end", strlen(tmpstr), tmpstr);
-  }
-
-  (void) utTerm();
 
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "timestep", strlen(timestep), timestep);
 

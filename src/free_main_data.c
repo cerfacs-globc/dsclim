@@ -419,6 +419,7 @@ free_main_data(data_struct *data) {
     (void) free(data->info->summary_french);
     (void) free(data->info->keywords);
     (void) free(data->info->processor);
+    (void) free(data->info->software);
     (void) free(data->info->description);
     (void) free(data->info->institution);
     (void) free(data->info->creator_email);

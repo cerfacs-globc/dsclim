@@ -109,6 +109,7 @@ save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int
 
   /* Set global attributes */
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "processor", strlen(data->info->processor), data->info->processor);
+  istat = nc_put_att_text(ncoutid, NC_GLOBAL, "software", strlen(data->info->software), data->info->software);
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "institution", strlen(data->info->institution), data->info->institution);
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "creator_email", strlen(data->info->creator_email), data->info->creator_email);
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "creator_url", strlen(data->info->creator_url), data->info->creator_url);

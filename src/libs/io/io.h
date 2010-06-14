@@ -99,6 +99,7 @@ typedef struct {
   char *summary_french; /**< Summary *french). */
   char *keywords; /**< Keyword. */
   char *processor; /**< Program, processor which have generated the data. */
+  char *software; /**< Program and version which have generated the data. */
   char *description; /**< Main description of the data. */
   char *institution; /**< Institution which generated the data. */
   char *creator_email; /**< Contact email of the creator of the data. */
@@ -201,7 +202,7 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double 
                          char *lonname, char *latname, char *timename,
                          char *filename, int outinfo);
 int create_netcdf(char *title, char *title_french, char *summary, char *summary_french,
-                  char *keywords, char *processor, char *description, char *institution,
+                  char *keywords, char *processor, char *software, char *description, char *institution,
                   char *creator_email, char *creator_url, char *creator_name,
                   char *version, char *scenario, char *scenario_co2, char *model,
                   char *institution_model, char *country, char *member, char *downscaling_forcing,

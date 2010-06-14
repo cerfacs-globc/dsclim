@@ -181,7 +181,8 @@ remove_clim(data_struct *data) {
         /* If we want to save climatology in NetCDF output file for further use */
         if (data->field[cat].data[i].clim_info->clim_save == TRUE) {
           istat = create_netcdf("Computed climatology", "Climatologie calculee", "Computed climatology", "Climatologie calculee",
-                                "climatologie,climatology", "C language", "Computed climatology", data->info->institution,
+                                "climatologie,climatology", "C language", data->info->software,
+                                "Computed climatology", data->info->institution,
                                 data->info->creator_email, data->info->creator_url, data->info->creator_name,
                                 data->info->version, data->info->scenario, data->info->scenario_co2, data->info->model,
                                 data->info->institution_model, data->info->country, data->info->member,
@@ -315,7 +316,8 @@ remove_clim(data_struct *data) {
         /* If we want to save climatology in NetCDF output file for further use */
         if (data->field[cat].data[i].clim_info->clim_save == TRUE) {
           istat = create_netcdf("Computed climatology", "Climatologie calculee", "Computed climatology", "Climatologie calculee",
-                                "climatologie,climatology", "C language", "Computed climatology", data->info->institution,
+                                "climatologie,climatology", "C language", data->info->software,
+                                "Computed climatology", data->info->institution,
                                 data->info->creator_email, data->info->creator_url, data->info->creator_name,
                                 data->info->version, data->info->scenario, data->info->scenario_co2, data->info->model,
                                 data->info->institution_model, data->info->country, data->info->member,

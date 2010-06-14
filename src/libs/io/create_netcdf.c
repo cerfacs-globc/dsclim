@@ -60,7 +60,7 @@ LICENSE END */
 /** Create a new NetCDF file with global CF-1.0 attributes. */
 int
 create_netcdf(char *title, char *title_french, char *summary, char *summary_french,
-              char *keywords, char *processor, char *description, char *institution,
+              char *keywords, char *processor, char *software, char *description, char *institution,
               char *creator_email, char *creator_url, char *creator_name,
               char *version, char *scenario, char *scenario_co2, char *model,
               char *institution_model, char *country, char *member, char *downscaling_forcing,
@@ -73,6 +73,7 @@ create_netcdf(char *title, char *title_french, char *summary, char *summary_fren
      @param[in]  summary_french       Summary *french)
      @param[in]  keywords             Keyword
      @param[in]  processor            Program, processor which have generated the data
+     @param[in]  software             Software and version which have generated the data
      @param[in]  description          Main description of the data
      @param[in]  institution          Institution which generated the data
      @param[in]  creator_email        Contact email of the creator of the data
@@ -139,6 +140,7 @@ create_netcdf(char *title, char *title_french, char *summary, char *summary_fren
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "summary_french", strlen(summary_french), summary_french);
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "keywords", strlen(keywords), keywords);
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "processor", strlen(processor), processor);
+  istat = nc_put_att_text(ncoutid, NC_GLOBAL, "software", strlen(software), software);
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "description", strlen(description), description);
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "institution", strlen(institution), institution);
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "creator_email", strlen(creator_email), creator_email);

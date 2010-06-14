@@ -1024,6 +1024,11 @@ load_conf(data_struct *data, char *fileconf) {
   if (val != NULL)
     (void) xmlFree(val);    
 
+  /* Initialize software string */
+  data->info->software = (char *) malloc(1000 * sizeof(char));
+  if (data->info->software == NULL) alloc_error(__FILE__, __LINE__);
+  (void) sprintf(data->info->software, "%s %s", PACKAGE_NAME, PACKAGE_VERSION);
+
   /** institution **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "output", "institution");
   val = xml_get_setting(conf, path);
