@@ -1,0 +1,80 @@
+Welcome to dsclim - A software package for statistical downscaling of
+                    climate model scenario based on weather regimes.
+
+Initial version by: Christian Page (Cerfacs) 2009, <christian.page@cerfacs.fr>
+
+dsclim is free software. Please see the file COPYING for details.
+For documentation, please see the files in the doc subdirectory.
+For building and installation instructions please see the INSTALL file.
+For configuration example files, see the etc directory.
+
+This software is a tool to perform statistical downscaling of numerical
+model climate simulations (scenarios) developed at Cerfacs (Toulouse), France.
+It is a methodology based on weather typing (weather regimes), initially
+developed by Boe and Terray, 2008: A Weather-Type Approach to Analyzing
+Winter Precipitation in France: Twentieth-Century Trends and the Role of
+Anthropogenic Forcing, Journal of Climate, 21 (13), p. 3118.
+
+Specific installation instructions
+----------------------------------
+
+The dsclim software package is meant to be easy to compile and install on
+recent unix platforms. It is built using the standard GNU autoconf/automake
+system.
+
+The requirements are the following:
+- A 32- or 64-bit recent unix system (tested on Linux 32- and 64-bit)
+- The gzip, bzip2 and tar utilities
+- A recent ANSI C compiler (tested with GNU GCC 4.x)
+- A standard C math library (libm)
+- The standard zlib data compression library (libz)
+      http://www.zlib.net/
+- The standard szip compression library (libsz)
+      ftp://ftp.hdfgroup.org/lib-external/szip/
+- The HDF5 library (libhdf5)
+      ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/
+      and http://www.hdfgroup.org/HDF5/
+- UCAR NetCDF 4.x library (libudunits)
+      http://www.unidata.ucar.edu/software/netcdf/
+- UCAR UDUNITS 2.x library (libnetcdf)
+      http://www.unidata.ucar.edu/udunits/
+- The standard GNU Scientific Library (libgsl)
+      http://www.gnu.org/software/gsl/
+- The standard XML2 library (libxml2)
+      http://xmlsoft.org/
+Most of these should be already available on recent Linux systems, or directly
+available through a packaging system like yum or urpmi.
+
+Once the archive is uncompressed and untarred using
+tar xvzf dsclim-x.x.x.tar.gz
+one should run the configure utility inside the dsclim-x.x.x directory.
+Here is one example when one want to install in a different directory than
+/usr/local/bin and when needed libraries have been installed in
+non-standard directories:
+./configure --prefix=/home/page/codes/local \\
+--with-zlib=/opt2/glob/uti/local64 \\
+--with-szlib=/opt2/glob/uti/local64 \\
+--with-hdf5=/opt2/glob/uti/local64 \\
+--with-netcdf=/opt2/glob/uti/local64 \\
+--with-udunits=/opt2/glob/uti/local64
+
+The next step is to compile by typing the command
+make
+followed by
+make install
+if everything went fine in the make process to install everything.
+The executable is installed as $prefix/bin/dsclim, an example configuration
+file is installed as $prefix/share/dsclim/configuration.xml.
+$prefix stands as the directory specified by the --prefix argument when running
+the configure utility (/usr/local/bin by default).
+
+Datafiles for an example case are provided in a separate tar archive.
+It is suggested to put the content of this archive in a specific directory to
+be referenced in the configuration file.
+
+Once installed, it is advised to copy the example configuration.xml file and
+modify it for your needs. Then, if the $prefix directory is in your executable
+$PATH environment variable, you can run dsclim just by typing
+dsclim -conf configuration.xml
+assuming that the configuration.xml file is in the current directory.
+
