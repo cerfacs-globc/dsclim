@@ -90,6 +90,7 @@ write_learning_fields(data_struct *data) {
   utUnit dataunits; /* Time data units (udunits) */
 
   double fillvalue;
+  float fillvaluef;
   char *nomvar = NULL;
   double *timeval = NULL;
   double *tancp_mean = NULL;
@@ -156,7 +157,7 @@ write_learning_fields(data_struct *data) {
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "other_contact_name", strlen(data->info->other_contact_name),
                           data->info->other_contact_name);
 
-  fillvalue = -9999.9;
+  fillvalue = fillvaluef = -9999.9;
 
   /* Set dimensions */
   istat = nc_def_dim(ncoutid, "season", data->conf->nseasons, &sdimoutid);
@@ -203,6 +204,7 @@ write_learning_fields(data_struct *data) {
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_time, s+1);
     istat = nc_def_dim(ncoutid, nomvar, data->learning->data[s].ntime, &(timedimoutid[s]));
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    printf("%d\n",data->learning->data[s].ntime);
 
     vardimids[0] = timedimoutid[s];
     istat = nc_def_var(ncoutid, nomvar, NC_INT, 1, vardimids, &(timeoutid[s]));
@@ -222,6 +224,7 @@ write_learning_fields(data_struct *data) {
     (void) sprintf(nomvar, "%s_%d", data->conf->clustname, s+1);
     istat = nc_def_dim(ncoutid, nomvar, data->conf->season[s].nclusters, &(clustdimoutid[s]));
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    printf("%d\n",data->conf->season[s].nclusters);
 
     /* Define regression constant variables */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_cst, s+1);
@@ -306,10 +309,10 @@ write_learning_fields(data_struct *data) {
       vardimids[0] = timedimoutid[s];
       vardimids[1] = latdimoutid;
       vardimids[2] = londimoutid;
-      istat = nc_def_var(ncoutid, nomvar, NC_DOUBLE, 3, vardimids, &(tadoutid[s]));
+      istat = nc_def_var(ncoutid, nomvar, NC_FLOAT, 3, vardimids, &(tadoutid[s]));
       if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
       
-      istat = nc_put_att_double(ncoutid, tadoutid[s], "missing_value", NC_DOUBLE, 1, &fillvalue);
+      istat = nc_put_att_double(ncoutid, tadoutid[s], "missing_value", NC_FLOAT, 1, &fillvalue);
       if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
       istat = sprintf(tmpstr, "%s_%d %s %s", data->learning->nomvar_time, s+1, data->learning->sup_latname, data->learning->sup_lonname);
       istat = nc_put_att_text(ncoutid, tadoutid[s], "coordinates", strlen(tmpstr), tmpstr);

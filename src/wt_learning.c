@@ -364,17 +364,17 @@ wt_learning(data_struct *data) {
       (void) extract_subperiod_months(&tas_rea_mean_sub, &(ntime_sub[s]), tas_rea_mean,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
                                       data->conf->season[s].month,
-                                      1, 1, 1, data->learning->obs->ntime,
+                                      1, 1, 1, ntime_learn_all,
                                       data->conf->season[s].nmonths);
       (void) extract_subperiod_months(&tas_rea_sub, &(ntime_sub[s]), tas_rea,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
                                       data->conf->season[s].month,
-                                      1, data->learning->sup_nlon, data->learning->sup_nlat, data->learning->obs->ntime,
+                                      1, data->learning->sup_nlon, data->learning->sup_nlat, ntime_learn_all,
                                       data->conf->season[s].nmonths);
       (void) extract_subperiod_months(&mean_precip_sub, &(ntime_sub[s]), mean_precip,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
                                       data->conf->season[s].month,
-                                      1, 1, data->reg->npts, data->learning->obs->ntime,
+                                      1, 1, data->reg->npts, ntime_learn_all,
                                       data->conf->season[s].nmonths);
 
       /** Normalize secondary large-scale fields for re-analysis learning data **/

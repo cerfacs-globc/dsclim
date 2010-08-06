@@ -74,7 +74,7 @@ banner(char *pgm, char *verstat, char *type)
   if ( !strcmp(type, "BEGIN") ) {
     /* Initialize CPU clock time */
     clk = clock();
-    (void) printf("1\n");
+    /*    (void) printf("1\n"); */
     (void) printf("   ********************************************************************************************\n");
     (void) printf("   *                                                                                          *\n");
     (void) printf("   *          %-50s                V%-10s   *\n", pgm, verstat);
@@ -92,7 +92,7 @@ banner(char *pgm, char *verstat, char *type)
 
     /* Compute elapsed CPU clock time */
     clktime = (float) (clock() - clk) / (float) CLOCKS_PER_SEC;
-    (void) printf("1\n");
+    /* (void) printf("1\n"); */
     (void) printf("   ********************************************************************************************\n");
     (void) printf("   *                                                                                          *\n");
     (void) printf("   *          %-50s                 %-10s   *\n", pgm, verstat);

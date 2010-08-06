@@ -108,6 +108,11 @@ int main(int argc, char **argv)
     for (i=1; i<argc; i++) {
       if ( !strcmp(argv[i], "-conf") )
         (void) strcpy(fileconf, argv[++i]);
+      else if ( !strcmp(argv[i], "--version") ) {
+        (void) printf("%s version %s\n\n", PACKAGE_NAME, PACKAGE_VERSION);
+        (void) banner(PACKAGE_NAME, "OK", "END");
+        (void) exit(0);
+      }
       else {
         (void) fprintf(stderr, "%s:: Wrong arg %s.\n\n", PACKAGE_NAME, argv[i]);
         (void) show_usage(PACKAGE_NAME);
