@@ -52,7 +52,8 @@ LICENSE END */
 /** Read analog day data and write it for downscaled period. */
 int
 output_downscaled_analog(analog_day_struct analog_days, double *delta, int output_month_begin, char *output_path,
-                         char *config, char *time_units, char *cal_type, int file_format, int file_compression, int file_compression_level,
+                         char *config, char *time_units, char *cal_type,
+                         double deltat, int file_format, int file_compression, int file_compression_level,
                          info_struct *info, var_struct *obs_var, period_struct *period,
                          double *time_ls, int ntime) {
   /**
@@ -63,6 +64,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
      @param[in]   config                 Whole configuration text
      @param[in]   time_units             Output base time units
      @param[in]   cal_type               Output calendar-type
+     @param[in]   deltat                 Absolute difference of large-scale temperature threshold to apply as a correction
      @param[in]   file_format            File format version for NetCDF
      @param[in]   file_compression       Compression flag for NetCDF-4 file format
      @param[in]   file_compression_level Compression level for NetCDF-4 file format
@@ -609,7 +611,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
 
           /* Correct average temperature and related variables (precipitation partition, infra-red radiation) */
           if (varid_tas >= 0 && tas_correction == TRUE) {
-            if (fabs(delta[t]) >= 2.0)
+            if (fabs(delta[t]) >= deltat)
               for (j=0; j<nlat; j++)
                 for (i=0; i<nlon; i++)
                   
@@ -639,7 +641,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
 
           /* Correct min and max temperatures and related variables when having daily data */
           if (varid_tasmax >= 0 && varid_tasmin >= 0 && tas_correction == TRUE && !strcmp(obs_var->frequency, "daily")) {
-            if (fabs(delta[t]) >= 2.0)
+            if (fabs(delta[t]) >= deltat)
               for (j=0; j<nlat; j++)
                 for (i=0; i<nlon; i++)
                   
@@ -650,7 +652,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                     /* Compute new temperature */                
                     buf[varid_tasmax][i+j*nlon] += delta[t];
                     buf[varid_tasmin][i+j*nlon] += delta[t];
-                    /* New mean temperature */
+                    /* New averaged temperature */
                     newcurtas = (buf[varid_tasmax][i+j*nlon] + buf[varid_tasmin][i+j*nlon]) / 2.0;
 
                     /* Do not perform correction twice! */

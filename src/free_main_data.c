@@ -300,6 +300,9 @@ free_main_data(data_struct *data) {
       (void) free(data->learning->data[s].weight);
       (void) free(data->learning->data[s].precip_reg);
       (void) free(data->learning->data[s].precip_reg_cst);
+      (void) free(data->learning->data[s].precip_reg_rsq);
+      (void) free(data->learning->data[s].precip_reg_vif);
+      (void) free(data->learning->data[s].precip_reg_autocor);
       (void) free(data->learning->data[s].precip_index);
       (void) free(data->learning->data[s].sup_index);
       if (data->learning->data[s].sup_val != NULL)
@@ -395,6 +398,9 @@ free_main_data(data_struct *data) {
   (void) free(data->learning->nomvar_class_clusters);
   (void) free(data->learning->nomvar_precip_reg);
   (void) free(data->learning->nomvar_precip_reg_cst);
+  (void) free(data->learning->nomvar_precip_reg_rsq);
+  (void) free(data->learning->nomvar_precip_reg_acor);
+  (void) free(data->learning->nomvar_precip_reg_vif);
   (void) free(data->learning->nomvar_precip_index);
   (void) free(data->learning->nomvar_precip_index_obs);
   (void) free(data->learning->nomvar_sup_index);

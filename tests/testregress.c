@@ -116,8 +116,11 @@ int main(int argc, char **argv)
   double *yreg = NULL;
   double *coef = NULL;
   double *yerr = NULL;
+  double *vif = NULL;
   double cte;
   double chisq;
+  double rsq;
+  double autocor;
 
   /* Print BEGIN banner */
   (void) banner(basename(argv[0]), "1.0", "BEGIN");
@@ -165,11 +168,13 @@ int main(int argc, char **argv)
   if (yerr == NULL) alloc_error(__FILE__, __LINE__);
   coef = (double *) calloc(nterm, sizeof(double));
   if (coef == NULL) alloc_error(__FILE__, __LINE__);
+  vif = (double *) calloc(nterm, sizeof(double));
+  if (vif == NULL) alloc_error(__FILE__, __LINE__);
 
   for (pts=0; pts<npts; pts++)
     y[pts] = 5.0 + 3.0 * x[pts+0*npts] - 4.0 * x[pts+1*npts];
 
-  istat = regress(coef, x, y, &cte, yreg, yerr, &chisq, nterm, npts);
+  istat = regress(coef, x, y, &cte, yreg, yerr, &chisq, &rsq, vif, &autocor, nterm, npts);
 
 #if DEBUG >= 6
   for (term=0; term<nterm; term++)
@@ -188,6 +193,7 @@ int main(int argc, char **argv)
   (void) free(coef);
   (void) free(yreg);
   (void) free(yerr);
+  (void) free(vif);
   (void) free(y);
   (void) free(x);
 

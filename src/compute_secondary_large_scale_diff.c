@@ -65,21 +65,24 @@ compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days,
   */
   
   int t; /* Time loop counter */
-  double sup_diff; /**< Secondary large-scale field difference. */
-  int count = 0;
+  //  double sup_diff; /**< Secondary large-scale field difference. */
+  //  int count = 0;
+
   /* Process each downscaled day */
   for (t=0; t<ntimes; t++) {
     /** Compute normalized secondary large-scale field difference (delta) **/
-    sup_diff = (sup_field_index[t] * sqrt(sup_field_var)) -
-                (sup_field_index_learn[analog_days.tindex[t]] * sqrt(sup_field_var_learn));
-    if (fabs(sup_diff) > 2.0) {
-      delta[t] = sup_diff;
+    delta[t] = (sup_field_index[t] * sqrt(sup_field_var)) -
+      (sup_field_index_learn[analog_days.tindex[t]] * sqrt(sup_field_var_learn));
+    
+    //    if (fabs(sup_diff) > 2.0) {
+    //      delta[t] = sup_diff;
       //      printf("%d %lf\n",t,delta[t]);
-      count++;
-    }
-    else
-      delta[t] = 0.0;
-    if (t == (ntimes-1))
-      printf("%d %lf %lf %lf %d %d %d\n",count,delta[t],sup_field_index[t],sup_field_index_learn[analog_days.tindex[t]],analog_days.year[t],analog_days.month[t],analog_days.day[t]);
+      //      count++;
+    //    }
+    //    else
+    //      delta[t] = 0.0;
+    //    if (t == (ntimes-1))
+    //      printf("%d %lf %lf %lf %d %d %d\n",count,delta[t],sup_field_index[t],sup_field_index_learn[analog_days.tindex[t]],analog_days.year[t],analog_days.month[t],analog_days.day[t]);
+
   }
 }

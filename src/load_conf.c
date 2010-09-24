@@ -327,6 +327,17 @@ load_conf(data_struct *data, char *fileconf) {
   if (val != NULL)
     (void) xmlFree(val);
 
+  /** deltat **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "deltat");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->deltat = (double) xmlXPathCastStringToNumber(val);
+  else
+    data->conf->deltat = 2.0;
+  (void) fprintf(stdout, "%s: Absolute difference of temperature for corrections = %lf\n", __FILE__, data->conf->deltat);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
   /** classif_type **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "classif_type");
   val = xml_get_setting(conf, path);
@@ -2143,6 +2154,45 @@ load_conf(data_struct *data, char *fileconf) {
   else
     data->learning->nomvar_precip_reg_cst = strdup("cst");
   (void) fprintf(stdout, "%s: Learning nomvar_precip_reg_cst = %s\n", __FILE__, data->learning->nomvar_precip_reg_cst);
+  
+  /** nomvar_precip_reg_rsq **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_reg_rsq");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_precip_reg_rsq = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_precip_reg_rsq == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_precip_reg_rsq, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_precip_reg_rsq = strdup("rsquare");
+  (void) fprintf(stdout, "%s: Learning nomvar_precip_reg_rsq = %s\n", __FILE__, data->learning->nomvar_precip_reg_rsq);
+  
+  /** nomvar_precip_reg_acor **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_reg_acor");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_precip_reg_acor = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_precip_reg_acor == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_precip_reg_acor, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_precip_reg_acor = strdup("autocor");
+  (void) fprintf(stdout, "%s: Learning nomvar_precip_reg_acor = %s\n", __FILE__, data->learning->nomvar_precip_reg_acor);
+  
+  /** nomvar_precip_reg_vif **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_reg_vif");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_precip_reg_vif = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_precip_reg_vif == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_precip_reg_vif, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_precip_reg_vif = strdup("vif");
+  (void) fprintf(stdout, "%s: Learning nomvar_precip_reg_vif = %s\n", __FILE__, data->learning->nomvar_precip_reg_vif);
   
   /** nomvar_precip_index **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_index");

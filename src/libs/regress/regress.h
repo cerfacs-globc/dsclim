@@ -75,9 +75,11 @@ LICENSE END */
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_multifit.h>
+#include <gsl/gsl_statistics_double.h>
 
 /* Prototypes */
-int regress(double *coef, double *x, double *y, double *cte, double *yreg, double *yerr, double *chisq, int nterm, int npts);
+int regress(double *coef, double *x, double *y, double *cte, double *yreg, double *yerr,
+            double *chisq, double *rsq, double *vif, double *autocor, int nterm, int npts);
 void apply_regression(double *buf, double *reg, double *cst, double *dist, double *sup_dist, int npts, int ntime, int nclust, int nreg);
 
 #endif

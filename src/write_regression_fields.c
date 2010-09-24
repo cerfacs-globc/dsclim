@@ -76,6 +76,9 @@ write_regression_fields(data_struct *data, char *filename, double **timeval, int
   int *rrdoutid; /* NetCDF precipitation index variable ID */
   int *distclustoutid; /* NetCDF distances to clusters variable ID */
   int *taoutid; /* NetCDF secondary large-scale field index variable ID */
+  int *rsqoutid; /* NetCDF regression R^2 variable ID */
+  int *acoroutid; /* NetCDF regression autocorrelation variable ID */
+  int *vifoutid; /* NetCDF regression VIF variable ID */
   int vardimids[NC_MAX_VAR_DIMS]; /* NetCDF dimension IDs */
   
   size_t start[3]; /* Start element when writing */
@@ -105,6 +108,12 @@ write_regression_fields(data_struct *data, char *filename, double **timeval, int
   if (distclustoutid == NULL) alloc_error(__FILE__, __LINE__);
   taoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
   if (taoutid == NULL) alloc_error(__FILE__, __LINE__);
+  rsqoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
+  if (rsqoutid == NULL) alloc_error(__FILE__, __LINE__);
+  acoroutid = (int *) malloc(data->conf->nseasons * sizeof(int));
+  if (acoroutid == NULL) alloc_error(__FILE__, __LINE__);
+  vifoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
+  if (vifoutid == NULL) alloc_error(__FILE__, __LINE__);
 
   nomvar = (char *) malloc(200 * sizeof(char));
   if (nomvar == NULL) alloc_error(__FILE__, __LINE__);
@@ -238,6 +247,50 @@ write_regression_fields(data_struct *data, char *filename, double **timeval, int
     istat = sprintf(tmpstr, "none");
     istat = nc_put_att_text(ncoutid, distclustoutid[s], "units", strlen(tmpstr), tmpstr);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    /* Define regression R^2 diagnostic */
+    (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_rsq, s+1);
+    vardimids[0] = ptsdimoutid;
+    istat = nc_def_var(ncoutid, nomvar, NC_DOUBLE, 1, vardimids, &(rsqoutid[s]));
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    istat = nc_put_att_double(ncoutid, rsqoutid[s], "missing_value", NC_DOUBLE, 1, &fillvalue);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = nc_put_att_text(ncoutid, rsqoutid[s], "coordinates", strlen(data->conf->ptsname), data->conf->ptsname);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = sprintf(tmpstr, "none");
+    istat = nc_put_att_text(ncoutid, rsqoutid[s], "units", strlen(tmpstr), tmpstr);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    /* Define regression autocorrelation diagnostic */
+    (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_acor, s+1);
+    vardimids[0] = ptsdimoutid;
+    istat = nc_def_var(ncoutid, nomvar, NC_DOUBLE, 1, vardimids, &(acoroutid[s]));
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    istat = nc_put_att_double(ncoutid, acoroutid[s], "missing_value", NC_DOUBLE, 1, &fillvalue);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = nc_put_att_text(ncoutid, acoroutid[s], "coordinates", strlen(data->conf->ptsname), data->conf->ptsname);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = sprintf(tmpstr, "none");
+    istat = nc_put_att_text(ncoutid, acoroutid[s], "units", strlen(tmpstr), tmpstr);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    /* Define regression VIF diagnostic */
+    (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_vif, s+1);
+    vardimids[0] = clustdimoutid[s];
+    istat = nc_def_var(ncoutid, nomvar, NC_DOUBLE, 1, vardimids, &(vifoutid[s]));
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    istat = nc_put_att_double(ncoutid, vifoutid[s], "missing_value", NC_DOUBLE, 1, &fillvalue);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = nc_put_att_text(ncoutid, vifoutid[s], "coordinates", strlen(data->learning->nomvar_class_clusters),
+                            data->learning->nomvar_class_clusters);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = sprintf(tmpstr, "none");
+    istat = nc_put_att_text(ncoutid, vifoutid[s], "units", strlen(tmpstr), tmpstr);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
   }
 
   /* End definition mode */
@@ -306,6 +359,36 @@ write_regression_fields(data_struct *data, char *filename, double **timeval, int
     count[2] = 0;
     istat = nc_put_vara_double(ncoutid, distclustoutid[s], start, count, distclust[s]);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    /* Write regression R^2 diagnostic */
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) data->reg->npts;
+    count[1] = 0;
+    count[2] = 0;
+    istat = nc_put_vara_double(ncoutid, rsqoutid[s], start, count, data->learning->data[s].precip_reg_rsq);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    /* Write regression autocorrelation diagnostic */
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) data->reg->npts;
+    count[1] = 0;
+    count[2] = 0;
+    istat = nc_put_vara_double(ncoutid, acoroutid[s], start, count, data->learning->data[s].precip_reg_autocor);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+    /* Write regression VIF diagnostic */
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) data->conf->season[s].nclusters;
+    count[1] = 0;
+    count[2] = 0;
+    istat = nc_put_vara_double(ncoutid, vifoutid[s], start, count, data->learning->data[s].precip_reg_vif);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
 
   /* Close the output netCDF file */
@@ -323,6 +406,9 @@ write_regression_fields(data_struct *data, char *filename, double **timeval, int
   (void) free(rrdoutid);
   (void) free(distclustoutid);
   (void) free(taoutid);
+  (void) free(rsqoutid);
+  (void) free(acoroutid);
+  (void) free(vifoutid);
 
   (void) free(tmpstr);
 

@@ -270,6 +270,9 @@ typedef struct {
   int *class_clusters; /**< Classification clusters learning data. */
   double *precip_reg; /**< Precipitation regression values. */
   double *precip_reg_cst; /**< Precipitation regression constant values. */
+  double *precip_reg_rsq; /**< Precipitation regression statistics R^2. */
+  double *precip_reg_vif; /**< Precipitation regression statistics VIF Variance Inflation Factor. */
+  double *precip_reg_autocor; /**< Precipitation regression statistics auto-correlation of residuals. */
   double *precip_index; /**< Precipitation index. */
   double *precip_index_obs; /**< Observed precipitation index on regression points. */
   double *sup_index; /**< Secondary field index. */
@@ -306,6 +309,9 @@ typedef struct {
   char *nomvar_precip_reg_cst; /**< NetCDF variable name for precipitation regression constant. */
   char *nomvar_precip_index; /**< NetCDF variable name for precipitation index. */
   char *nomvar_precip_index_obs; /**< NetCDF variable name for observed precipitation index. */
+  char *nomvar_precip_reg_rsq; /**< NetCDF variable name for R^2 regression diagnostic. */
+  char *nomvar_precip_reg_acor; /**< NetCDF variable name for autocorrelation regression diagnostic. */
+  char *nomvar_precip_reg_vif; /**< NetCDF variable name for VIF regression diagnostic. */
   char *nomvar_sup_index; /**< NetCDF variable name for secondary large-scale field index. */
   char *nomvar_sup_val; /**< NetCDF variable name for secondary large-scale 2D field. */
   char *nomvar_sup_index_mean; /**< NetCDF variable name for secondary large-scale field mean. */
@@ -460,6 +466,7 @@ typedef struct {
   char *analog_file_ctrl; /**< Analog data filename for control run. */
   char *analog_file_other; /**< Analog data filename for control run. */
   int use_downscaled_year; /**< If we want to also search the analog day in the year of the current downscaled year. */
+  double deltat; /**< Absolute difference of temperature to use to correct temperature when downscaling and comparing large-scale temperature index. */
 } conf_struct;
 
 /** MASTER data structure data_struct. */
@@ -504,7 +511,7 @@ int merge_seasonal_data(double *buf_merged, double *buf, analog_day_struct analo
 int merge_seasonal_data_i(int *buf_merged, int *buf, analog_day_struct analog_days, int dimx, int dimy,
                           int ntimes_merged, int ntimes);
 int output_downscaled_analog(analog_day_struct analog_days, double *delta, int output_month_begin, char *output_path,
-                             char *config, char *time_units, char *cal_type,
+                             char *config, char *time_units, char *cal_type, double deltat,
                              int file_format, int file_compression, int file_compression_level,
                              info_struct *info, var_struct *obs_var, period_struct *period,
                              double *time_ls, int ntime);

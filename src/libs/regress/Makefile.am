@@ -10,5 +10,5 @@
 
 noinst_LTLIBRARIES = libregress.la
 libregress_la_SOURCES = regress.h regress.c apply_regression.c
-libregress_la_CPPFLAGS = 
-libregress_la_LIBADD = $(GSL_LIBS) -lm
+libregress_la_CPPFLAGS = -I${top_srcdir}/src/libs/misc 
+libregress_la_LIBADD = ../misc/libmisc.la $(GSL_LIBS) -lm

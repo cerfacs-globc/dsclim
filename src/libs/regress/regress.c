@@ -49,19 +49,24 @@ LICENSE END */
 
 
 #include <regress.h>
+#include <misc.h>
 
 /** Compute regression coefficients with a regression constant given two vectors,
-    having nterm variables and npts dimension (usually time). */
+    having nterm variables (usually parameters) and npts dimension (usually time). */
 int
-regress(double *coef, double *x, double *y, double *cte, double *yreg, double *yerr, double *chisq, int nterm, int npts) {
+regress(double *coef, double *x, double *y, double *cte, double *yreg, double *yerr,
+        double *chisq, double *rsq, double *vif, double *autocor, int nterm, int npts) {
   /**
      @param[out]  coef      Regression coefficients
-     @param[in]   x         X vectors (nterm X npts)
-     @param[in]   y         Y vectors (npts)
+     @param[in]   x         X vectors (nterm X npts) npts is usually time, nterm the number of parameters
+     @param[in]   y         Y vectors (npts) npts is usually time
      @param[out]  cte       Regression constant
      @param[out]  yreg      Y vector reconstructed with regression
      @param[out]  yerr      Y error vector when reconstructing Y vector with regression
      @param[out]  chisq     Chi-square diagnostic
+     @param[out]  rsq       Coefficient of determination diagnostic R^2 = 1 - \chi^2 / TSS
+     @param[out]  vif       Variance Inflation Factor for each parameter
+     @param[out]  autocor   Autocorrelation of residuals (Durbin-Watson test)
      @param[in]   nterm     Variables dimension
      @param[in]   npts      Vector dimension
 
@@ -77,12 +82,19 @@ regress(double *coef, double *x, double *y, double *cte, double *yreg, double *y
 
   gsl_vector *yy; /* Y vector */
   gsl_vector *ccoef; /* Coefficients vector */
+  gsl_vector *res; /* Residuals vector */
 
   int istat; /* Diagnostic status */
   int term; /* Loop counter for variables dimension */
+  int vterm;
+  int cterm;
   int pts; /* Loop counter for vector dimension */
 
-  double val; /* Value retrieved */
+  size_t stride = 1; /* Stride for GSL functions */
+
+  double vchisq; /* Temporary value for chi^2 for VIF */
+  double *ytmp; /* Temporary vector for y for VIF */
+  double ystd; /* Standard deviation of fitted function */
 
   /* Allocate memory and create matrices and vectors */
   xx = gsl_matrix_alloc(npts, nterm+1);
@@ -93,20 +105,16 @@ regress(double *coef, double *x, double *y, double *cte, double *yreg, double *y
 
   /* Create X matrix */
   for (term=0; term<nterm; term++)
-    for (pts=0; pts<npts; pts++) {
-      val = x[pts+term*npts];
-      (void) gsl_matrix_set(xx, pts, term+1, val);
-    }
+    for (pts=0; pts<npts; pts++)
+      (void) gsl_matrix_set(xx, pts, term+1, x[pts+term*npts]);
 
   /* Create first column of matrix for regression constant */
   for (pts=0; pts<npts; pts++)
     (void) gsl_matrix_set(xx, pts, 0, 1.0);  
   
   /* Create Y vector for all vector dimension */
-  for (pts=0; pts<npts; pts++) {
-    val = y[pts];
-    (void) gsl_vector_set(yy, pts, val);
-  }
+  for (pts=0; pts<npts; pts++)
+    (void) gsl_vector_set(yy, pts, y[pts]);
 
   /* Allocate workspace */
   work = gsl_multifit_linear_alloc(npts, nterm+1);
@@ -158,13 +166,16 @@ regress(double *coef, double *x, double *y, double *cte, double *yreg, double *y
   /* Retrieve regression constant */
   *cte = gsl_vector_get(ccoef, 0);
 
-  /* Reconstruct vector using regression coefficients, and calculate error */
+  /* Compute R^2 = 1 - \chi^2 / TSS */
+  *rsq = 1.0 - ( (*chisq) / gsl_stats_tss(y, stride, (size_t) pts) );
+
+  /* Reconstruct vector using regression coefficients, and calculate its standard deviation */
 #if DEBUG >= 7
   (void) fprintf(stdout, "%s: Vector reconstruction\n", __FILE__);
 #endif
   for (pts=0; pts<npts; pts++) {
     row = gsl_matrix_row(xx, pts);
-    istat = gsl_multifit_linear_est(&row.vector, ccoef, cov, &(yreg[pts]), &(yerr[pts]));
+    istat = gsl_multifit_linear_est(&row.vector, ccoef, cov, &(yreg[pts]), &ystd);
     if (istat != GSL_SUCCESS) {
       (void) fprintf(stderr, "%s: Line %d: Error %d in multifitting linear values estimation!\n", __FILE__, __LINE__, istat);
       (void) gsl_matrix_free(xx);
@@ -174,13 +185,106 @@ regress(double *coef, double *x, double *y, double *cte, double *yreg, double *y
       return istat;
     }
   }
-  
+  /* Compute also residuals */
+#if DEBUG >= 7
+  (void) fprintf(stdout, "%s: Residuals calculation\n", __FILE__);
+#endif
+  res = gsl_vector_alloc(npts);
+  istat = gsl_multifit_linear_residuals(xx, yy, ccoef, res);
+  if (istat != GSL_SUCCESS) {
+    (void) fprintf(stderr, "%s: Line %d: Error %d in multifitting linear values residuals estimation!\n", __FILE__, __LINE__, istat);
+    (void) gsl_matrix_free(xx);
+    (void) gsl_matrix_free(cov);
+    (void) gsl_vector_free(yy);
+    (void) gsl_vector_free(res);
+    (void) gsl_vector_free(ccoef);
+    return istat;
+  }
+  /* Store residuals */
+  for (pts=0; pts<npts; pts++)
+    yerr[pts] = gsl_vector_get(res, pts);
+
+  /* Compute autocorrelation of residuals (Durbin-Watson) */
+  *autocor = gsl_stats_lag1_autocorrelation(yerr, stride, npts);
+
   /* Dealloc matrices and vectors memory */
   (void) gsl_matrix_free(xx);
   (void) gsl_matrix_free(cov);
   (void) gsl_vector_free(yy);
+  (void) gsl_vector_free(res);
   (void) gsl_vector_free(ccoef);
 
+
+  /** Regression diagnostics **/
+  
+  /* VIF */
+#if DEBUG >= 7
+  (void) fprintf(stdout, "%s: VIF calculation\n", __FILE__);
+#endif
+  xx = gsl_matrix_alloc(npts, nterm);
+  yy = gsl_vector_alloc(npts);
+
+  ccoef = gsl_vector_alloc(nterm);
+  cov = gsl_matrix_alloc(nterm, nterm);
+
+  ytmp = (double *) malloc(npts * sizeof(double));
+  if (ytmp == NULL) alloc_error(__FILE__, __LINE__);
+  
+  /* Loop over parameters */
+  for (vterm=0; vterm<nterm; vterm++) {
+
+    (void) gsl_matrix_set_zero(xx);
+    (void) gsl_matrix_set_zero(cov);
+
+    (void) gsl_vector_set_zero(yy);
+    (void) gsl_vector_set_zero(ccoef);
+
+    /* Create X matrix */
+    cterm = 0;
+    for (term=0; term<nterm; term++) {
+      if (term != vterm) {
+        for (pts=0; pts<npts; pts++)
+          (void) gsl_matrix_set(xx, pts, cterm+1, x[pts+term*npts]);
+        cterm++;
+      }
+    }
+    
+    /* Create first column of matrix for regression constant */
+    for (pts=0; pts<npts; pts++)
+      (void) gsl_matrix_set(xx, pts, 0, 1.0);  
+    
+    /* Create Y vector for all vector dimension, using the vterm X values */
+    for (pts=0; pts<npts; pts++) {
+      ytmp[pts] = x[pts+vterm*npts];
+      (void) gsl_vector_set(yy, pts, ytmp[pts]);
+    }
+    
+    /* Allocate workspace */
+    work = gsl_multifit_linear_alloc(npts, nterm);
+
+    /* Perform linear regression just to get chi^2 */
+    istat = gsl_multifit_linear(xx, yy, ccoef, cov, &vchisq, work);
+    if (istat != GSL_SUCCESS) {
+      (void) fprintf(stderr, "%s: Line %d: Error %d in multifitting algorithm!\n", __FILE__, __LINE__, istat);
+      (void) gsl_multifit_linear_free(work);
+      (void) gsl_matrix_free(xx);
+      (void) gsl_matrix_free(cov);
+      (void) gsl_vector_free(yy);
+      (void) gsl_vector_free(ccoef);
+      (void) free(ytmp);
+      return istat;
+    }
+    
+    /* Free workspace */
+    (void) gsl_multifit_linear_free(work);
+
+    /* Compute R^2 = 1 - \chi^2 / TSS */
+    /* and finally VIF = 1.0 / (1.0 - R^2) */
+    vif[vterm] = 1.0 / (1.0 - powf(1.0 - ( vchisq / gsl_stats_tss(ytmp, stride, (size_t) pts) ), 2.0) );
+  }
+    
+  (void) free(ytmp);
+  
   /* Success status */
   return 0;
 }

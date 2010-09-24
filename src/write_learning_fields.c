@@ -204,7 +204,6 @@ write_learning_fields(data_struct *data) {
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_time, s+1);
     istat = nc_def_dim(ncoutid, nomvar, data->learning->data[s].ntime, &(timedimoutid[s]));
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-    printf("%d\n",data->learning->data[s].ntime);
 
     vardimids[0] = timedimoutid[s];
     istat = nc_def_var(ncoutid, nomvar, NC_INT, 1, vardimids, &(timeoutid[s]));
@@ -224,7 +223,6 @@ write_learning_fields(data_struct *data) {
     (void) sprintf(nomvar, "%s_%d", data->conf->clustname, s+1);
     istat = nc_def_dim(ncoutid, nomvar, data->conf->season[s].nclusters, &(clustdimoutid[s]));
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-    printf("%d\n",data->conf->season[s].nclusters);
 
     /* Define regression constant variables */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_cst, s+1);
