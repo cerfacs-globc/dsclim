@@ -77,26 +77,46 @@ read_learning_obs_eof(data_struct *data) {
   int t;
   int eof;
 
+  if (data->learning->obs_neof != 0) {
+  /* Only read variable if considering observation EOFs */
+    
   /* Read EOF */
-  istat = read_netcdf_var_2d(&buf, (info_field_struct *) NULL, (proj_struct *) NULL,
-                             data->learning->obs->filename_eof, data->learning->obs->nomvar_eof,
-                             data->learning->obs_eofname, data->learning->obs_timename, &neof, &ntime, TRUE);
-  if (istat != 0) {
-    /* In case of failure */
-    return istat;
+    istat = read_netcdf_var_2d(&buf, (info_field_struct *) NULL, (proj_struct *) NULL,
+                               data->learning->obs->filename_eof, data->learning->obs->nomvar_eof,
+                               data->learning->obs_eofname, data->learning->obs_timename, &neof, &ntime, TRUE);
+    if (istat != 0) {
+      /* In case of failure */
+      (void) free(buf);
+      return istat;
+    }
+    if (data->learning->obs_neof != neof) {
+      (void) fprintf(stderr, "%s: ERROR: Number of EOFs (%d) for observation %s field from EOF file (%s) is not equal to number of EOFs specified in XML configuration file for observation fields (%d)!\n", __FILE__, neof,
+                     data->learning->obs->nomvar_eof, data->learning->obs->filename_eof, data->learning->obs_neof);
+      (void) free(buf);
+      return -1;
+    }
+    /* Re-order array with time as fastest varying dimension */
+    data->learning->obs->eof = malloc(neof*ntime * sizeof(double));
+    if (data->learning->obs->eof == NULL) alloc_error(__FILE__, __LINE__);
+    for (eof=0; eof<neof; eof++)
+      for (t=0; t<ntime; t++)
+        data->learning->obs->eof[t+eof*ntime] = buf[eof+t*neof];
+    (void) free(buf);
+
+    /* Read Singular Values */
+    istat = read_netcdf_var_1d(&(data->learning->obs->sing), (info_field_struct *) NULL,
+                               data->learning->obs->filename_eof, data->learning->obs->nomvar_sing,
+                               data->learning->obs_eofname, &neof, TRUE);
+    if (istat != 0) {
+      /* In case of failure */
+      return istat;
+    }
+    if (data->learning->obs_neof != neof) {
+      (void) fprintf(stderr, "%s: ERROR: Number of EOFs (%d) for observation %s field from EOF file (%s) is not equal to number of EOFs specified in XML configuration file for observation fields (%d)!\n", __FILE__, neof,
+                     data->learning->obs->nomvar_sing, data->learning->obs->filename_eof, data->learning->obs_neof);
+      return -1;
+    }
   }
-  if (data->learning->obs_neof != neof) {
-    (void) fprintf(stderr, "%s: ERROR: Number of EOFs (%d) for observation %s field from EOF file (%s) is not equal to number of EOFs specified in XML configuration file for observation fields (%d)!\n", __FILE__, neof,
-                   data->learning->obs->nomvar_eof, data->learning->obs->filename_eof, data->learning->obs_neof);
-    return -1;
-  }
-  /* Re-order array with time as fastest varying dimension */
-  data->learning->obs->eof = malloc(neof*ntime * sizeof(double));
-  if (data->learning->obs->eof == NULL) alloc_error(__FILE__, __LINE__);
-  for (eof=0; eof<neof; eof++)
-    for (t=0; t<ntime; t++)
-      data->learning->obs->eof[t+eof*ntime] = buf[eof+t*neof];
-  (void) free(buf);
   
   /* Get time information */
   istat = get_time_info(data->learning->obs->time_s, &time, &time_units, &cal_type,
@@ -133,22 +153,6 @@ read_learning_obs_eof(data_struct *data) {
     data->learning->time_s->hour[i] = data->learning->obs->time_s->hour[i];
     data->learning->time_s->minutes[i] = data->learning->obs->time_s->minutes[i];
     data->learning->time_s->seconds[i] = data->learning->obs->time_s->seconds[i];
-  }
-
-  /* Read Singular Values */
-  istat = read_netcdf_var_1d(&(data->learning->obs->sing), (info_field_struct *) NULL,
-                             data->learning->obs->filename_eof, data->learning->obs->nomvar_sing,
-                             data->learning->obs_eofname, &neof, TRUE);
-  if (istat != 0) {
-    /* In case of failure */
-    (void) free(data->learning->rea->time_s);
-    return istat;
-  }
-  if (data->learning->obs_neof != neof) {
-    (void) fprintf(stderr, "%s: ERROR: Number of EOFs (%d) for observation %s field from EOF file (%s) is not equal to number of EOFs specified in XML configuration file for observation fields (%d)!\n", __FILE__, neof,
-                   data->learning->obs->nomvar_sing, data->learning->obs->filename_eof, data->learning->obs_neof);
-    (void) free(data->learning->rea->time_s);
-    return -1;
   }
 
   /* Diagnostic status */

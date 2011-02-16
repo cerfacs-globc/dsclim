@@ -160,11 +160,13 @@ wt_learning(data_struct *data) {
     if (istat != 0) return istat;
 
     /* Select common time period between the re-analysis and the observation data periods */
-    istat = sub_period_common(&buf_learn_obs, &ntime_learn_all, data->learning->obs->eof,
-                              data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
-                              data->learning->rea->time_s->year, data->learning->rea->time_s->month, data->learning->rea->time_s->day,
-                              1, data->learning->obs_neof, 1, data->learning->obs->ntime, data->learning->rea->ntime);
-    if (istat != 0) return istat;
+    if (data->learning->obs_neof != 0) {
+      istat = sub_period_common(&buf_learn_obs, &ntime_learn_all, data->learning->obs->eof,
+                                data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
+                                data->learning->rea->time_s->year, data->learning->rea->time_s->month, data->learning->rea->time_s->day,
+                                1, data->learning->obs_neof, 1, data->learning->obs->ntime, data->learning->rea->ntime);
+      if (istat != 0) return istat;
+    }
     istat = sub_period_common(&buf_learn_rea, &ntime_learn_all, data->learning->rea->eof,
                               data->learning->rea->time_s->year, data->learning->rea->time_s->month, data->learning->rea->time_s->day,
                               data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
@@ -363,11 +365,13 @@ wt_learning(data_struct *data) {
       /* Process separately each season */
 
       /* Select season months in the whole time period and create sub-period fields */
-      (void) extract_subperiod_months(&buf_learn_obs_sub, &(ntime_sub[s]), buf_learn_obs,
-                                      data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
-                                      data->conf->season[s].month,
-                                      1, 1, data->learning->obs_neof, ntime_learn_all,
-                                      data->conf->season[s].nmonths);
+      if (data->learning->obs_neof != 0) {
+        (void) extract_subperiod_months(&buf_learn_obs_sub, &(ntime_sub[s]), buf_learn_obs,
+                                        data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
+                                        data->conf->season[s].month,
+                                        1, 1, data->learning->obs_neof, ntime_learn_all,
+                                        data->conf->season[s].nmonths);
+      }
       (void) extract_subperiod_months(&buf_learn_rea_sub, &(ntime_sub[s]), buf_learn_rea,
                                       data->learning->time_s->year, data->learning->time_s->month, data->learning->time_s->day,
                                       data->conf->season[s].month,
@@ -476,12 +480,14 @@ wt_learning(data_struct *data) {
           buf_learn[nt+eof*ntime_sub[s]] = buf_learn_rea_sub[nt+eof*ntime_sub[s]];
         }
       }      
-      obs_first_sing = data->learning->obs->sing[0];
-      for (eof=0; eof<data->learning->obs_neof; eof++) {
-        obs_sing = data->learning->obs->sing[eof];        
-        for (nt=0; nt<ntime_sub[s]; nt++) {
-          buf_learn_obs_sub[nt+eof*ntime_sub[s]] = buf_learn_obs_sub[nt+eof*ntime_sub[s]] * obs_sing / obs_first_sing;
-          buf_learn[nt+(eof+data->learning->rea_neof)*ntime_sub[s]] = buf_learn_obs_sub[nt+eof*ntime_sub[s]];
+      if (data->learning->obs_neof != 0) {
+        obs_first_sing = data->learning->obs->sing[0];
+        for (eof=0; eof<data->learning->obs_neof; eof++) {
+          obs_sing = data->learning->obs->sing[eof];        
+          for (nt=0; nt<ntime_sub[s]; nt++) {
+            buf_learn_obs_sub[nt+eof*ntime_sub[s]] = buf_learn_obs_sub[nt+eof*ntime_sub[s]] * obs_sing / obs_first_sing;
+            buf_learn[nt+(eof+data->learning->rea_neof)*ntime_sub[s]] = buf_learn_obs_sub[nt+eof*ntime_sub[s]];
+          }
         }
       }
 
@@ -630,8 +636,10 @@ wt_learning(data_struct *data) {
 
       (void) free(buf_learn_rea_sub);
       buf_learn_rea_sub = NULL;
-      (void) free(buf_learn_obs_sub);
-      buf_learn_obs_sub = NULL;
+      if (data->learning->obs_neof != 0) {
+        (void) free(buf_learn_obs_sub);
+        buf_learn_obs_sub = NULL;
+      }
       (void) free(buf_learn_pc_sub);
       buf_learn_pc_sub = NULL;
       (void) free(tas_rea_mean_sub);
@@ -648,7 +656,7 @@ wt_learning(data_struct *data) {
     (void) free(buf_weight);
     (void) free(buf_learn);
     (void) free(buf_learn_rea);
-    (void) free(buf_learn_obs);
+    if (data->learning->obs_neof != 0) (void) free(buf_learn_obs);
     (void) free(buf_learn_pc);
     (void) free(ntime_sub);
     (void) free(rea_var);

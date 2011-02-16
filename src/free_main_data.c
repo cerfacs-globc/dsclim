@@ -238,12 +238,22 @@ free_main_data(data_struct *data) {
                 (void) free(data->field[i].analog_days[s].metric_norm[tt]);
             }
             (void) free(data->field[i].analog_days[s].analog_dayschoice);
+            (void) free(data->field[i].analog_days[s].metric_norm);
             (void) free(data->field[i].analog_days[s].ndayschoice);
           }
           (void) free(data->field[i].analog_days_year.tindex);
           (void) free(data->field[i].analog_days_year.tindex_all);
           (void) free(data->field[i].analog_days_year.tindex_s_all);
           (void) free(data->field[i].analog_days_year.time);
+          for (tt=0; tt<data->field[i].analog_days_year.ntime; tt++) {
+            if (data->field[i].analog_days_year.analog_dayschoice[tt] != NULL)
+              (void) free(data->field[i].analog_days_year.analog_dayschoice[tt]);
+            if (data->field[i].analog_days_year.metric_norm[tt] != NULL)
+              (void) free(data->field[i].analog_days_year.metric_norm[tt]);
+          }
+          (void) free(data->field[i].analog_days_year.analog_dayschoice);
+          (void) free(data->field[i].analog_days_year.metric_norm);
+          (void) free(data->field[i].analog_days_year.ndayschoice);
         }
         (void) free(data->field[i].analog_days_year.year);
         (void) free(data->field[i].analog_days_year.month);
@@ -251,14 +261,6 @@ free_main_data(data_struct *data) {
         (void) free(data->field[i].analog_days_year.year_s);
         (void) free(data->field[i].analog_days_year.month_s);
         (void) free(data->field[i].analog_days_year.day_s);
-        for (tt=0; tt<data->field[i].analog_days_year.ntime; tt++) {
-          if (data->field[i].analog_days_year.analog_dayschoice[tt] != NULL)
-            (void) free(data->field[i].analog_days_year.analog_dayschoice[tt]);
-          if (data->field[i].analog_days_year.metric_norm[tt] != NULL)
-            (void) free(data->field[i].analog_days_year.metric_norm[tt]);
-        }
-        (void) free(data->field[i].analog_days_year.analog_dayschoice);
-        (void) free(data->field[i].analog_days_year.ndayschoice);
       }
     }
 
@@ -300,9 +302,11 @@ free_main_data(data_struct *data) {
       (void) free(data->learning->data[s].weight);
       (void) free(data->learning->data[s].precip_reg);
       (void) free(data->learning->data[s].precip_reg_cst);
-      (void) free(data->learning->data[s].precip_reg_rsq);
-      (void) free(data->learning->data[s].precip_reg_vif);
-      (void) free(data->learning->data[s].precip_reg_autocor);
+      if (data->learning->learning_provided == FALSE) {
+        (void) free(data->learning->data[s].precip_reg_rsq);
+        (void) free(data->learning->data[s].precip_reg_vif);
+        (void) free(data->learning->data[s].precip_reg_autocor);
+      }
       (void) free(data->learning->data[s].precip_index);
       (void) free(data->learning->data[s].sup_index);
       if (data->learning->data[s].sup_val != NULL)

@@ -1255,6 +1255,7 @@ load_conf(data_struct *data, char *fileconf) {
   data->conf->obs_var->proj = (proj_struct *) malloc(sizeof(proj_struct));
   if (data->conf->obs_var->proj == NULL) alloc_error(__FILE__, __LINE__);
   data->conf->obs_var->proj->name = NULL;
+  data->conf->obs_var->proj->grid_mapping_name = NULL;
 
   /** number_of_variables **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "observations", "number_of_variables");
@@ -3340,6 +3341,21 @@ load_conf(data_struct *data, char *fileconf) {
       data->secondary_mask->use_mask = FALSE;
     }
   }
+
+  /** output **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "output_downscaling_data");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) 
+    data->conf->output = (int) strtol((char *) val, (char **)NULL, 10);
+  else
+    data->conf->output = TRUE;
+  if (data->conf->output != FALSE && data->conf->output != TRUE) {
+    (void) fprintf(stderr, "%s: Invalid or missing downscaling output_downscaling_data value %s in configuration file. Aborting.\n", __FILE__, val);
+    return -1;
+  }
+  (void) fprintf(stdout, "%s: downscaling output_downscaling_data=%d\n", __FILE__, data->conf->output);
+  if (val != NULL) 
+    (void) xmlFree(val);
 
   /** analog_save **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "analog_save");

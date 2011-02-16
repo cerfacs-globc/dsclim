@@ -695,18 +695,20 @@ wt_downscaling(data_struct *data) {
       }
       
       /* Process all data */
-      if (cat == FIELD_LS) {
-        period = data->conf->period;
+      if (data->conf->output == TRUE) {
+        if (cat == FIELD_LS) {
+          period = data->conf->period;
+        }
+        else {
+          period = data->conf->period_ctrl;
+        }
+        istat = output_downscaled_analog(data->field[cat].analog_days_year, data->field[cat+2].data[i].down->delta_all,
+                                         data->conf->output_month_begin, data->conf->output_path, data->conf->config,
+                                         data->conf->time_units, data->conf->cal_type, data->conf->deltat,
+                                         data->conf->format, data->conf->compression, data->conf->compression_level,
+                                         data->info, data->conf->obs_var, period, data->field[cat].time_ls, data->field[cat].ntime_ls);
+        if (istat != 0) return istat;
       }
-      else {
-        period = data->conf->period_ctrl;
-      }
-      istat = output_downscaled_analog(data->field[cat].analog_days_year, data->field[cat+2].data[i].down->delta_all,
-                                       data->conf->output_month_begin, data->conf->output_path, data->conf->config,
-                                       data->conf->time_units, data->conf->cal_type, data->conf->deltat,
-                                       data->conf->format, data->conf->compression, data->conf->compression_level,
-                                       data->info, data->conf->obs_var, period, data->field[cat].time_ls, data->field[cat].ntime_ls);
-      if (istat != 0) return istat;
     }
   }
           

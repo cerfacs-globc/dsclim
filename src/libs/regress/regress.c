@@ -283,8 +283,14 @@ regress(double *coef, double *x, double *y, double *cte, double *yreg, double *y
     vif[vterm] = 1.0 / (1.0 - powf(1.0 - ( vchisq / gsl_stats_tss(ytmp, stride, (size_t) pts) ), 2.0) );
   }
     
-  (void) free(ytmp);
+  /* Dealloc matrices and vectors memory */
+  (void) gsl_matrix_free(xx);
+  (void) gsl_matrix_free(cov);
+  (void) gsl_vector_free(yy);
+  (void) gsl_vector_free(ccoef);
   
+  (void) free(ytmp);
+
   /* Success status */
   return 0;
 }

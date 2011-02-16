@@ -4,13 +4,14 @@
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
-/* Date of creation: sep 2008                            */
-/* Last date of modification: sep 2008                   */
+/* Date of creation: oct 2010                            */
+/* Last date of modification: oct 2010                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
-/* Current revision:                                     */
+/* Current revision: 1.1                                 */
 /* ***************************************************** */
 /* Revisions                                             */
+/* 1.1 Added altitude optional variable                  */
 /* ***************************************************** */
 /*! \file write_netcdf_dims_3d.c
     \brief Write NetCDF dimensions and create output file.
@@ -58,7 +59,7 @@ LICENSE END */
 
 /** Write NetCDF dimensions and create output file. */
 int
-write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *timein, char *cal_type, char *time_units,
+write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt, double *timein, char *cal_type, char *time_units,
                      int nlon, int nlat, int ntime, char *timestep, char *gridname, char *coords,
                      char *grid_mapping_name, double latin1, double latin2,
                      double lonc, double lat0, double false_easting, double false_northing,
@@ -69,6 +70,7 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *tim
      @param[in]  lat                Latitude field
      @param[in]  x                  X field
      @param[in]  y                  Y field
+     @param[in]  alt                Altitude field
      @param[in]  timein             Time field
      @param[in]  cal_type           Calendar-type (udunits)
      @param[in]  time_units         Time units (udunits)
@@ -98,8 +100,10 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *tim
 
   int ncoutid;
   int timedimoutid, xdimoutid, ydimoutid;
-  int timeoutid, latoutid, lonoutid, xoutid, youtid, projoutid;
+  int timeoutid, latoutid, lonoutid, xoutid, youtid, projoutid, altoutid;
   int vardimids[NC_MAX_VAR_DIMS];    /* dimension ids */
+
+  short int *alts = NULL;
 
   size_t start[3];
   size_t count[3];
@@ -117,6 +121,8 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *tim
   double maxlat;
   double minlon;
   double maxlon;
+
+  short int fillvalue = -99;
 
   /* Change directory to output directory for autofs notification */
   tmpstr = strdup(filename);
@@ -208,6 +214,14 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *tim
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
 
+  if (alt != NULL) {
+    /* Define Altitude variable */
+    vardimids[0] = ydimoutid;
+    vardimids[1] = xdimoutid;
+    istat = nc_def_var(ncoutid, "Altitude", NC_SHORT, 2, vardimids, &altoutid);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  }
+
   /* Set time attributes */
   istat = nc_put_att_text(ncoutid, timeoutid, "units", strlen(time_units), time_units);
   istat = nc_put_att_text(ncoutid, timeoutid, "calendar", strlen(cal_type), cal_type);
@@ -231,6 +245,23 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *tim
   istat = nc_put_att_text(ncoutid, latoutid, "long_name", strlen(tmpstr), tmpstr);
   (void) strcpy(tmpstr, "latitude");
   istat = nc_put_att_text(ncoutid, latoutid, "standard_name", strlen(tmpstr), tmpstr);
+
+  if (alt != NULL) {
+    /* Set altitude attributes */
+    (void) strcpy(tmpstr, "meters");
+    istat = nc_put_att_text(ncoutid, altoutid, "units", strlen(tmpstr), tmpstr);
+    (void) strcpy(tmpstr, "Altitude");
+    istat = nc_put_att_text(ncoutid, altoutid, "long_name", strlen(tmpstr), tmpstr);
+    (void) strcpy(tmpstr, "Altitude");
+    istat = nc_put_att_text(ncoutid, altoutid, "standard_name", strlen(tmpstr), tmpstr);
+    (void) strcpy(tmpstr, "lon lat");
+    istat = nc_put_att_text(ncoutid, altoutid, "coordinates", strlen(tmpstr), tmpstr);
+    fillvalue = -99;
+    istat = nc_put_att_short(ncoutid, altoutid, "_FillValue", NC_SHORT, 1, &fillvalue);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    istat = nc_put_att_short(ncoutid, altoutid, "missing_value", NC_SHORT, 1, &fillvalue);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  }
 
   if ( strcmp(gridname, "Latitude_Longitude") && strcmp(gridname, "list")) {
     /* Set x attributes */
@@ -271,6 +302,8 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *tim
   if ( !strcmp(gridname, "Lambert_Conformal")) {
     
     istat = nc_put_att_text(ncoutid, projoutid, "grid_mapping_name", strlen(grid_mapping_name), grid_mapping_name);
+    if (alt != NULL)
+      istat = nc_put_att_text(ncoutid, altoutid, "grid_mapping_name", strlen(grid_mapping_name), grid_mapping_name);
     
     proj_latin = (float *) malloc(2 * sizeof(float));
     if (proj_latin == NULL) alloc_error(__FILE__, __LINE__);
@@ -433,6 +466,22 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *tim
     istat = nc_put_vara_int(ncoutid, youtid, start, count, tmpi);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     (void) free(tmpi);
+  }
+
+  if (alt != NULL) {
+    alts = (short int *) malloc(nlat*nlon * sizeof(short int));
+    if (alts == NULL) alloc_error(__FILE__, __LINE__);
+    for (i=0; i<(nlat*nlon); i++)
+      alts[i] = (short int) alt[i];
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = (size_t) nlat;
+    count[1] = (size_t) nlon;
+    count[2] = 0;
+    istat = nc_put_vara_short(ncoutid, altoutid, start, count, alts);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    (void) free(alts);
   }
 
   /* Close the output netCDF file. */

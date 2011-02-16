@@ -225,7 +225,6 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
       if (pmsl == NULL) alloc_error(__FILE__, __LINE__);
       (void) alt_to_press(pmsl, alt, nlon, nlat);
     }
-    if (alt != NULL) (void) free(alt);
     (void) free(infile_alt);
   }
   
@@ -322,6 +321,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                 if (noutf[var] > 0)
                   (void) free(outfiles[var]);
                 if (pmsl != NULL) (void) free(pmsl);
+                if (alt != NULL) (void) free(alt);
                 return istat;
               }
             
@@ -438,6 +438,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
         }
         (void) free(time_s);
         if (pmsl != NULL) (void) free(pmsl);
+        if (alt != NULL) (void) free(alt);
         return istat;
       }
 
@@ -781,7 +782,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
               if (found_file[var] == FALSE && hour == minh && buf[var] != NULL) {
                 /* We just created output file: we need to write dimensions */
                 ctimeval[0] = time_ls[t];
-                istat = write_netcdf_dims_3d(lon, lat, x, y, ctimeval, cal_type,
+                istat = write_netcdf_dims_3d(lon, lat, x, y, alt, ctimeval, cal_type,
                                              time_units, nlon, nlat, 0,
                                              info->timestep, obs_var->proj->name, obs_var->proj->coords,
                                              obs_var->proj->grid_mapping_name, obs_var->proj->latin1,
@@ -817,6 +818,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                     (void) free(outfiles[var]);
                   (void) free(outfiles);
                   if (pmsl != NULL) (void) free(pmsl);
+                  if (alt != NULL) (void) free(alt);
                   return istat;
                 }
               }
@@ -926,6 +928,9 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                 (void) free(time_s->seconds);
                 
                 (void) free(time_s);
+
+                if (alt != NULL) (void) free(alt);
+
                 return -3;
               }
             }
@@ -984,6 +989,8 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
       
           (void) free(time_s);
       
+          if (alt != NULL) (void) free(alt);
+
           return -1;
         }
       }
@@ -1020,6 +1027,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
   (void) free(lon);
 
   if (pmsl != NULL) (void) free(pmsl);
+  if (alt != NULL) (void) free(alt);
 
   (void) free(infile);
   (void) free(outfile);

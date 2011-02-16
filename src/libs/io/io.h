@@ -195,7 +195,7 @@ int write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *
                            char *varname, char *longname, char *units, char *height,
                            char *gridname, char *lonname, char *latname, char *timename,
                            int t, int newfile, int format, int compression_level, int nlon, int nlat, int ntime, int outinfo);
-int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *timein, char *cal_type, char *time_units,
+int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt, double *timein, char *cal_type, char *time_units,
                          int nlon, int nlat, int ntime, char *timestep, char *gridname, char *coords,
                          char *grid_mapping_name, double latin1, double latin2,
                          double lonc, double lat0, double false_easting, double false_northing,

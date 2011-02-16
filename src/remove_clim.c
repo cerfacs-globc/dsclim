@@ -199,7 +199,7 @@ remove_clim(data_struct *data) {
           }
           /* Write dimensions of climatology field in NetCDF output file */
           istat = write_netcdf_dims_3d(data->field[cat].lon_ls, data->field[cat].lat_ls, (double *) NULL, (double *) NULL,
-                                       timeclim, data->conf->cal_type,
+                                       (double *) NULL, timeclim, data->conf->cal_type,
                                        data->conf->time_units, data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_clim,
                                        "daily", data->field[cat].proj[i].name, data->field[cat].proj[i].coords,
                                        data->field[cat].proj[i].grid_mapping_name, data->field[cat].proj[i].latin1,
@@ -334,7 +334,7 @@ remove_clim(data_struct *data) {
           }
           /* Write dimensions of climatology field in NetCDF output file */
           istat = write_netcdf_dims_3d(data->field[cat].lon_ls, data->field[cat].lat_ls, (double *) NULL, (double *) NULL,
-                                       timeclim, data->conf->cal_type,
+                                       (double *) NULL, timeclim, data->conf->cal_type,
                                        data->conf->time_units, data->field[cat].nlon_ls, data->field[cat].nlat_ls, ntime_clim,
                                        "daily", data->field[cat].proj[i].name, data->field[cat].proj[i].coords,
                                        data->field[cat].proj[i].grid_mapping_name, data->field[cat].proj[i].latin1,

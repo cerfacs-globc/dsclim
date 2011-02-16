@@ -463,6 +463,7 @@ typedef struct {
   var_struct *obs_var; /**< Structure for observation variables information. */
   int analog_save; /**< If we want to save analog data. */
   int output_only; /**< If we just want to output downscaled data using only analog data and observation database. */
+  int output; /**< If we want to output downscaled data. */
   char *analog_file_ctrl; /**< Analog data filename for control run. */
   char *analog_file_other; /**< Analog data filename for control run. */
   int use_downscaled_year; /**< If we want to also search the analog day in the year of the current downscaled year. */

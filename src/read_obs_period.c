@@ -118,6 +118,9 @@ read_obs_period(double **buffer, double **lon, double **lat, double *missing_val
     (void) free(data->conf->obs_var->proj->name);
   data->conf->obs_var->proj->name = NULL;
   proj->name = NULL;
+  if (data->conf->obs_var->proj->grid_mapping_name != NULL)
+    (void) free(data->conf->obs_var->proj->grid_mapping_name);
+  data->conf->obs_var->proj->grid_mapping_name = NULL;
   proj->grid_mapping_name = NULL;
 
   /* Search variable */
