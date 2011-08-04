@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -44,6 +44,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 #ifdef HAVE_CONFIG_H
@@ -105,9 +106,10 @@ int main(int argc, char **argv)
   int istat;
   double val;
   int year, month, day, hour, min;
-  float sec;
+  double sec;
   
-  utUnit dataunits;
+  ut_system *unitSystem = NULL; /* Unit System (udunits) */
+  ut_unit *dataunits = NULL; /* udunits variable */
   char time_units[1000];
 
   /* Print BEGIN banner */
@@ -131,19 +133,21 @@ int main(int argc, char **argv)
   val = 146000;
   (void) strcpy(time_units, "days since 0001-01-01");
   
-  istat = utInit("/usr/local/etc/udunits.dat");
-
-  istat = utScan(time_units, &dataunits);
-  printf("dataunits.origin=%lf dataunits.factor=%lf dataunits.hasorigin=%d\n",dataunits.origin, dataunits.factor,dataunits.hasorigin);
+  /* Initialize udunits */
+  ut_set_error_message_handler(ut_ignore);
+  unitSystem = ut_read_xml(NULL);
+  ut_set_error_message_handler(ut_write_to_stderr);
+  dataunits = ut_parse(unitSystem, time_units, UT_ASCII);
 
   // istat = utCalendar(val, &dataunits, &year, &month, &day, &hour, &min, &sec);
-  istat = utCalendar_cal(val, &dataunits, &year, &month, &day, &hour, &min, &sec, "noleap");
+  istat = utCalendar2_cal(val, dataunits, &year, &month, &day, &hour, &min, &sec, "noleap");
   printf("Value=%.0f YYYYMMDD HHmmss %04d %02d %02d %02d:%02d:%02.0f\n", val, year, month, day, hour, min, sec);
 
   /* Print END banner */
   (void) banner(basename(argv[0]), "OK", "END");
 
-  (void) utTerm();
+  (void) ut_free(dataunits);
+  (void) ut_free_system(unitSystem);  
 
   return 0;
 }

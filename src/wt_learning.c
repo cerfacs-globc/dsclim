@@ -6,10 +6,11 @@
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
 /* Date of creation: oct 2008                            */
-/* Last date of modification: oct 2008                   */
+/* Last date of modification: jul 2011                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
-/* Current revision:                                     */
+/* Current revision: 1.1                                 */
+/* Adapted to udunits2                                   */
 /* ***************************************************** */
 /* Revisions                                             */
 /* ***************************************************** */
@@ -19,7 +20,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -53,6 +54,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 #include <dsclim.h>
@@ -136,7 +138,9 @@ wt_learning(data_struct *data) {
   int term;
   int npt;
 
-  utUnit dataunits; /* Time data units (udunits) */
+  /* udunits variables */
+  ut_system *unitSystem = NULL; /* Unit System (udunits) */
+  ut_unit *dataunits = NULL; /* Data units (udunits) */
 
   int niter = 2;
 
@@ -442,13 +446,18 @@ wt_learning(data_struct *data) {
       if (data->learning->data[s].time_s->hour == NULL) alloc_error(__FILE__, __LINE__);
       data->learning->data[s].time_s->minutes = (int *) malloc(ntime_sub[s] * sizeof(int));
       if (data->learning->data[s].time_s->minutes == NULL) alloc_error(__FILE__, __LINE__);
-      data->learning->data[s].time_s->seconds = (float *) malloc(ntime_sub[s] * sizeof(int));
+      data->learning->data[s].time_s->seconds = (double *) malloc(ntime_sub[s] * sizeof(double));
       if (data->learning->data[s].time_s->seconds == NULL) alloc_error(__FILE__, __LINE__);
+
       /* Retrieve time index spanning selected months and assign time structure values */
       t = 0;
-      if (utIsInit() != TRUE)
-        istat = utInit("");
-      istat = utScan(data->conf->time_units, &dataunits);
+
+      /* Initialize udunits */
+      ut_set_error_message_handler(ut_ignore);
+      unitSystem = ut_read_xml(NULL);
+      ut_set_error_message_handler(ut_write_to_stderr);
+      dataunits = ut_parse(unitSystem, data->conf->time_units, UT_ASCII);
+
       for (nt=0; nt<ntime_learn_all; nt++)
         for (ntt=0; ntt<data->conf->season[s].nmonths; ntt++)
           if (data->learning->time_s->month[nt] == data->conf->season[s].month[ntt]) {
@@ -458,13 +467,15 @@ wt_learning(data_struct *data) {
             data->learning->data[s].time_s->hour[t] = data->learning->time_s->hour[nt];
             data->learning->data[s].time_s->minutes[t] = data->learning->time_s->minutes[nt];
             data->learning->data[s].time_s->seconds[t] = data->learning->time_s->seconds[nt];
-            istat = utInvCalendar(data->learning->data[s].time_s->year[t], data->learning->data[s].time_s->month[t],
-                                  data->learning->data[s].time_s->day[t], data->learning->data[s].time_s->hour[t],
-                                  data->learning->data[s].time_s->minutes[t], data->learning->data[s].time_s->seconds[t],
-                                  &dataunits, &(data->learning->data[s].time[t]));
+            istat = utInvCalendar2(data->learning->data[s].time_s->year[t], data->learning->data[s].time_s->month[t],
+                                   data->learning->data[s].time_s->day[t], data->learning->data[s].time_s->hour[t],
+                                   data->learning->data[s].time_s->minutes[t], data->learning->data[s].time_s->seconds[t],
+                                   dataunits, &(data->learning->data[s].time[t]));
             t++;
           }
-      (void) utTerm();
+
+      (void) ut_free(dataunits);
+      (void) ut_free_system(unitSystem);  
       
       /** Merge observation and reanalysis principal components for clustering algorithm and normalize using first Singular Value **/
 

@@ -18,7 +18,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -52,6 +52,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 #include <dsclim.h>
@@ -390,7 +391,7 @@ read_learning_fields(data_struct *data) {
       if (data->learning->time_s->hour == NULL) alloc_error(__FILE__, __LINE__);
       data->learning->time_s->minutes = (int *) realloc(data->learning->time_s->minutes, (total_t+1) * sizeof(int));
       if (data->learning->time_s->minutes == NULL) alloc_error(__FILE__, __LINE__);
-      data->learning->time_s->seconds = (float *) realloc(data->learning->time_s->seconds, (total_t+1) * sizeof(float));
+      data->learning->time_s->seconds = (double *) realloc(data->learning->time_s->seconds, (total_t+1) * sizeof(double));
       if (data->learning->time_s->seconds == NULL) alloc_error(__FILE__, __LINE__);
       data->learning->time_s->year[total_t] = data->learning->data[time_index[i]].time_s->year[t];
       data->learning->time_s->month[total_t] = data->learning->data[time_index[i]].time_s->month[t];

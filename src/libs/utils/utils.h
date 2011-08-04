@@ -4,7 +4,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -38,6 +38,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 #ifndef UTILS_H
 #define UTILS_H
@@ -85,7 +86,7 @@ LICENSE END */
 
 #include <gsl/gsl_statistics.h>
 
-#include "utCalendar_cal.h"
+#include "utCalendar2_cal.h"
 
 /* Local dependent includes */
 #include <misc.h>

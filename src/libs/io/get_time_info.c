@@ -5,12 +5,13 @@
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
 /* Date of creation: oct 2008                            */
-/* Last date of modification: oct 2008                   */
+/* Last date of modification: jul 2011                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
-/* Current revision:                                     */
+/* Current revision: 1.1                                 */
 /* ***************************************************** */
 /* Revisions                                             */
+/* 1.1: Updated for utCalendar2_cal (udunits2)           */
 /* ***************************************************** */
 /*! \file get_time_info.c
     \brief Get time NetCDF info.
@@ -18,7 +19,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -52,6 +53,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 #include <io.h>
@@ -89,7 +91,8 @@ get_time_info(time_vect_struct *time_s, double **timeval, char **time_units, cha
   size_t count[3]; /* Number of elements to read */
 
   size_t t_len; /* Length of time units attribute string */
-  utUnit dataunits; /* Time data units (udunits) */
+  ut_system *unitSystem = NULL; /* Unit System (udunits) */
+  ut_unit *dataunits = NULL; /* Data units (udunits) */
 
   int t; /* Time loop counter */
 
@@ -187,22 +190,27 @@ get_time_info(time_vect_struct *time_s, double **timeval, char **time_units, cha
   if (time_s->hour == NULL) alloc_error(__FILE__, __LINE__);
   time_s->minutes = (int *) malloc((*ntime) * sizeof(int));
   if (time_s->minutes == NULL) alloc_error(__FILE__, __LINE__);
-  time_s->seconds = (float *) malloc((*ntime) * sizeof(float));
+  time_s->seconds = (double *) malloc((*ntime) * sizeof(double));
   if (time_s->seconds == NULL) alloc_error(__FILE__, __LINE__);
 
-  istat = utInit("");
+  /* Initialize udunits */
+  ut_set_error_message_handler(ut_ignore);
+  unitSystem = ut_read_xml(NULL);
+  ut_set_error_message_handler(ut_write_to_stderr);
 
-  istat = utScan((*time_units), &dataunits);
+  dataunits = ut_parse(unitSystem, (*time_units), UT_ASCII);
   for (t=0; t<(*ntime); t++) {
-    istat = utCalendar_cal((*timeval)[t], &dataunits, &(time_s->year[t]), &(time_s->month[t]), &(time_s->day[t]),
-                           &(time_s->hour[t]), &(time_s->minutes[t]), &(time_s->seconds[t]), *cal_type);
+    istat = utCalendar2_cal((*timeval)[t], dataunits, &(time_s->year[t]), &(time_s->month[t]), &(time_s->day[t]),
+                            &(time_s->hour[t]), &(time_s->minutes[t]), &(time_s->seconds[t]), *cal_type);
     if (istat < 0) {
-      (void) utTerm();
+      (void) ut_free(dataunits);
+      (void) ut_free_system(unitSystem);  
       return -1;
     }
   }
 
-  (void) utTerm();
+  (void) ut_free(dataunits);
+  (void) ut_free_system(unitSystem);  
 
   /** Close NetCDF file **/
   istat = ncclose(ncinid);

@@ -11,7 +11,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -45,6 +45,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 #include <dsclim.h>
@@ -144,7 +145,8 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
   double curtime;
 
   int ncoutid;
-  utUnit dataunit;
+  ut_system *unitSystem = NULL; /* Unit System (udunits) */
+  ut_unit *dataunits = NULL; /* udunits variable */
 
   double period_begin;
   double period_end;
@@ -154,7 +156,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
   int day;
   int hour;
   int minutes;
-  float seconds;
+  double seconds;
 
   int yy;
   int mm;
@@ -211,6 +213,12 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
     (void) free(obs_var->proj->name);
   obs_var->proj->name = NULL;
 
+  /* Initialize udunits */
+  ut_set_error_message_handler(ut_ignore);
+  unitSystem = ut_read_xml(NULL);
+  ut_set_error_message_handler(ut_write_to_stderr);
+  dataunits = ut_parse(unitSystem, time_units, UT_ASCII);
+
   /* Read altitudes if available, and compute pressure using standard atmosphere */
   if ( strcmp(obs_var->altitude, "") ) {
     infile_alt = (char *) malloc(MAXPATH * sizeof(char));
@@ -233,21 +241,13 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
     (void) printf("%s: Downscaling output from %02d/%02d/%04d to %02d/%02d/%04d inclusively.\n", __FILE__,
                   period->month_begin, period->day_begin, period->year_begin,
                   period->month_end, period->day_end, period->year_end);
-    if (utIsInit() != TRUE)
-      istat = utInit("");
-    istat = utScan(time_units, &dataunit);
-    istat = utInvCalendar(period->year_begin, period->month_begin, period->day_begin, 0, 0, 0.0, &dataunit, &period_begin);
-    istat = utInvCalendar(period->year_end, period->month_end, period->day_end, 23, 59, 0.0, &dataunit, &period_end);
-    (void) utTerm();
+    istat = utInvCalendar2(period->year_begin, period->month_begin, period->day_begin, 0, 0, 0.0, dataunits, &period_begin);
+    istat = utInvCalendar2(period->year_end, period->month_end, period->day_end, 23, 59, 0.0, dataunits, &period_end);
   }
   else {
-    if (utIsInit() != TRUE)
-      istat = utInit("");
-    istat = utScan(time_units,  &dataunit);
-    istat = utCalendar(time_ls[0], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
+    istat = utCalendar2(time_ls[0], dataunits, &year, &month, &day, &hour, &minutes, &seconds);
     (void) printf("%s: Downscaling whole period: %02d/%02d/%04d", __FILE__, month, day, year);
-    istat = utCalendar(time_ls[ntime-1], &dataunit, &year, &month, &day, &hour, &minutes, &seconds);
-    (void) utTerm();
+    istat = utCalendar2(time_ls[ntime-1], dataunits, &year, &month, &day, &hour, &minutes, &seconds);
     (void) printf(" to %02d/%02d/%04d inclusively.\n", month, day, year);
     period_begin = time_ls[0];
     period_end = time_ls[ntime-1];
@@ -322,6 +322,8 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                   (void) free(outfiles[var]);
                 if (pmsl != NULL) (void) free(pmsl);
                 if (alt != NULL) (void) free(alt);
+                (void) ut_free(dataunits);
+                (void) ut_free_system(unitSystem);  
                 return istat;
               }
             
@@ -439,6 +441,8 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
         (void) free(time_s);
         if (pmsl != NULL) (void) free(pmsl);
         if (alt != NULL) (void) free(alt);
+        (void) ut_free(dataunits);
+        (void) ut_free_system(unitSystem);  
         return istat;
       }
 
@@ -819,6 +823,8 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                   (void) free(outfiles);
                   if (pmsl != NULL) (void) free(pmsl);
                   if (alt != NULL) (void) free(alt);
+                  (void) ut_free(dataunits);
+                  (void) ut_free_system(unitSystem);  
                   return istat;
                 }
               }
@@ -827,12 +833,10 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
 
           /* Compute time if output timestep is hourly and not daily */
           if ( !strcmp(info->timestep, "hourly") ) {
-            if (utIsInit() != TRUE)
-              istat = utInit("");
-            istat = utScan(time_units, &dataunit);
-            istat = utCalendar(time_ls[t], &dataunit, &yy, &mm, &dd, &hh, &minutes, &seconds);
-            istat = utInvCalendar(yy, mm, dd, hour, 0, 0.0, &dataunit, &curtime);
-            (void) utTerm();
+            istat = utCalendar2(time_ls[t], dataunits, &yy, &mm, &dd, &hh, &minutes, &seconds);
+            istat = utInvCalendar2(yy, mm, dd, hour, 0, 0.0, dataunits, &curtime);
+            (void) ut_free(dataunits);
+            (void) ut_free_system(unitSystem);  
           }
           else
             curtime = time_ls[t];
@@ -931,6 +935,9 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
 
                 if (alt != NULL) (void) free(alt);
 
+                (void) ut_free(dataunits);
+                (void) ut_free_system(unitSystem);  
+
                 return -3;
               }
             }
@@ -991,6 +998,9 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
       
           if (alt != NULL) (void) free(alt);
 
+          (void) ut_free(dataunits);
+          (void) ut_free_system(unitSystem);  
+
           return -1;
         }
       }
@@ -1033,6 +1043,9 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
   (void) free(outfile);
   (void) free(format);
   
+  (void) ut_free(dataunits);
+  (void) ut_free_system(unitSystem);  
+
   /* Success diagnostic */
   return 0;
 }

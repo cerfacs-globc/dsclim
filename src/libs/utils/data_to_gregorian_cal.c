@@ -5,13 +5,22 @@
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
+/* Date of creation: oct 2008                            */
+/* Last date of modification: jul 2011                   */
+/* ***************************************************** */
+/* Original version: 1.0                                 */
+/* Current revision: 1.1                                 */
+/* ***************************************************** */
+/* Revisions                                             */
+/* 1.1: Updated for utCalendar2_cal (udunits2)           */
+/* ***************************************************** */
 /*! \file data_to_gregorian_cal.c
     \brief Convert 360-days or no-leap calendar to standard Gregorian calendar.
 */
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -47,6 +56,7 @@ knowledge of the CeCILL license and that you accept its terms.
 LICENSE END */
 
 
+
 #include <utils.h>
 
 /** Convert 360-days or no-leap calendar to standard Gregorian calendar for double input/output buffer. */
@@ -67,7 +77,7 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
      @param[in]  ntimein       Input time dimension length with non-standard calendar
    */
 
-  utUnit timeslice; /* Time slicing used to compute the new standard calendar */
+  ut_unit *timeslice; /* Time slicing used to compute the new standard calendar */
   double val; /* Temporary value */
   double curtime; /* Current time */
   double ccurtime; /* Current time in non-standard calendar */
@@ -86,22 +96,27 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
   int istat; /* Diagnostic status */
 
   char *utstring = NULL; /* Time unit string */
-  utUnit dataunit_in; /* Input data unit (udunits) */
-  utUnit dataunit_out; /* Output data unit (udunits) */
+  ut_system *unitSystem = NULL; /* Unit System (udunits) */
+  ut_unit *dataunit_in = NULL; /* Input data units (udunits) */
+  ut_unit *dataunit_out = NULL; /* Output data units (udunits) */
+  cv_converter *conv_in = NULL; /* Converter for time units (udunits) */
+  ut_unit *tunit = NULL; /* For calculation of offset by time to Epoch */
+  ut_unit *usecond = NULL; /* Unit of second handle */
+  double sec_int, sec_intm1; /* Number of seconds since Epoch */
 
   int *year = NULL; /* Year time vector */
   int *month = NULL; /* Month time vector */
   int *day = NULL; /* Day time vector */
   int *hour = NULL; /* Hour time vector */
   int *minutes = NULL; /* Minutes time vector */
-  float *seconds = NULL; /* Seconds time vector */
+  double *seconds = NULL; /* Seconds time vector */
 
   int cyear; /* A given year */
   int cmonth; /* A given month */
   int cday; /* A given day */
   int chour; /* A given hour */
   int cminutes; /* A given minute */
-  float cseconds; /* A given second */
+  double cseconds; /* A given second */
 
   /* Initializing */
   *bufout = NULL;
@@ -141,22 +156,23 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
     if (hour == NULL) alloc_error(__FILE__, __LINE__);
     minutes = (int *) malloc(ntimein * sizeof(int));
     if (minutes == NULL) alloc_error(__FILE__, __LINE__);
-    seconds = (float *) malloc(ntimein * sizeof(float));
+    seconds = (double *) malloc(ntimein * sizeof(double));
     if (seconds == NULL) alloc_error(__FILE__, __LINE__);
 
     /* Initialize udunits */
-    if (utIsInit() != TRUE)
-      istat = utInit("");
+    ut_set_error_message_handler(ut_ignore);
+    unitSystem = ut_read_xml(NULL);
+    ut_set_error_message_handler(ut_write_to_stderr);
 
     /* Generate time units strings */
-    istat = utScan(tunits_in,  &dataunit_in);
-    istat = utScan(tunits_out, &dataunit_out);
+    dataunit_in = ut_parse(unitSystem, tunits_in, UT_ASCII);
+    dataunit_out = ut_parse(unitSystem, tunits_out, UT_ASCII);
 
     /* Loop over all times */
     for (t=0; t<ntimein; t++) {
       /* Calculate date using non-standard calendar */
-      istat = utCalendar_cal(intimeval[t], &dataunit_in, &(year[t]), &(month[t]), &(day[t]), &(hour[t]), &(minutes[t]), &(seconds[t]),
-                             cal_type);
+      istat = utCalendar2_cal(intimeval[t], dataunit_in, &(year[t]), &(month[t]), &(day[t]), &(hour[t]), &(minutes[t]), &(seconds[t]),
+                              cal_type);
       if (istat < 0) {
         (void) free(year);
         (void) free(month);
@@ -164,11 +180,13 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
         (void) free(hour);
         (void) free(minutes);
         (void) free(seconds);
-        (void) utTerm();
+        (void) ut_free(dataunit_in);
+        (void) ut_free(dataunit_out);
+        (void) ut_free_system(unitSystem);  
         return -1;
       }
 #if DEBUG > 7
-      istat = utInvCalendar_cal((year[t]), (month[t]), (day[t]), (hour[t]), (minutes[t]), (seconds[t]), &dataunit_in, &ccurtime, cal_type);
+      istat = utInvCalendar2_cal((year[t]), (month[t]), (day[t]), (hour[t]), (minutes[t]), (seconds[t]), dataunit_in, &ccurtime, cal_type);
       printf("%s: %d %lf %lf %d %d %d %d %d %lf\n",__FILE__,t,intimeval[t],ccurtime,year[t],month[t],day[t],hour[t],minutes[t],seconds[t]);
       if (istat < 0) {
         (void) free(year);
@@ -177,23 +195,39 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
         (void) free(hour);
         (void) free(minutes);
         (void) free(seconds);
-        (void) utTerm();
+        (void) ut_free(dataunit_in);
+        (void) ut_free(dataunit_out);
+        (void) ut_free_system(unitSystem);  
         return -1;
       }
 #endif
       /* Check that we really have daily data */
       if (t > 0) {
-        if ( ((intimeval[t] - intimeval[t-1]) * dataunit_in.factor) != 86400.0 ) {
+        /* Prepare converter for basis seconds since Epoch */
+        usecond = ut_get_unit_by_name(unitSystem, "second");
+        tunit = ut_offset_by_time(usecond, ut_encode_time(1970, 1, 1, 0, 0, 0.0));
+        /* Generate converter */
+        conv_in = ut_get_converter(dataunit_in, tunit);
+        /* Seconds since Epoch */
+        sec_int = cv_convert_double(conv_in, intimeval[t]);
+        sec_intm1 = cv_convert_double(conv_in, intimeval[t-1]);
+        if ( (sec_int - sec_intm1) != 86400.0 ) {
           (void) fprintf(stderr,
                          "%s: Fatal error: only daily data can be an input. Found %d seconds between timesteps %d and %d!\n",
-                         __FILE__, (int) ((intimeval[t] - intimeval[t-1]) * dataunit_in.factor), t-1, t);          
+                         __FILE__, (int) (sec_int - sec_intm1), t-1, t);          
           (void) free(year);
           (void) free(month);
           (void) free(day);
           (void) free(hour);
           (void) free(minutes);
           (void) free(seconds);
-          (void) utTerm();
+          (void) ut_free(usecond);
+          (void) ut_free(tunit);
+          (void) ut_free(usecond);
+          (void) ut_free(dataunit_in);
+          (void) ut_free(dataunit_out);
+          (void) cv_free(conv_in);
+          (void) ut_free_system(unitSystem);
           return -10;
         }
       }
@@ -212,7 +246,7 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
       utstring = (char *) malloc(1000 * sizeof(char));
       if (utstring == NULL) alloc_error(__FILE__, __LINE__);
       (void) sprintf(utstring, "1 day since %d-%d-%d", year[0], month[0], day[0]);
-      istat = utScan(utstring, &timeslice);
+      timeslice = ut_parse(unitSystem, utstring, UT_ASCII);
       (void) free(utstring);
 
       /* Set end period date */
@@ -224,7 +258,7 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
       ref_seconds = 0.0;
     
       /* Get number of timesteps (days) */
-      istat = utInvCalendar(ref_year, ref_month, ref_day, ref_hour, ref_minutes, ref_seconds, &timeslice, &val);
+      istat = utInvCalendar2(ref_year, ref_month, ref_day, ref_hour, ref_minutes, ref_seconds, timeslice, &val);
       *ntimeout = (int) val + 1;
 
       /* Allocate memory */
@@ -244,15 +278,11 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
       /* Loop over all times */
       for (t=0; t<(*ntimeout); t++) {
         /* Get current day */
-        istat = utInvCalendar(ref_year, ref_month, ref_day+t, ref_hour, ref_minutes, ref_seconds, &dataunit_out, &curtime);
+        istat = utInvCalendar2(ref_year, ref_month, ref_day+t, ref_hour, ref_minutes, ref_seconds, dataunit_out, &curtime);
         /* Get standard calendar date from output time units */
-        istat = utCalendar(curtime, &dataunit_out, &cyear, &cmonth, &cday, &chour, &cminutes, &cseconds);
+        istat = utCalendar2(curtime, dataunit_out, &cyear, &cmonth, &cday, &chour, &cminutes, &cseconds);
         /* Get corresponding time units in special calendar type */
-        istat = utInvCalendar_cal(cyear, cmonth, cday, chour, cminutes, cseconds, &dataunit_in, &ccurtime, cal_type);
-#if DEBUG > 7
-        printf("%s: Original %s calendar type: %d %d %d %04d/%02d/%02d %02d:%02d\n", __FILE__, cal_type,
-               (int) dataunit_in.origin, (int) dataunit_in.factor, (int) ccurtime, cyear, cmonth, cday, chour, cminutes);
-#endif
+        istat = utInvCalendar2_cal(cyear, cmonth, cday, chour, cminutes, cseconds, dataunit_in, &ccurtime, cal_type);
         /* Find that time in the input time vector */
         for (tt=0; tt<ntimein; tt++) {
           if ((int) ccurtime == (int) intimeval[tt]) {
@@ -261,7 +291,7 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
               for (i=0; i<ni; i++)
                 (*bufout)[i+j*ni+t*ni*nj] = (double) bufin[i+j*ni+tt*ni*nj];
             /* Get current day with hour, minutes and seconds at 00:00:00 */
-            istat = utInvCalendar(ref_year, ref_month, ref_day+t, 0, 0, 0.0, &dataunit_out, &curtime);
+            istat = utInvCalendar2(ref_year, ref_month, ref_day+t, 0, 0, 0.0, dataunit_out, &curtime);
             /* Construct new time vector */
             (*outtimeval)[t] = (double) curtime;
             /* Exit loop */
@@ -277,13 +307,12 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
           (void) free(hour);
           (void) free(minutes);
           (void) free(seconds);
-          (void) utTerm();
+          (void) ut_free(timeslice);
+          (void) ut_free(dataunit_in);
+          (void) ut_free(dataunit_out);
+          (void) ut_free_system(unitSystem);  
           return -11;
         }
-#if DEBUG > 7
-        printf("%s: Standard gregorian calendar type: %d %d %d %04d/%02d/%02d %02d:%02d\n", __FILE__,
-               (int) dataunit_out.origin, (int) dataunit_out.factor, (int) curtime, cyear, cmonth, cday, chour, cminutes);
-#endif
       }
     }
     else {
@@ -295,7 +324,9 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
       (void) free(hour);
       (void) free(minutes);
       (void) free(seconds);
-      (void) utTerm();
+      (void) ut_free(dataunit_in);
+      (void) ut_free(dataunit_out);
+      (void) ut_free_system(unitSystem);  
       return -1;
     }
 
@@ -308,7 +339,9 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
     (void) free(seconds);
     
     /* Terminate udunits */
-    (void) utTerm();  
+    (void) ut_free(dataunit_in);
+    (void) ut_free(dataunit_out);
+    (void) ut_free_system(unitSystem);  
   }
 
   /* Success status */
@@ -333,7 +366,7 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
      @param[in]  ntimein       Input time dimension length with non-standard calendar
    */
 
-  utUnit timeslice; /* Time slicing used to compute the new standard calendar */
+  ut_unit *timeslice; /* Time slicing used to compute the new standard calendar */
   double val; /* Temporary value */
   double curtime; /* Current time */
   double ccurtime; /* Current time in non-standard calendar */
@@ -343,7 +376,7 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
   int ref_day; /* A given day */
   int ref_hour; /* A given hour */
   int ref_minutes; /* A given minute */
-  float ref_seconds; /* A given second */
+  double ref_seconds; /* A given second */
 
   int t; /* Time loop counter */
   int tt; /* Time loop counter */
@@ -352,22 +385,27 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
   int istat; /* Diagnostic status */
 
   char *utstring = NULL; /* Time unit string */
-  utUnit dataunit_in; /* Input data unit (udunits) */
-  utUnit dataunit_out; /* Output data unit (udunits) */
+  ut_system *unitSystem = NULL; /* Unit System (udunits) */
+  ut_unit *dataunit_in = NULL; /* Input data units (udunits) */
+  ut_unit *dataunit_out = NULL; /* Output data units (udunits) */
+  cv_converter *conv_in = NULL; /* Converter for time units (udunits) */
+  ut_unit *tunit = NULL; /* For calculation of offset by time to Epoch */
+  ut_unit *usecond = NULL; /* Unit of second handle */
+  double sec_int, sec_intm1; /* Number of seconds since Epoch */
 
   int *year = NULL; /* Year time vector */
   int *month = NULL; /* Month time vector */
   int *day = NULL; /* Day time vector */
   int *hour = NULL; /* Hour time vector */
   int *minutes = NULL; /* Minutes time vector */
-  float *seconds = NULL; /* Seconds time vector */
+  double *seconds = NULL; /* Seconds time vector */
 
   int cyear; /* A given year */
   int cmonth; /* A given month */
   int cday; /* A given day */
   int chour; /* A given hour */
   int cminutes; /* A given minute */
-  float cseconds; /* A given second */
+  double cseconds; /* A given second */
 
   /* Initializing */
   *bufout = NULL;
@@ -407,22 +445,23 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
     if (hour == NULL) alloc_error(__FILE__, __LINE__);
     minutes = (int *) malloc(ntimein * sizeof(int));
     if (minutes == NULL) alloc_error(__FILE__, __LINE__);
-    seconds = (float *) malloc(ntimein * sizeof(float));
+    seconds = (double *) malloc(ntimein * sizeof(double));
     if (seconds == NULL) alloc_error(__FILE__, __LINE__);
 
     /* Initialize udunits */
-    if (utIsInit() != TRUE)
-      istat = utInit("");
+    ut_set_error_message_handler(ut_ignore);
+    unitSystem = ut_read_xml(NULL);
+    ut_set_error_message_handler(ut_write_to_stderr);
 
     /* Generate time units strings */
-    istat = utScan(tunits_in,  &dataunit_in);
-    istat = utScan(tunits_out, &dataunit_out);
+    dataunit_in = ut_parse(unitSystem, tunits_in, UT_ASCII);
+    dataunit_out = ut_parse(unitSystem, tunits_out, UT_ASCII);
 
     /* Loop over all times */
     for (t=0; t<ntimein; t++) {
       /* Calculate date using non-standard calendar */
-      istat = utCalendar_cal(intimeval[t], &dataunit_in, &(year[t]), &(month[t]), &(day[t]), &(hour[t]), &(minutes[t]), &(seconds[t]),
-                             cal_type);
+      istat = utCalendar2_cal(intimeval[t], dataunit_in, &(year[t]), &(month[t]), &(day[t]), &(hour[t]), &(minutes[t]), &(seconds[t]),
+                              cal_type);
       if (istat < 0) {
         (void) free(year);
         (void) free(month);
@@ -430,11 +469,13 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
         (void) free(hour);
         (void) free(minutes);
         (void) free(seconds);
-        (void) utTerm();
+        (void) ut_free(dataunit_in);
+        (void) ut_free(dataunit_out);
+        (void) ut_free_system(unitSystem);  
         return -1;
       }
 #if DEBUG > 7
-      istat = utInvCalendar_cal((year[t]), (month[t]), (day[t]), (hour[t]), (minutes[t]), (seconds[t]), &dataunit_in, &ccurtime, cal_type);
+      istat = utInvCalendar2_cal((year[t]), (month[t]), (day[t]), (hour[t]), (minutes[t]), (seconds[t]), dataunit_in, &ccurtime, cal_type);
       printf("%s: %d %lf %lf %d %d %d %d %d %lf\n",__FILE__,t,intimeval[t],ccurtime,year[t],month[t],day[t],hour[t],minutes[t],seconds[t]);
       if (istat < 0) {
         (void) free(year);
@@ -443,23 +484,39 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
         (void) free(hour);
         (void) free(minutes);
         (void) free(seconds);
-        (void) utTerm();
+        (void) ut_free(dataunit_in);
+        (void) ut_free(dataunit_out);
+        (void) ut_free_system(unitSystem);  
         return -1;
       }
 #endif
       /* Check that we really have daily data */
       if (t > 0) {
-        if ( ((intimeval[t] - intimeval[t-1]) * dataunit_in.factor) != 86400.0 ) {
+        /* Prepare converter for basis seconds since Epoch */
+        usecond = ut_get_unit_by_name(unitSystem, "second");
+        tunit = ut_offset_by_time(usecond, ut_encode_time(1970, 1, 1, 0, 0, 0.0));
+        /* Generate converter */
+        conv_in = ut_get_converter(dataunit_in, tunit);
+        /* Seconds since Epoch */
+        sec_int = cv_convert_double(conv_in, intimeval[t]);
+        sec_intm1 = cv_convert_double(conv_in, intimeval[t-1]);
+        if ( (sec_int - sec_intm1) != 86400.0 ) {
           (void) fprintf(stderr,
                          "%s: Fatal error: only daily data can be an input. Found %d seconds between timesteps %d and %d!\n",
-                         __FILE__, (int) ((intimeval[t] - intimeval[t-1]) * dataunit_in.factor), t-1, t);          
+                         __FILE__, (int) (sec_int - sec_intm1), t-1, t);          
           (void) free(year);
           (void) free(month);
           (void) free(day);
           (void) free(hour);
           (void) free(minutes);
           (void) free(seconds);
-          (void) utTerm();
+          (void) ut_free(usecond);
+          (void) ut_free(tunit);
+          (void) ut_free(usecond);
+          (void) ut_free(dataunit_in);
+          (void) ut_free(dataunit_out);
+          (void) cv_free(conv_in);
+          (void) ut_free_system(unitSystem);
           return -10;
         }
       }
@@ -478,7 +535,7 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
       utstring = (char *) malloc(1000 * sizeof(char));
       if (utstring == NULL) alloc_error(__FILE__, __LINE__);
       (void) sprintf(utstring, "1 day since %d-%d-%d", year[0], month[0], day[0]);
-      istat = utScan(utstring, &timeslice);
+      timeslice = ut_parse(unitSystem, utstring, UT_ASCII);
       (void) free(utstring);
 
       /* Set end period date */
@@ -490,7 +547,7 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
       ref_seconds = 0.0;
     
       /* Get number of timesteps (days) */
-      istat = utInvCalendar(ref_year, ref_month, ref_day, ref_hour, ref_minutes, ref_seconds, &timeslice, &val);
+      istat = utInvCalendar2(ref_year, ref_month, ref_day, ref_hour, ref_minutes, ref_seconds, timeslice, &val);
       *ntimeout = (int) val + 1;
 
       /* Allocate memory */
@@ -507,34 +564,30 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
       ref_minutes = 0;
       ref_seconds = 0.0;
 
-      /* Get start time units from date */
-      istat = utInvCalendar(ref_year, ref_month, ref_day, ref_hour, ref_minutes, ref_seconds, &dataunit_out, &curtime);
-
       /* Loop over all times */
       for (t=0; t<(*ntimeout); t++) {
+        /* Get current day */
+        istat = utInvCalendar2(ref_year, ref_month, ref_day+t, ref_hour, ref_minutes, ref_seconds, dataunit_out, &curtime);
         /* Get standard calendar date from output time units */
-        istat = utCalendar(curtime, &dataunit_out, &cyear, &cmonth, &cday, &chour, &cminutes, &cseconds);
-        /* Adjust hour, minutes and seconds to 00:00:00 */
-        istat = utInvCalendar(cyear, cmonth, cday, 0, 0, 0.0, &dataunit_out, &curtime);
+        istat = utCalendar2(curtime, dataunit_out, &cyear, &cmonth, &cday, &chour, &cminutes, &cseconds);
         /* Get corresponding time units in special calendar type */
-        istat = utInvCalendar_cal(cyear, cmonth, cday, chour, cminutes, cseconds, &dataunit_in, &ccurtime, cal_type);
-#if DEBUG > 7
-        printf("%s: Original %s calendar type: %d %d %d %04d/%02d/%02d %02d:%02d\n", __FILE__, cal_type,
-               (int) dataunit_in.origin, (int) dataunit_in.factor, (int) ccurtime, cyear, cmonth, cday, chour, cminutes);
-#endif
-        /* Find that time in the time vector */
-        for (tt=0; tt<ntimein; tt++)
+        istat = utInvCalendar2_cal(cyear, cmonth, cday, chour, cminutes, cseconds, dataunit_in, &ccurtime, cal_type);
+        /* Find that time in the input time vector */
+        for (tt=0; tt<ntimein; tt++) {
           if ((int) ccurtime == (int) intimeval[tt]) {
             /* Found it */
             for (j=0; j<nj; j++)
               for (i=0; i<ni; i++)
                 (*bufout)[i+j*ni+t*ni*nj] = (float) bufin[i+j*ni+tt*ni*nj];
+            /* Get current day with hour, minutes and seconds at 00:00:00 */
+            istat = utInvCalendar2(ref_year, ref_month, ref_day+t, 0, 0, 0.0, dataunit_out, &curtime);
             /* Construct new time vector */
             (*outtimeval)[t] = (double) curtime;
             /* Exit loop */
             tt = ntimein+10;
           }
-        if (tt != (ntimein+10)) {
+        }
+        if (tt < (ntimein+10)) {
           /* We didn't found the time in the input time vector... */
           (void) fprintf(stderr, "%s: Cannot generate new time vector!! Algorithm internal error!\n", __FILE__);
           (void) free(year);
@@ -543,15 +596,12 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
           (void) free(hour);
           (void) free(minutes);
           (void) free(seconds);
-          (void) utTerm();
+          (void) ut_free(timeslice);
+          (void) ut_free(dataunit_in);
+          (void) ut_free(dataunit_out);
+          (void) ut_free_system(unitSystem);  
           return -11;
         }
-#if DEBUG > 7
-        printf("%s: Standard gregorian calendar type: %d %d %d %04d/%02d/%02d %02d:%02d\n", __FILE__,
-               (int) dataunit_out.origin, (int) dataunit_out.factor, (int) curtime, cyear, cmonth, cday, chour, cminutes);
-#endif
-
-        curtime++;
       }
     }
     else {
@@ -563,7 +613,9 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
       (void) free(hour);
       (void) free(minutes);
       (void) free(seconds);
-      (void) utTerm();
+      (void) ut_free(dataunit_in);
+      (void) ut_free(dataunit_out);
+      (void) ut_free_system(unitSystem);  
       return -1;
     }
 
@@ -574,9 +626,11 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
     (void) free(hour);
     (void) free(minutes);
     (void) free(seconds);
-
+    
     /* Terminate udunits */
-    (void) utTerm();
+    (void) ut_free(dataunit_in);
+    (void) ut_free(dataunit_out);
+    (void) ut_free_system(unitSystem);  
   }
 
   /* Success status */

@@ -4,7 +4,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -38,6 +38,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 #ifndef IO_H
 #define IO_H
@@ -151,7 +152,7 @@ typedef struct {
   int *day; /**< Day of the month 1-31. */
   int *hour; /**< Hour of the day 0-23. */
   int *minutes; /**< Minutes of the hour 0-59. */
-  float *seconds; /**< Seconds of the minute 0-59. */
+  double *seconds; /**< Seconds of the minute 0-59. */
 } time_vect_struct;
 
 /* NetCDF-related includes */
@@ -161,8 +162,6 @@ typedef struct {
 #include <netcdf.h>
 
 #ifdef HAVE_UDUNITS2
-#include <udunits2.h>
-#else
 #include <udunits.h>
 #endif
 

@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -44,6 +44,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 #include <dsclim.h>
@@ -90,7 +91,8 @@ write_learning_fields(data_struct *data) {
 
   char *tmpstr = NULL; /* Temporary string */
 
-  utUnit dataunits; /* Time data units (udunits) */
+  ut_system *unitSystem = NULL; /* Unit System (udunits) */
+  ut_unit *dataunits = NULL; /* udunits variable */
 
   double fillvalue;
   float fillvaluef;
@@ -442,6 +444,12 @@ write_learning_fields(data_struct *data) {
   istat = nc_put_vara_double(ncoutid, lonoutid, start, count, data->learning->lon);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+  /* Initialize udunits */
+  ut_set_error_message_handler(ut_ignore);
+  unitSystem = ut_read_xml(NULL);
+  ut_set_error_message_handler(ut_write_to_stderr);
+  dataunits = ut_parse(unitSystem, data->conf->time_units, UT_ASCII);
+
   timeval = NULL;
   for (s=0; s<data->conf->nseasons; s++) {
 
@@ -449,13 +457,12 @@ write_learning_fields(data_struct *data) {
     if (timeval == NULL) alloc_error(__FILE__, __LINE__);
     
     /* Compute time variable using actual units */
-    istat = utScan(data->conf->time_units, &dataunits);
     for (t=0; t<data->learning->data[s].ntime; t++)
-      istat = utInvCalendar(data->learning->data[s].time_s->year[t], data->learning->data[s].time_s->month[t],
-                            data->learning->data[s].time_s->day[t], data->learning->data[s].time_s->hour[t],
-                            data->learning->data[s].time_s->minutes[t], data->learning->data[s].time_s->seconds[t],
-                            &dataunits, &(timeval[t]));
-
+      istat = utInvCalendar2(data->learning->data[s].time_s->year[t], data->learning->data[s].time_s->month[t],
+                             data->learning->data[s].time_s->day[t], data->learning->data[s].time_s->hour[t],
+                             data->learning->data[s].time_s->minutes[t], data->learning->data[s].time_s->seconds[t],
+                             dataunits, &(timeval[t]));
+    
     /* Write time */
     start[0] = 0;
     start[1] = 0;
@@ -745,12 +752,11 @@ write_learning_fields(data_struct *data) {
     if (timeval == NULL) alloc_error(__FILE__, __LINE__);
     
     /* Compute time variable using actual units */
-    istat = utScan(data->conf->time_units, &dataunits);
     for (t=0; t<data->learning->data[s].ntime; t++)
-      istat = utInvCalendar(data->learning->data[s].time_s->year[t], data->learning->data[s].time_s->month[t],
-                            data->learning->data[s].time_s->day[t], data->learning->data[s].time_s->hour[t],
-                            data->learning->data[s].time_s->minutes[t], data->learning->data[s].time_s->seconds[t],
-                            &dataunits, &(timeval[t]));
+      istat = utInvCalendar2(data->learning->data[s].time_s->year[t], data->learning->data[s].time_s->month[t],
+                             data->learning->data[s].time_s->day[t], data->learning->data[s].time_s->hour[t],
+                             data->learning->data[s].time_s->minutes[t], data->learning->data[s].time_s->seconds[t],
+                             dataunits, &(timeval[t]));
 
     /* Write clust_learn */
     start[0] = 0;
@@ -777,7 +783,8 @@ write_learning_fields(data_struct *data) {
   istat = ncclose(ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  (void) utTerm();
+  (void) ut_free(dataunits);
+  (void) ut_free_system(unitSystem);  
 
   (void) free(nomvar);
   (void) free(tancp_mean);

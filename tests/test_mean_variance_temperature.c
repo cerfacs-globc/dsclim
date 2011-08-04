@@ -11,7 +11,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -45,6 +45,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 #ifdef HAVE_CONFIG_H
@@ -125,7 +126,7 @@ int main(int argc, char **argv)
   int *day = NULL;
   int *hour = NULL;
   int *min = NULL;
-  float *sec = NULL;
+  double *sec = NULL;
 
   double mean;
   double var;
@@ -156,8 +157,9 @@ int main(int argc, char **argv)
   char *time_units_learn = NULL;
   char *cal_type = NULL;
   char *cal_type_learn = NULL;
-  utUnit dataunits;
-  utUnit dataunits_learn;
+  ut_system *unitSystem = NULL; /* Unit System (udunits) */
+  ut_unit *dataunits = NULL;
+  ut_unit *dataunits_learn = NULL;
 
   double *tas = NULL;
   double *tas_sub = NULL;
@@ -175,7 +177,7 @@ int main(int argc, char **argv)
   int **day_learn = NULL;
   int **hour_learn = NULL;
   int **min_learn = NULL;
-  float **sec_learn = NULL;
+  double **sec_learn = NULL;
 
   double minlon = -15.0;
   double maxlon = 20.0;
@@ -214,7 +216,10 @@ int main(int argc, char **argv)
     }
   }
 
-  istat = utInit("");
+  /* Initialize udunits */
+  ut_set_error_message_handler(ut_ignore);
+  unitSystem = ut_read_xml(NULL);
+  ut_set_error_message_handler(ut_write_to_stderr);
 
   /* Read data in NetCDF file */
   printf("%s: Reading info from input file %s.\n", __FILE__, filein);
@@ -403,7 +408,7 @@ int main(int argc, char **argv)
   if (hour_learn == NULL) alloc_error(__FILE__, __LINE__);
   min_learn = (int **) malloc(nseason_learn * sizeof(int *));
   if (min_learn == NULL) alloc_error(__FILE__, __LINE__);
-  sec_learn = (float **) malloc(nseason_learn * sizeof(float *));
+  sec_learn = (double **) malloc(nseason_learn * sizeof(double *));
   if (sec_learn == NULL) alloc_error(__FILE__, __LINE__);
 
   for (i=0; i<nseason_learn; i++) {
@@ -488,17 +493,18 @@ int main(int argc, char **argv)
     if (hour_learn[i] == NULL) alloc_error(__FILE__, __LINE__);
     min_learn[i] = (int *) malloc(ntime_learn[i] * sizeof(int));
     if (min_learn[i] == NULL) alloc_error(__FILE__, __LINE__);
-    sec_learn[i] = (float *) malloc(ntime_learn[i] * sizeof(float));
+    sec_learn[i] = (double *) malloc(ntime_learn[i] * sizeof(double));
     if (sec_learn[i] == NULL) alloc_error(__FILE__, __LINE__);
 
-    istat = utScan(time_units_learn, &dataunits_learn);
+    dataunits_learn = ut_parse(unitSystem, time_units_learn, UT_ASCII);
 
     for (t=0; t<ntime_learn[i]; t++)
-      istat = utCalendar_cal(time_learn[i][t], &dataunits_learn,
-                             &(year_learn[i][t]), &(month_learn[i][t]), &(day_learn[i][t]), &(hour_learn[i][t]),
-                             &(min_learn[i][t]), &(sec_learn[i][t]), cal_type_learn);
+      istat = utCalendar2_cal(time_learn[i][t], dataunits_learn,
+                              &(year_learn[i][t]), &(month_learn[i][t]), &(day_learn[i][t]), &(hour_learn[i][t]),
+                              &(min_learn[i][t]), &(sec_learn[i][t]), cal_type_learn);
 
     (void) free(time_units_learn);
+    (void) ut_free(dataunits_learn);
     (void) free(cal_type_learn);
 
 
@@ -516,13 +522,14 @@ int main(int argc, char **argv)
   if (hour == NULL) alloc_error(__FILE__, __LINE__);
   min = (int *) malloc(ntime * sizeof(int));
   if (min == NULL) alloc_error(__FILE__, __LINE__);
-  sec = (float *) malloc(ntime * sizeof(float));
+  sec = (double *) malloc(ntime * sizeof(double));
   if (sec == NULL) alloc_error(__FILE__, __LINE__);
 
-  istat = utScan(time_units, &dataunits);
+  dataunits = ut_parse(unitSystem, time_units, UT_ASCII);
   for (t=0; t<ntime; t++)
-    istat = utCalendar_cal(timein[t], &dataunits, &(year[t]), &(month[t]), &(day[t]), &(hour[t]), &(min[t]), &(sec[t]), cal_type);
+    istat = utCalendar2_cal(timein[t], dataunits, &(year[t]), &(month[t]), &(day[t]), &(hour[t]), &(min[t]), &(sec[t]), cal_type);
   (void) free(time_units);
+  (void) ut_free(dataunits);
   (void) free(cal_type);
 
   /* Extract subdomain */
@@ -558,7 +565,7 @@ int main(int argc, char **argv)
   istat = ncclose(ncinid_learn);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
 
-  (void) utTerm();
+  (void) ut_free_system(unitSystem);  
 
   (void) free(time_learn_dimid);
   (void) free(time_learn_varid);

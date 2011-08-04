@@ -10,7 +10,7 @@
 
 # initial information about the project
 AC_INIT([dsclim],
-        [1.5.12],
+        [1.5.13],
         [Christian Page christian.page@cerfacs.fr],
         [dsclim])
 
@@ -88,45 +88,27 @@ then
   LDFLAGS="$LDFLAGS -L${udunits_dir}/lib"
 fi
 
-#AC_MSG_CHECKING(for udunits 2.x)
-#AC_MSG_RESULT($udunits_dir)
-#AC_CHECK_HEADER(udunits2.h,passed=1,passed=0)
-#AC_CHECK_LIB(udunits2,utInit,passed=1,passed=0,-lm)
-#AC_MSG_CHECKING(if udunits 2.x support package is complete)
-
-#if test $passed -gt 0
-#then
-#  UDUNITS_LIBS='-ludunits2 -lm'
-#  AC_SUBST(UDUNITS_LIBS)
-#  UDUNITS_CPPFLAGS='-I${udunits_dir}/include'
-#  AC_SUBST(UDUNITS_CPPFLAGS)
-#  UDUNITS_LDFLAGS='-L${udunits_dir}/lib'
-#  AC_SUBST(UDUNITS_CPPFLAGS)
-#  AC_DEFINE(HAVE_UDUNITS2,1,Define if you have UDUNITS 2.x library)
-#  AC_MSG_RESULT(yes)
-#else
-#  AC_MSG_RESULT(no)
-  AC_MSG_CHECKING(for udunits 1.x)
+  AC_MSG_CHECKING(for udunits 2.x)
   AC_MSG_RESULT($udunits_dir)
-  AC_CHECK_HEADER(udunits.h,passed=1,passed=0)
-  AC_CHECK_LIB(udunits,utInit,passed=1,passed=0,-lm)
-  AC_MSG_CHECKING(if udunits 1.x support package is complete)
+  AC_CHECK_HEADER(udunits2.h,passed=1,passed=0)
+  AC_CHECK_LIB(udunits2,utInit,passed=1,passed=0,-lm)
+  AC_MSG_CHECKING(if udunits 2.x support package is complete)
 
   if test $passed -gt 0
   then
-    UDUNITS_LIBS='-ludunits -lm'
+    UDUNITS_LIBS='-ludunits2 -lm'
     AC_SUBST(UDUNITS_LIBS)
     UDUNITS_CPPFLAGS='-I${udunits_dir}/include'
     AC_SUBST(UDUNITS_CPPFLAGS)
     UDUNITS_LDFLAGS='-L${udunits_dir}/lib'
     AC_SUBST(UDUNITS_CPPFLAGS)
-    AC_DEFINE(HAVE_UDUNITS,1,Define if you have UDUNITS 1.x library)
+    AC_DEFINE(HAVE_UDUNITS2,1,Define if you have UDUNITS 2.x library)
     AC_MSG_RESULT(yes)
   else
     AC_MSG_NOTICE([
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  CONFIGURATION ERROR: UDUNITS 1.x or 2.x required.
+  CONFIGURATION ERROR: UDUNITS 2.x required.
   UDUNITS installation is not working or missing.
 
   To fix this problem you have the following options.
@@ -134,7 +116,7 @@ fi
      In this case you can provide your UDUNITS installation path to the configure
      through the option --with-udunits="your_udunits_path"
   2) With your package manager, install the UDUNITS library.
-  3) Source code for UDUNITS can be found at http://www.unidata.ucar.edu/udunits/.
+  3) Source code for UDUNITS can be found at http://www.unidata.ucar.edu/software/udunits/
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ])

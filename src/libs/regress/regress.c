@@ -12,7 +12,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -46,6 +46,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 #include <regress.h>
@@ -280,7 +281,7 @@ regress(double *coef, double *x, double *y, double *cte, double *yreg, double *y
 
     /* Compute R^2 = 1 - \chi^2 / TSS */
     /* and finally VIF = 1.0 / (1.0 - R^2) */
-    vif[vterm] = 1.0 / (1.0 - powf(1.0 - ( vchisq / gsl_stats_tss(ytmp, stride, (size_t) pts) ), 2.0) );
+    vif[vterm] = 1.0 / (1.0 - (1.0 - ( vchisq / gsl_stats_tss(ytmp, stride, (size_t) pts) ) ));
   }
     
   /* Dealloc matrices and vectors memory */

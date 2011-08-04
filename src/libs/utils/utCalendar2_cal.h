@@ -1,11 +1,5 @@
-/* ***************************************************** */
-/* Get XML setting element value.                        */
-/* xml_get_setting.c                                     */
-/* ***************************************************** */
-/* Author: Christian Page, CERFACS, Toulouse, France.    */
-/* ***************************************************** */
-/*! \file xml_get_setting.c
-    \brief Get XML setting element value.
+/*! \file utCalendar2_cal.h
+    \brief Include file for calendar library.
 */
 
 /* LICENSE BEGIN
@@ -46,27 +40,50 @@ knowledge of the CeCILL license and that you accept its terms.
 LICENSE END */
 
 
+#ifndef UTCALENDAR_H
+#define UTCALENDAR_H
 
-#include <xml_utils.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-/** Get XML setting element value. */
-xmlChar *
-xml_get_setting(xmlConfig_t *conf, char *path) {
-  /**
-     @param[in]  conf    XML information for DOM and XPath
-     @param[in]  path    path for XPath
+/** GNU extensions */
+#define _GNU_SOURCE
 
-     \return     XML string value
-   */
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 
-  xmlNodePtr nodeptr;
+#ifdef HAVE_UDUNITS2
+#include <udunits.h>
+#endif
 
-  /* Get DOM node pointer using XPath */
-  nodeptr = xml_get_node_by_xpath(conf, path);
-  
-  if (nodeptr != NULL) {
-    return xmlNodeGetContent(nodeptr);
-  }
-  else
-    return NULL;
-}
+/* Prototypes */
+int utCalendar2(double val, ut_unit *dataunits, int *year, int *month, int *day, int *hour, 
+                int *minute, double *second);
+
+int utCalendar2_cal(double val, ut_unit *dataunits, int *year, int *month, int *day, int *hour, 
+                    int *minute, double *second, const char *calendar);
+
+int utInvCalendar2(int year, int month, int day, int hour, int minute,
+                   double second, ut_unit *unit, double *value);
+
+int utInvCalendar2_cal(int year, int month, int day, int hour, int minute,
+                       double second, ut_unit *unit, double *value, const char *calendar);
+
+#define UT_EINVALID     -5      /* invalid unit-structure */
+#define UT_ENOINIT      -6      /* package not initialized */
+
+#endif

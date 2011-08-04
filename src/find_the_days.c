@@ -11,7 +11,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2010)
+Copyright Cerfacs (Christian Page) (2011)
 
 christian.page@cerfacs.fr
 
@@ -45,6 +45,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 #include <dsclim.h>
@@ -140,15 +141,16 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
   int tl; /* Time loop counter */
   int pts; /* Regression points loop counter */
 
-  utUnit dataunits; /* Time data units (udunits) */
+  ut_system *unitSystem = NULL; /* Unit System (udunits) */
+  ut_unit *dataunits = NULL; /* udunits variable */
   int istat; /* Return status of functions */
   double timei; /* udunits Time value */
 
   /* Initialize udunits */
-  istat = utInit("");
-
-  /* Get time units */
-  istat = utScan(time_units, &dataunits);
+  ut_set_error_message_handler(ut_ignore);
+  unitSystem = ut_read_xml(NULL);
+  ut_set_error_message_handler(ut_write_to_stderr);
+  dataunits = ut_parse(unitSystem, time_units, UT_ASCII);
 
   /* Initialize random number generator if needed */
   if (shuffle == TRUE) {
@@ -386,7 +388,7 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
         analog_days.month[t] = month_learn[analog_days.tindex[t]];
         analog_days.day[t] = day_learn[analog_days.tindex[t]];
         analog_days.tindex_all[t] = buf_learn_sub_i[analog_days.tindex[t]];
-        istat = utInvCalendar(analog_days.year[t], analog_days.month[t], analog_days.day[t], 0, 0, 0.0, &dataunits, &timei);
+        istat = utInvCalendar2(analog_days.year[t], analog_days.month[t], analog_days.day[t], 0, 0, 0.0, dataunits, &timei);
         analog_days.time[t] = (int) timei;
 
         /* Save date of day being downscaled */
@@ -452,7 +454,7 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
         analog_days.month[t] = month_learn[analog_days.tindex[t]];
         analog_days.day[t] = day_learn[analog_days.tindex[t]];
         analog_days.tindex_all[t] = buf_learn_sub_i[analog_days.tindex[t]];
-        istat = utInvCalendar(analog_days.year[t], analog_days.month[t], analog_days.day[t], 0, 0, 0.0, &dataunits, &timei);
+        istat = utInvCalendar2(analog_days.year[t], analog_days.month[t], analog_days.day[t], 0, 0, 0.0, dataunits, &timei);
         analog_days.time[t] = (int) timei;
 
         /* Save date of day being downscaled */
@@ -510,7 +512,8 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
   (void) free(buf_sub_i);
   (void) free(buf_learn_sub_i);
 
-  (void) utTerm();
-
+  (void) ut_free(dataunits);
+  (void) ut_free_system(unitSystem);  
+      
   return 0;
 }
