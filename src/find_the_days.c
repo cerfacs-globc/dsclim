@@ -495,10 +495,10 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
       (void) free(ntime_days_learn);
       ntime_days_learn = NULL;
     }
-    if (year[buf_sub_i[t]] == 1999 && month[buf_sub_i[t]] == 5)
-      if (month[buf_sub_i[t]] == 3 || month[buf_sub_i[t]] == 4 || month[buf_sub_i[t]] == 5)
-        printf("Time downscaled %d: %d %d %d. Analog day: %d %d %d %lf\n", t, year[buf_sub_i[t]], month[buf_sub_i[t]], day[buf_sub_i[t]], year_learn[analog_days.tindex[t]], month_learn[analog_days.tindex[t]], day_learn[analog_days.tindex[t]], min_metric);
-    
+        if (year[buf_sub_i[t]] == 1999 && month[buf_sub_i[t]] == 5)
+          if (month[buf_sub_i[t]] == 3 || month[buf_sub_i[t]] == 4 || month[buf_sub_i[t]] == 5)
+            printf("Time downscaled %d: %d %d %d. Analog day: %d %d %d %lf\n", t, year[buf_sub_i[t]], month[buf_sub_i[t]], day[buf_sub_i[t]], year_learn[analog_days.tindex[t]], month_learn[analog_days.tindex[t]], day_learn[analog_days.tindex[t]], min_metric);
+        
   }
 
   /* Free memory */

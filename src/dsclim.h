@@ -505,10 +505,10 @@ int find_the_days(analog_day_struct analog_days, double *precip_index, double *p
                   int sup_choice, int sup_cov, int use_downscaled_year, int nlon, int nlat, int sup_nlon, int sup_nlat);
 void compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days, double *sup_field_index,
                                         double *sup_field_index_learn, double sup_field_var, double sup_field_var_learn, int ntimes);
-int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int ntimes_merged, int ntimes);
-int merge_seasonal_data(double *buf_merged, double *buf, analog_day_struct analog_days, int dimx, int dimy,
+int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int *merged_itimes, int ntimes_merged, int ntimes);
+int merge_seasonal_data(double *buf_merged, double *buf, analog_day_struct analog_days, int *merged_itimes, int dimx, int dimy,
                         int ntimes_merged, int ntimes);
-int merge_seasonal_data_i(int *buf_merged, int *buf, analog_day_struct analog_days, int dimx, int dimy,
+int merge_seasonal_data_i(int *buf_merged, int *buf, analog_day_struct analog_days, int *merged_itimes, int dimx, int dimy,
                           int ntimes_merged, int ntimes);
 int output_downscaled_analog(analog_day_struct analog_days, double *delta, int output_month_begin, char *output_path,
                              char *config, char *time_units, char *cal_type, double deltat,

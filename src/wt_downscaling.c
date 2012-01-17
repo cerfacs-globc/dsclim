@@ -77,6 +77,11 @@ wt_downscaling(data_struct *data) {
   double *var_pc_norm_all = NULL; /* Temporary values of the norm of the principal components */
   int **ntime_sub = NULL; /* Number of times for sub-periods. Dimensions number of field categories (NCAT) and number of seasons */
   double **time_ls_sub = NULL; /* Time values used for regression diagnostics output */
+  int *merged_itimes = NULL; /* Time values in common merged time vector */
+  int ntimes_merged; /* Number of times in one particular season */
+  int curindex_merged; /* Current index in merged season vector */
+  short int *merged_times_flag = NULL; /* Flag variable for days in the year that are processed */
+  double *merged_times = NULL; /* Merge times in udunit */
   int ntime_sub_tmp; /* Number of times for regression diagnostics output */
   int ntime_sub_learn; /* Number of times for learning common sub-period with control run for a specific season */
   int ntime_sub_learn_all; /* Number of times for learning common sub-period with control run for whole period */
@@ -612,41 +617,78 @@ wt_downscaling(data_struct *data) {
       i = 0;
 
       if (data->conf->output_only != TRUE) {
-        data->field[cat].analog_days_year.time = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
-        if (data->field[cat].analog_days_year.time == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].analog_days_year.tindex = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
-        if (data->field[cat].analog_days_year.tindex == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].analog_days_year.tindex_all = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
-        if (data->field[cat].analog_days_year.tindex_all == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].analog_days_year.year = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
-        if (data->field[cat].analog_days_year.year == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].analog_days_year.month = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
-        if (data->field[cat].analog_days_year.month == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].analog_days_year.day = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
-        if (data->field[cat].analog_days_year.day == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].analog_days_year.tindex_s_all = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
-        if (data->field[cat].analog_days_year.tindex_s_all == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].analog_days_year.year_s = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
-        if (data->field[cat].analog_days_year.year_s == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].analog_days_year.month_s = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
-        if (data->field[cat].analog_days_year.month_s == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].analog_days_year.day_s = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
-        if (data->field[cat].analog_days_year.day_s == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].analog_days_year.analog_dayschoice = (tstruct **) malloc(data->field[cat].ntime_ls * sizeof(tstruct *));
-        if (data->field[cat].analog_days_year.analog_dayschoice == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].analog_days_year.metric_norm = (float **) malloc(data->field[cat].ntime_ls * sizeof(float *));
-        if (data->field[cat].analog_days_year.metric_norm == NULL) alloc_error(__FILE__, __LINE__);
+
+        /** Determine the number of elements given the seasons **/
+        /* Take into account the fact that it may be possible that the seasons does not span the whole year */
+        ntimes_merged = 0;
+        merged_times_flag = (short int *) malloc(data->field[cat].ntime_ls * sizeof(short int));
+        if (merged_times_flag == NULL) alloc_error(__FILE__, __LINE__);
+        for (ii=0; ii<data->field[cat].ntime_ls; ii++) merged_times_flag[ii] = 0;
+        /* Flag all times within the processed seasons, and count number of timestep */
+        for (s=0; s<data->conf->nseasons; s++)
+          for (ii=0; ii<ntime_sub[cat][s]; ii++) {
+            /* Retrieve current index */
+            curindex_merged = data->field[cat].analog_days[s].tindex_s_all[ii];
+            /* Check for bounds */
+            if (curindex_merged < 0 || curindex_merged >= data->field[cat].ntime_ls) {
+              (void) fprintf(stderr, "%s: Fatal error: index in merged season vector outside bounds! curindex_merged=%d max=%d\n",
+                             __FILE__, curindex_merged, data->field[cat].ntime_ls-1);
+              return -1;
+            }
+            merged_times_flag[curindex_merged] = 1;
+            ntimes_merged++;
+          }
+        /* Save time index given flag */
+        merged_itimes = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+        if (merged_itimes == NULL) alloc_error(__FILE__, __LINE__);
+        merged_times = (double *) malloc(ntimes_merged * sizeof(double));
+        if (merged_times == NULL) alloc_error(__FILE__, __LINE__);
+        curindex_merged = 0;
         for (ii=0; ii<data->field[cat].ntime_ls; ii++) {
+          if (merged_times_flag[ii] == 1) {
+            merged_times[curindex_merged] = data->field[cat].time_ls[ii];
+            merged_itimes[ii] = curindex_merged++;
+          }
+          else
+            merged_itimes[ii] = -1;
+        }
+        (void) free(merged_times_flag);
+
+        data->field[cat].analog_days_year.time = (int *) malloc(ntimes_merged * sizeof(int));
+        if (data->field[cat].analog_days_year.time == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.tindex = (int *) malloc(ntimes_merged * sizeof(int));
+        if (data->field[cat].analog_days_year.tindex == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.tindex_all = (int *) malloc(ntimes_merged * sizeof(int));
+        if (data->field[cat].analog_days_year.tindex_all == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.year = (int *) malloc(ntimes_merged * sizeof(int));
+        if (data->field[cat].analog_days_year.year == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.month = (int *) malloc(ntimes_merged * sizeof(int));
+        if (data->field[cat].analog_days_year.month == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.day = (int *) malloc(ntimes_merged * sizeof(int));
+        if (data->field[cat].analog_days_year.day == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.tindex_s_all = (int *) malloc(ntimes_merged * sizeof(int));
+        if (data->field[cat].analog_days_year.tindex_s_all == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.year_s = (int *) malloc(ntimes_merged * sizeof(int));
+        if (data->field[cat].analog_days_year.year_s == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.month_s = (int *) malloc(ntimes_merged * sizeof(int));
+        if (data->field[cat].analog_days_year.month_s == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.day_s = (int *) malloc(ntimes_merged * sizeof(int));
+        if (data->field[cat].analog_days_year.day_s == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.analog_dayschoice = (tstruct **) malloc(ntimes_merged * sizeof(tstruct *));
+        if (data->field[cat].analog_days_year.analog_dayschoice == NULL) alloc_error(__FILE__, __LINE__);
+        data->field[cat].analog_days_year.metric_norm = (float **) malloc(ntimes_merged * sizeof(float *));
+        if (data->field[cat].analog_days_year.metric_norm == NULL) alloc_error(__FILE__, __LINE__);
+        for (ii=0; ii<ntimes_merged; ii++) {
           data->field[cat].analog_days_year.analog_dayschoice[ii] = (tstruct *) NULL;
           data->field[cat].analog_days_year.metric_norm[ii] = (float *) NULL;
         }
-        data->field[cat].analog_days_year.ndayschoice = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+        data->field[cat].analog_days_year.ndayschoice = (int *) malloc(ntimes_merged * sizeof(int));
         if (data->field[cat].analog_days_year.ndayschoice == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat+2].data[i].down->delta_all = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
+        data->field[cat+2].data[i].down->delta_all = (double *) malloc(ntimes_merged * sizeof(double));
         if (data->field[cat+2].data[i].down->delta_all == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].data[i].down->dist_all = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
+        data->field[cat].data[i].down->dist_all = (double *) malloc(ntimes_merged * sizeof(double));
         if (data->field[cat].data[i].down->dist_all == NULL) alloc_error(__FILE__, __LINE__);
-        data->field[cat].data[i].down->days_class_clusters_all = (int *) malloc(data->field[cat].ntime_ls * sizeof(int));
+        data->field[cat].data[i].down->days_class_clusters_all = (int *) malloc(ntimes_merged * sizeof(int));
         if (data->field[cat].data[i].down->days_class_clusters_all == NULL) alloc_error(__FILE__, __LINE__);
         /* Loop over each season */
         data->field[cat].analog_days_year.ntime = 0;
@@ -654,20 +696,24 @@ wt_downscaling(data_struct *data) {
           /* Merge all seasons of analog_day data, supplemental field index, and cluster info */
           printf("Season: %d\n",s);
           istat = merge_seasons(data->field[cat].analog_days_year, data->field[cat].analog_days[s],
-                                data->field[cat].ntime_ls, ntime_sub[cat][s]);
+                                merged_itimes, ntimes_merged, ntime_sub[cat][s]);
           istat = merge_seasonal_data(data->field[cat+2].data[i].down->delta_all,
                                       data->field[cat+2].data[i].down->delta[s],
-                                      data->field[cat].analog_days[s], 1, 1,
-                                      data->field[cat].ntime_ls, ntime_sub[cat][s]);
+                                      data->field[cat].analog_days[s], merged_itimes, 1, 1,
+                                      ntimes_merged, ntime_sub[cat][s]);
           istat = merge_seasonal_data(data->field[cat].data[i].down->dist_all,
                                       data->field[cat].data[i].down->dist[s],
-                                      data->field[cat].analog_days[s], 1, 1,
-                                      data->field[cat].ntime_ls, ntime_sub[cat][s]);
+                                      data->field[cat].analog_days[s], merged_itimes, 1, 1,
+                                      ntimes_merged, ntime_sub[cat][s]);
           istat = merge_seasonal_data_i(data->field[cat].data[i].down->days_class_clusters_all,
                                         data->field[cat].data[i].down->days_class_clusters[s],
-                                        data->field[cat].analog_days[s], 1, 1,
-                                        data->field[cat].ntime_ls, ntime_sub[cat][s]);
-          if (istat != 0) return istat;
+                                        data->field[cat].analog_days[s], merged_itimes, 1, 1,
+                                        ntimes_merged, ntime_sub[cat][s]);
+          if (istat != 0) {
+            (void) free(merged_times);
+            (void) free(merged_itimes);
+            return istat;
+          }
           data->field[cat].analog_days_year.ntime += ntime_sub[cat][s];
         }
         
@@ -679,7 +725,7 @@ wt_downscaling(data_struct *data) {
             analog_file = data->conf->analog_file_ctrl;
           (void) save_analog_data(data->field[cat].analog_days_year, data->field[cat+2].data[i].down->delta_all,
                                   data->field[cat].data[i].down->dist_all, data->field[cat].data[i].down->days_class_clusters_all,
-                                  data->field[cat].time_ls, analog_file, data);
+                                  merged_times, analog_file, data);
         }
       }
       else {
@@ -687,12 +733,10 @@ wt_downscaling(data_struct *data) {
           analog_file = data->conf->analog_file_other;
         else
           analog_file = data->conf->analog_file_ctrl;
-        if (data->field[cat].time_ls != NULL)
-          (void) free(data->field[cat].time_ls);
         (void) printf("%s: Reading analog data from file %s\n", __FILE__, analog_file);
         (void) read_analog_data(&(data->field[cat].analog_days_year), &(data->field[cat+2].data[i].down->delta_all),
-                                &(data->field[cat].time_ls), analog_file, data->conf->obs_var->timename);
-        data->field[cat].ntime_ls = data->field[cat].analog_days_year.ntime;
+                                &merged_times, analog_file, data->conf->obs_var->timename);
+        ntimes_merged = data->field[cat].analog_days_year.ntime;
       }
       
       /* Process all data */
@@ -707,9 +751,15 @@ wt_downscaling(data_struct *data) {
                                          data->conf->output_month_begin, data->conf->output_path, data->conf->config,
                                          data->conf->time_units, data->conf->cal_type, data->conf->deltat,
                                          data->conf->format, data->conf->compression, data->conf->compression_level,
-                                         data->info, data->conf->obs_var, period, data->field[cat].time_ls, data->field[cat].ntime_ls);
-        if (istat != 0) return istat;
+                                         data->info, data->conf->obs_var, period, merged_times, ntimes_merged);
+        if (istat != 0) {
+          (void) free(merged_times);
+          (void) free(merged_itimes);
+          return istat;
+        }
       }
+      (void) free(merged_times);
+      (void) free(merged_itimes);
     }
   }
           

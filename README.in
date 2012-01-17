@@ -51,7 +51,7 @@ one should run the configure utility inside the dsclim-x.x.x directory.
 Here is one example when one want to install in a different directory than
 /usr/local/bin and when needed libraries have been installed in
 non-standard directories:
-./configure --prefix=/home/page/codes/local \\
+./configure --prefix=/home/globc/page/codes/local \\
 --with-zlib=/opt2/glob/uti/local64 \\
 --with-szlib=/opt2/glob/uti/local64 \\
 --with-hdf5=/opt2/glob/uti/local64 \\

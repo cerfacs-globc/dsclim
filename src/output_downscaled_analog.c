@@ -835,8 +835,6 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
           if ( !strcmp(info->timestep, "hourly") ) {
             istat = utCalendar2(time_ls[t], dataunits, &yy, &mm, &dd, &hh, &minutes, &seconds);
             istat = utInvCalendar2(yy, mm, dd, hour, 0, 0.0, dataunits, &curtime);
-            (void) ut_free(dataunits);
-            (void) ut_free_system(unitSystem);  
           }
           else
             curtime = time_ls[t];
@@ -958,8 +956,12 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
           (void) free(proj_tmp);        
         }
         else {
-          (void) fprintf(stderr, "%s: Fatal error in algorithm: analog date %d %d %d %d not found in database!!\n", __FILE__, t,
-                         analog_days.year[t],analog_days.month[t],analog_days.day[t]);
+          if ( !strcmp(obs_var->frequency, "hourly") )
+            (void) fprintf(stderr, "%s: Fatal error in algorithm: analog date %d %d %d %d %d not found in database!!\n", __FILE__, t,
+                           analog_days.year[t],analog_days.month[t],analog_days.day[t],hour);
+          else
+            (void) fprintf(stderr, "%s: Fatal error in algorithm: analog date %d %d %d %d not found in database!!\n", __FILE__, t,
+                           analog_days.year[t],analog_days.month[t],analog_days.day[t]);
           /* Fatal error */
           for (var=0; var<obs_var->nobs_var; var++) {
             for (f=0; f<noutf[var]; f++)

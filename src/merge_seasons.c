@@ -51,54 +51,65 @@ LICENSE END */
 
 /** Merge seasonal analog date data */
 int
-merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int ntimes_merged, int ntimes) {
+merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int *merged_itimes, int ntimes_merged, int ntimes) {
   /**
      @param[out]  analog_days_merged    Analog days time indexes and dates with corresponding dates being downscaled, all seasons merged
      @param[in]   analog_days           Analog days time indexes and dates with corresponding dates being downscaled
+     @param[in]   merged_itimes         Time index of total time vector against current merged time vector that could span less than the whole year
      @param[in]   ntimes_merged         Number of times of days to downscale for this period, all seasons merged
      @param[in]   ntimes                Number of times of days to downscale for this period
   */
   
   int t; /* Time loop counter */
   int i; /* Loop counter */
-  int curindex_merged; /* Current index in the merged season vector */
+  int curindex; /* Current index in the merged times vector */
+  int index_all; /* Current index in the whole time vector */
 
   /* Process each downscaled day for a specific season subperiod */
   for (t=0; t<ntimes; t++) {
-    /* Retrieve current index */
-    curindex_merged = analog_days.tindex_s_all[t];
-    /* Check for bounds */
-    if (curindex_merged < 0 || curindex_merged >= ntimes_merged) {
-      (void) fprintf(stderr, "%s: Fatal error: index in merged season vector outside bounds! curindex_merged=%d max=%d\n",
-                     __FILE__, curindex_merged, ntimes_merged-1);
-      return -1;
-    }
+    /* Index of season-specific time into ntime_ls whole time vector */
+    index_all = analog_days.tindex_s_all[t];
+    /* Retrieve index in merge time vector from index of whole time vector ntime_ls */
+    curindex = merged_itimes[index_all];
     /* Retrieve values */
-    analog_days_merged.tindex_all[curindex_merged] = analog_days.tindex_all[t];
-    analog_days_merged.time[curindex_merged] = analog_days.time[t];
-    analog_days_merged.year[curindex_merged] = analog_days.year[t];
-    analog_days_merged.month[curindex_merged] = analog_days.month[t];
-    analog_days_merged.day[curindex_merged] = analog_days.day[t];
+    analog_days_merged.tindex_all[curindex] = analog_days.tindex_all[t];
+    analog_days_merged.time[curindex] = analog_days.time[t];
+    analog_days_merged.year[curindex] = analog_days.year[t];
+    analog_days_merged.month[curindex] = analog_days.month[t];
+    analog_days_merged.day[curindex] = analog_days.day[t];
 
-    analog_days_merged.tindex_s_all[curindex_merged] = analog_days.tindex_s_all[t];
-    analog_days_merged.year_s[curindex_merged] = analog_days.year_s[t];
-    analog_days_merged.month_s[curindex_merged] = analog_days.month_s[t];
-    analog_days_merged.day_s[curindex_merged] = analog_days.day_s[t];
-
-    analog_days_merged.ndayschoice[curindex_merged] = analog_days.ndayschoice[t];
-    analog_days_merged.analog_dayschoice[curindex_merged] =
-      (tstruct *) malloc(analog_days_merged.ndayschoice[curindex_merged] * sizeof(tstruct));
-    if (analog_days_merged.analog_dayschoice[curindex_merged] == NULL) alloc_error(__FILE__, __LINE__);
-    analog_days_merged.metric_norm[curindex_merged] = (float *) malloc(analog_days_merged.ndayschoice[curindex_merged] * sizeof(float));
-    if (analog_days_merged.metric_norm[curindex_merged] == NULL) alloc_error(__FILE__, __LINE__);
-    for (i=0; i<analog_days_merged.ndayschoice[curindex_merged]; i++) {
-      analog_days_merged.metric_norm[curindex_merged][i] = analog_days.metric_norm[t][i];
-      analog_days_merged.analog_dayschoice[curindex_merged][i].year = analog_days.analog_dayschoice[t][i].year;
-      analog_days_merged.analog_dayschoice[curindex_merged][i].month = analog_days.analog_dayschoice[t][i].month;
-      analog_days_merged.analog_dayschoice[curindex_merged][i].day = analog_days.analog_dayschoice[t][i].day;
-      analog_days_merged.analog_dayschoice[curindex_merged][i].hour = analog_days.analog_dayschoice[t][i].hour;
-      analog_days_merged.analog_dayschoice[curindex_merged][i].min = analog_days.analog_dayschoice[t][i].min;
-      analog_days_merged.analog_dayschoice[curindex_merged][i].sec = analog_days.analog_dayschoice[t][i].sec;
+    analog_days_merged.tindex_s_all[curindex] = analog_days.tindex_s_all[t];
+    analog_days_merged.year_s[curindex] = analog_days.year_s[t];
+    analog_days_merged.month_s[curindex] = analog_days.month_s[t];
+    analog_days_merged.day_s[curindex] = analog_days.day_s[t];
+    //    printf("IDM %d %d %d\n",t,curindex,index_all);
+    analog_days_merged.ndayschoice[curindex] = analog_days.ndayschoice[t];
+    //    printf("%d %d\n",analog_days_merged.ndayschoice[curindex],analog_days.ndayschoice[t]);
+    if (analog_days_merged.analog_dayschoice[curindex] == NULL) {
+      analog_days_merged.analog_dayschoice[curindex] =
+        (tstruct *) malloc(analog_days_merged.ndayschoice[curindex] * sizeof(tstruct));
+    //    printf("%d %d\n",analog_days_merged.ndayschoice[curindex],analog_days.ndayschoice[t]);
+      if (analog_days_merged.analog_dayschoice[curindex] == NULL) alloc_error(__FILE__, __LINE__);
+    }
+    else
+      fprintf(stderr,"AAAAAAAA %d %d\n",ntimes_merged,curindex);
+    //    printf("%d %d\n",analog_days_merged.ndayschoice[curindex],analog_days.ndayschoice[t]);
+    if (analog_days_merged.metric_norm[curindex] == NULL) {
+      analog_days_merged.metric_norm[curindex] = (float *) malloc(analog_days_merged.ndayschoice[curindex] * sizeof(float));
+    //    printf("%d %d\n",analog_days_merged.ndayschoice[curindex],analog_days.ndayschoice[t]);
+      if (analog_days_merged.metric_norm[curindex] == NULL) alloc_error(__FILE__, __LINE__);
+    }
+    else
+      fprintf(stderr,"AAAAAAAA %d %d\n",ntimes_merged,curindex);
+    //    printf("%d %d\n",analog_days_merged.ndayschoice[curindex],analog_days.ndayschoice[t]);
+    for (i=0; i<analog_days_merged.ndayschoice[curindex]; i++) {
+      analog_days_merged.metric_norm[curindex][i] = analog_days.metric_norm[t][i];
+      analog_days_merged.analog_dayschoice[curindex][i].year = analog_days.analog_dayschoice[t][i].year;
+      analog_days_merged.analog_dayschoice[curindex][i].month = analog_days.analog_dayschoice[t][i].month;
+      analog_days_merged.analog_dayschoice[curindex][i].day = analog_days.analog_dayschoice[t][i].day;
+      analog_days_merged.analog_dayschoice[curindex][i].hour = analog_days.analog_dayschoice[t][i].hour;
+      analog_days_merged.analog_dayschoice[curindex][i].min = analog_days.analog_dayschoice[t][i].min;
+      analog_days_merged.analog_dayschoice[curindex][i].sec = analog_days.analog_dayschoice[t][i].sec;
     }      
 
   }
