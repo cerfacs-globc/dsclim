@@ -53,7 +53,7 @@ the "year 0" problem exactly the same as does the udunits-1 library.
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2011)
+Copyright Cerfacs (Christian Page) (2012)
 
 christian.page@cerfacs.fr
 
@@ -87,6 +87,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 #include <stdio.h>
@@ -670,7 +671,7 @@ days since 2000-02-25	noleap 		2000, 3, 1, 12, 0, 0.0		4.5		2000 was a leap year
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2011)
+Copyright Cerfacs (Christian Page) (2012)
 
 christian.page@cerfacs.fr
 
@@ -704,6 +705,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 /********************************************************************************************************/

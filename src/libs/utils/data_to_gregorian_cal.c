@@ -6,12 +6,13 @@
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
 /* Date of creation: oct 2008                            */
-/* Last date of modification: jul 2011                   */
+/* Last date of modification: dec 2012                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
-/* Current revision: 1.1                                 */
+/* Current revision: 1.2                                 */
 /* ***************************************************** */
 /* Revisions                                             */
+/* 1.2: Fix bug with 360_day calendar and missing Dec 31 */
 /* 1.1: Updated for utCalendar2_cal (udunits2)           */
 /* ***************************************************** */
 /*! \file data_to_gregorian_cal.c
@@ -20,7 +21,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2011)
+Copyright Cerfacs (Christian Page) (2012)
 
 christian.page@cerfacs.fr
 
@@ -54,6 +55,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -117,6 +119,8 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
   int chour; /* A given hour */
   int cminutes; /* A given minute */
   double cseconds; /* A given second */
+
+  int sup = 0; /* To indicate supplemental duplicated timestep for end of period out of weird calendars like 360_day */
 
   /* Initializing */
   *bufout = NULL;
@@ -253,6 +257,13 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
       ref_year = year[ntimein-1];
       ref_month = month[ntimein-1];
       ref_day = day[ntimein-1];
+      /* End Dec 31st and not Dec 30th... for 360-days calendar */
+      if (!strcmp(cal_type, "360_day") &&
+          (ref_month == 1 || ref_month == 3 || ref_month == 5 || ref_month == 7 || ref_month == 8 || ref_month == 10 || ref_month == 12)
+          && ref_day == 30) {
+        ref_day = 31;
+        sup = 1;
+      }
       ref_hour = hour[ntimein-1];
       ref_minutes = 0;
       ref_seconds = 0.0;
@@ -297,6 +308,17 @@ data_to_gregorian_cal_d(double **bufout, double **outtimeval, int *ntimeout, dou
             /* Exit loop */
             tt = ntimein+10;
           }
+        }
+        if ( (sup == 1) && (tt < (ntimein+10)) ) {
+          /* Copy it */
+          for (j=0; j<nj; j++)
+            for (i=0; i<ni; i++)
+              (*bufout)[i+j*ni+t*ni*nj] = (double) bufin[i+j*ni+(ntimein-1)*ni*nj];
+          /* Get current day with hour, minutes and seconds at 00:00:00 */
+          istat = utInvCalendar2(ref_year, ref_month, ref_day+t, 0, 0, 0.0, dataunit_out, &curtime);
+          /* Construct new time vector */
+          (*outtimeval)[t] = (double) curtime;
+          tt = ntimein+10;
         }
         if (tt < (ntimein+10)) {
           /* We didn't found the time in the input time vector... */
@@ -406,6 +428,8 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
   int chour; /* A given hour */
   int cminutes; /* A given minute */
   double cseconds; /* A given second */
+
+  int sup = 0; /* To indicate supplemental duplicated timestep for end of period out of weird calendars like 360_day */
 
   /* Initializing */
   *bufout = NULL;
@@ -542,6 +566,13 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
       ref_year = year[ntimein-1];
       ref_month = month[ntimein-1];
       ref_day = day[ntimein-1];
+      /* End Dec 31st and not Dec 30th... for 360-days calendar */
+      if (!strcmp(cal_type, "360_day") &&
+          (ref_month == 1 || ref_month == 3 || ref_month == 5 || ref_month == 7 || ref_month == 8 || ref_month == 10 || ref_month == 12) 
+          && ref_day == 30) {
+        ref_day = 31;
+        sup = 1;
+      }
       ref_hour = hour[ntimein-1];
       ref_minutes = 0;
       ref_seconds = 0.0;
@@ -586,6 +617,17 @@ data_to_gregorian_cal_f(float **bufout, double **outtimeval, int *ntimeout, floa
             /* Exit loop */
             tt = ntimein+10;
           }
+        }
+        if ( (sup == 1) && (tt < (ntimein+10)) ) {
+          /* Copy it */
+          for (j=0; j<nj; j++)
+            for (i=0; i<ni; i++)
+              (*bufout)[i+j*ni+t*ni*nj] = (float) bufin[i+j*ni+(ntimein-1)*ni*nj];
+          /* Get current day with hour, minutes and seconds at 00:00:00 */
+          istat = utInvCalendar2(ref_year, ref_month, ref_day+t, 0, 0, 0.0, dataunit_out, &curtime);
+          /* Construct new time vector */
+          (*outtimeval)[t] = (double) curtime;
+          tt = ntimein+10;
         }
         if (tt < (ntimein+10)) {
           /* We didn't found the time in the input time vector... */

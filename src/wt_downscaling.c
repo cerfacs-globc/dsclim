@@ -19,7 +19,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2011)
+Copyright Cerfacs (Christian Page) (2012)
 
 christian.page@cerfacs.fr
 
@@ -53,6 +53,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -569,7 +570,8 @@ wt_downscaling(data_struct *data) {
                                 data->conf->season[s].ndays, data->conf->season[s].ndayschoices, data->reg->npts,
                                 data->conf->season[s].shuffle, data->conf->season[s].secondary_choice,
                                 data->conf->season[s].secondary_main_choice, data->conf->season[s].secondary_cov,
-                                data->conf->use_downscaled_year, data->field[cat+2].nlon_ls, data->field[cat+2].nlat_ls,
+                                data->conf->use_downscaled_year, data->conf->only_wt,
+                                data->field[cat+2].nlon_ls, data->field[cat+2].nlat_ls,
                                 data->learning->sup_nlon, data->learning->sup_nlat);
           if (istat != 0) return istat;
         }

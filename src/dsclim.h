@@ -4,7 +4,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2011)
+Copyright Cerfacs (Christian Page) (2012)
 
 christian.page@cerfacs.fr
 
@@ -38,6 +38,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 #ifndef DSCLIM_H
@@ -400,6 +401,7 @@ typedef struct {
   int secondary_main_choice; /**< Choose analog days using main and secondary large-scale fields. */
   int secondary_cov; /**< Use covariance instead of spatially-averaged secondary large-scale field. */
   int ndayschoices; /**< Number of days to choose before shuffling or sorting. */
+  int ndayschoices_min; /**< Minimum number of days to choose before shuffling or sorting: supplemental days up to ndayschoices are included in the set only if they are within 2 sigma the median values of these minimum number of days spatial correlation. */
   int ndays; /**< Number of +- days around current *day of year* being downscaled to search. Hard-bounded by seasons.. */
 } season_struct;
 
@@ -466,6 +468,7 @@ typedef struct {
   char *analog_file_ctrl; /**< Analog data filename for control run. */
   char *analog_file_other; /**< Analog data filename for control run. */
   int use_downscaled_year; /**< If we want to also search the analog day in the year of the current downscaled year. */
+  int only_wt; /**< If we want to restrict search to only the same weather type. */
   double deltat; /**< Absolute difference of temperature to use to correct temperature when downscaling and comparing large-scale temperature index. */
 } conf_struct;
 
@@ -502,7 +505,7 @@ int find_the_days(analog_day_struct analog_days, double *precip_index, double *p
                   int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
                   int *year_learn, int *month_learn, int *day_learn, char *time_units,
                   int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
-                  int sup_choice, int sup_cov, int use_downscaled_year, int nlon, int nlat, int sup_nlon, int sup_nlat);
+                  int sup_choice, int sup_cov, int use_downscaled_year, int only_wt, int nlon, int nlat, int sup_nlon, int sup_nlat);
 void compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days, double *sup_field_index,
                                         double *sup_field_index_learn, double sup_field_var, double sup_field_var_learn, int ntimes);
 int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int *merged_itimes, int ntimes_merged, int ntimes);

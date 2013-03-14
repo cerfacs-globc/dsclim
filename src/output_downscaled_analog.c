@@ -11,7 +11,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2011)
+Copyright Cerfacs (Christian Page) (2012)
 
 christian.page@cerfacs.fr
 
@@ -45,6 +45,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -406,6 +407,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
       }
       else {
         /* Months in observation files begins in January: must have 1 year in filename */
+        year1 = analog_days.year[t];
         if (obs_var->year_digits == 4)
           /* Process each variable and create input filenames */
           for (var=0; var<obs_var->nobs_var; var++)
@@ -611,8 +613,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
               tas_correction = FALSE;
           }
 
-          if (tas_correction == FALSE)
-            (void) fprintf(stderr, "%s: WARNING: No temperature correction can be done to precipitation partition or infra-red radiation required temperature variables are not available! It needs at least either average daily or hourly temperature, or, with daily data, min and max temperatures.\n", __FILE__);
+          //            (void) fprintf(stderr, "%s: WARNING: No temperature correction can be done to precipitation partition or infra-red radiation required temperature variables are not available! It needs at least either average daily or hourly temperature, or, with daily data, min and max temperatures.\n", __FILE__);
 
           /* Correct average temperature and related variables (precipitation partition, infra-red radiation) */
           if (varid_tas >= 0 && tas_correction == TRUE) {

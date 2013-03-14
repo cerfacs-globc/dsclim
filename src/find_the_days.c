@@ -11,7 +11,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2011)
+Copyright Cerfacs (Christian Page) (2012)
 
 christian.page@cerfacs.fr
 
@@ -48,6 +48,7 @@ LICENSE END */
 
 
 
+
 #include <dsclim.h>
 
 /** Find analog days given cluster, supplemental large-scale field, and precipitation distances. */
@@ -57,7 +58,7 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
               int *class_clusters, int *class_clusters_learn, int *year, int *month, int *day,
               int *year_learn, int *month_learn, int *day_learn, char *time_units,
               int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
-              int sup_choice, int sup_cov, int use_downscaled_year, int nlon, int nlat, int sup_nlon, int sup_nlat) {
+              int sup_choice, int sup_cov, int use_downscaled_year, int only_wt, int nlon, int nlat, int sup_nlon, int sup_nlat) {
   /**
      @param[out]  analog_days           Analog days time indexes and dates, as well as corresponding downscale dates
      @param[in]   precip_index          Precipitation index of days to downscale
@@ -88,6 +89,7 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
      @param[in]   sup_choice            if we want to use the secondary large-scale field in the first selection of the analog day
      @param[in]   sup_cov               if we want to use covariance of fields instead of averaged-field differences
      @param[in]   use_downscaled_year   if we want to also search the analog day in the year of the current downscaled year
+     @param[in]   only_wt               if we want to restrict search within the same weather type
      @param[in]   nlon                  longitude dimension
      @param[in]   nlat                  latitude dimension
      @param[in]   sup_nlon              secondary large-scale field longitude dimension (for covariance)
@@ -310,16 +312,17 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
     /* If at least one day was in range */
     if (ntime_days > 0) {
 
-      /* Put the maximum value when cluster number is not the same */
-      /* Parse each days within range */
-      for (tl=0; tl<ntime_days; tl++) {
-        if (clust_diff[tl] != 0) {
-          metric[tl] = max_metric;
-          if (sup_choice == TRUE || sup == TRUE)
+      if (only_wt != 0)
+        /* Put the maximum value when cluster number is not the same */
+        /* Parse each days within range */
+        for (tl=0; tl<ntime_days; tl++) {
+          if (clust_diff[tl] != 0) {
+            metric[tl] = max_metric;
+            if (sup_choice == TRUE || sup == TRUE)
             metric_sup[tl] = max_metric_sup;
+          }
         }
-      }
-
+      
       /*
         for (tl=0; tl<ntime_days; tl++)
         if (year_learn[ntime_days_learn[tl]] == 2005 && month_learn[ntime_days_learn[tl]] == 5 && day_learn[ntime_days_learn[tl]] == 29) {

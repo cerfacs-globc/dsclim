@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2011)
+Copyright Cerfacs (Christian Page) (2012)
 
 christian.page@cerfacs.fr
 
@@ -44,6 +44,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -382,6 +383,17 @@ load_conf(data_struct *data, char *fileconf) {
   else
     data->conf->use_downscaled_year = 1;
   (void) fprintf(stdout, "%s: Use_downscaled_year = %d\n", __FILE__, data->conf->use_downscaled_year);
+  if (val != NULL)
+    (void) xmlFree(val);    
+
+  /** only_wt **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]", "setting", "only_wt");
+  val = xml_get_setting(conf, path);
+  if (val != NULL)
+    data->conf->only_wt = xmlXPathCastStringToNumber(val);
+  else
+    data->conf->only_wt = 1;
+  (void) fprintf(stdout, "%s: only_wt = %d\n", __FILE__, data->conf->only_wt);
   if (val != NULL)
     (void) xmlFree(val);    
 
@@ -3217,6 +3229,21 @@ load_conf(data_struct *data, char *fileconf) {
           data->conf->season[i].ndayschoices = 16;
         else
           data->conf->season[i].ndayschoices = 11;
+
+      /** number_of_days_choices_min **/
+      (void) sprintf(path, "/configuration/%s/%s[@id=\"%d\"]", "setting", "number_of_days_choices_min", i+1);
+      val = xml_get_setting(conf, path);
+      if (val != NULL) {
+        data->conf->season[i].ndayschoices_min = xmlXPathCastStringToNumber(val);
+        (void) fprintf(stdout, "%s: season #%d number_of_days_choices_min = %d\n", __FILE__, i+1, data->conf->season[i].ndayschoices_min);
+        (void) xmlFree(val);
+      }
+      else
+        data->conf->season[i].ndayschoices_min = 5;
+      if (data->conf->season[i].ndayschoices_min > data->conf->season[i].ndayschoices) {
+        (void) fprintf(stderr, "%s: WARNING: number_of_days_choices_min (%d) > number_of_days_choices (%d). Setting number_of_days_choices_min = number_of_days_choices (%d)\n", __FILE__, data->conf->season[i].ndayschoices_min, data->conf->season[i].ndayschoices, data->conf->season[i].ndayschoices);
+        data->conf->season[i].ndayschoices_min = data->conf->season[i].ndayschoices;
+      }
 
       /** days_shuffle **/
       (void) sprintf(path, "/configuration/%s/%s[@id=\"%d\"]", "setting", "days_shuffle", i+1);

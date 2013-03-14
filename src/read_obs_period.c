@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2011)
+Copyright Cerfacs (Christian Page) (2012)
 
 christian.page@cerfacs.fr
 
@@ -44,6 +44,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -158,9 +159,11 @@ read_obs_period(double **buffer, double **lon, double **lat, double *missing_val
       }
       else {
         /* Months in observation files begins in January: must have 1 year in filename */
-        if (data->conf->obs_var->year_digits == 4)
+        if (data->conf->obs_var->year_digits == 4) {
+          year1 = year[t];
           (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
                          data->conf->obs_var->acronym[var], year1);
+        }
         else {
           tmpi = year1 / 100;
           year1 = year1 - (tmpi*100);

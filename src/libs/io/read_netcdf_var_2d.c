@@ -18,7 +18,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2011)
+Copyright Cerfacs (Christian Page) (2012)
 
 christian.page@cerfacs.fr
 
@@ -52,6 +52,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -111,7 +112,10 @@ read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *pro
   if (outinfo == TRUE)
     printf("%s: Opening for reading NetCDF input file %s\n", __FILE__, filename);
   istat = nc_open(filename, NC_NOWRITE, &ncinid);  /* open for reading */
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  if (istat != NC_NOERR) {
+    printf("%s: Failed Opening for reading NetCDF input file %s\n", __FILE__, filename);
+    handle_netcdf_error(istat, __FILE__, __LINE__);
+  }
 
   if (outinfo == TRUE)
     printf("%s: READ %s %s\n", __FILE__, varname, filename);
