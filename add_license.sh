@@ -7,10 +7,10 @@ do
   if fgrep 'LICENSE BEGIN' $i
   then
     sed -e '/\/\* LICENSE BEGIN/,/LICENSE END \*\// { d ; }' $i > $i.$$
-    sed -e '/^\*\//r license_code2012.txt' $i.$$ > $i.2.$$
+    sed -e '/^\*\//r license_code2013.txt' $i.$$ > $i.2.$$
     mv $i.2.$$ $i.$$
   else
-    sed -e '/^\*\//r license_code2012.txt' $i > $i.$$
+    sed -e '/^\*\//r license_code2013.txt' $i > $i.$$
   fi
   if [ -s $i.$$ ]
   then
