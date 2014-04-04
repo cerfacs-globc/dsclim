@@ -21,7 +21,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2013)
+Copyright Cerfacs (Christian Page) (2014)
 
 christian.page@cerfacs.fr
 
@@ -55,6 +55,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
