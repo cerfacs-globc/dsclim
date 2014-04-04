@@ -4,5 +4,9 @@ setenv CC gcc
 setenv F77 gfortran
 setenv FC gfortran
 
-./configure --prefix=/home/globc/page/codes/local --with-debugging=4 --with-zlib=/data/local64 --with-szlib=/data/local64 --with-hdf5=/data/local64 --with-netcdf=/data/local64 --with-udunits=/data/local64/udunits2
+setenv PATH /usr/bin:/usr/sbin:/sbin:/bin:/usr/bin/X11:/usr/etc:/usr/local/bin
+
+./configure --prefix=/home/globc/page/codes/local --with-debugging=4 --with-hdf5=/data/local64 --with-netcdf=/data/local64 --with-udunits=/data/local64/udunits2 --with-xml2=/data/local64
+
+
 

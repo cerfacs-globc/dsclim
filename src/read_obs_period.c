@@ -251,7 +251,11 @@ read_obs_period(double **buffer, double **lon, double **lat, double *missing_val
         /* Transfer data */
         for (j=0; j<(*nlat); j++)
           for (i=0; i<(*nlon); i++)
-            (*buffer)[i+j*(*nlon)+t*(*nlon)*(*nlat)] = buf[i+j*(*nlon)];
+            if (buf[i+j*(*nlon)] != (*missing_value))
+              (*buffer)[i+j*(*nlon)+t*(*nlon)*(*nlat)] = (buf[i+j*(*nlon)] * data->conf->obs_var->factor[var]) +
+                data->conf->obs_var->delta[var];
+            else
+              (*buffer)[i+j*(*nlon)+t*(*nlon)*(*nlat)] = (*missing_value);
                     
         /* Free allocated memory */
         (void) free(proj->name);

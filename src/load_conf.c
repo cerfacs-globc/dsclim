@@ -74,7 +74,7 @@ load_conf(data_struct *data, char *fileconf) {
   char *path = NULL; /* XPath */
 
   char *token; /* Token for string decoding */
-  char *saveptr; /* Pointer to save buffer data for thread-safe strtok use */
+  char *saveptr = NULL; /* Pointer to save buffer data for thread-safe strtok use */
   char *catstr; /* Category string */
   char *catstrt; /* Category string */
 
@@ -2209,6 +2209,32 @@ load_conf(data_struct *data, char *fileconf) {
     data->learning->nomvar_precip_reg_vif = strdup("vif");
   (void) fprintf(stdout, "%s: Learning nomvar_precip_reg_vif = %s\n", __FILE__, data->learning->nomvar_precip_reg_vif);
   
+  /** nomvar_precip_reg_dist **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_reg_dist");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_precip_reg_dist = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_precip_reg_dist == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_precip_reg_dist, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_precip_reg_dist = strdup("dist");
+  (void) fprintf(stdout, "%s: Learning nomvar_precip_reg_dist = %s\n", __FILE__, data->learning->nomvar_precip_reg_dist);
+  
+  /** nomvar_precip_reg_err **/
+  (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_reg_err");
+  val = xml_get_setting(conf, path);
+  if (val != NULL) {
+    data->learning->nomvar_precip_reg_err = (char *) malloc((xmlStrlen(val)+1) * sizeof(char));
+    if (data->learning->nomvar_precip_reg_err == NULL) alloc_error(__FILE__, __LINE__);
+    (void) strcpy(data->learning->nomvar_precip_reg_err, (char *) val);
+    (void) xmlFree(val);
+  }
+  else
+    data->learning->nomvar_precip_reg_err = strdup("err");
+  (void) fprintf(stdout, "%s: Learning nomvar_precip_reg_err = %s\n", __FILE__, data->learning->nomvar_precip_reg_err);
+  
   /** nomvar_precip_index **/
   (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s", "setting", "learning", "nomvar_precip_index");
   val = xml_get_setting(conf, path);
@@ -2890,6 +2916,21 @@ load_conf(data_struct *data, char *fileconf) {
           (void) fprintf(stdout, "%s: units scaling = %lf\n", __FILE__, data->field[cat].data[i].eof_info->eof_scale);
           if (val != NULL)
             (void) xmlFree(val);    
+
+          /** eof_weight **/
+          (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@id=\"%d\"]", "setting", catstr, "eof_weight", i+1);
+          val = xml_get_setting(conf, path);
+          if (val != NULL) 
+            data->field[cat].data[i].eof_info->eof_weight = (int) strtol((char *) val, (char **)NULL, 10);
+          else
+            data->field[cat].data[i].eof_info->eof_weight = FALSE;
+          if (data->field[cat].data[i].eof_info->eof_weight != FALSE && data->field[cat].data[i].eof_info->eof_weight != TRUE) {
+            (void) fprintf(stderr, "%s: Invalid or missing downscaling eof_weight value %s in configuration file. Aborting.\n", __FILE__, val);
+            return -1;
+          }
+          (void) fprintf(stdout, "%s: downscaling eof_weight = %d\n", __FILE__, data->field[cat].data[i].eof_info->eof_weight);
+          if (val != NULL) 
+            (void) xmlFree(val);
 
           /** eof_name **/
           (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s[@id=\"%d\"]", "setting", catstr, "eof_name", i+1);

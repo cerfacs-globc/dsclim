@@ -1,0 +1,8 @@
+#!/bin/csh
+#
+setenv CC gcc
+setenv F77 gfortran
+setenv FC gfortran
+
+./configure --prefix=/home/globc/page/codes/local --with-debugging=4 --with-udunits=/usr/local_gcc --with-xml2=/usr
+

@@ -304,7 +304,11 @@ free_main_data(data_struct *data) {
     if (data->conf->output_only != TRUE) {
       (void) free(data->learning->data[s].weight);
       (void) free(data->learning->data[s].precip_reg);
+      if (data->learning->data[s].precip_reg_dist != NULL)
+        (void) free(data->learning->data[s].precip_reg_dist);
       (void) free(data->learning->data[s].precip_reg_cst);
+      if (data->learning->data[s].precip_reg_err != NULL) 
+        (void) free(data->learning->data[s].precip_reg_err);
       if (data->learning->learning_provided == FALSE) {
         (void) free(data->learning->data[s].precip_reg_rsq);
         (void) free(data->learning->data[s].precip_reg_vif);
@@ -391,7 +395,7 @@ free_main_data(data_struct *data) {
 
   (void) free(data->learning->time_s);
 
-  if (data->learning->learning_provided == TRUE) {
+  if (data->learning->learning_provided == TRUE && data->conf->output_only != TRUE) {
     (void) free(data->learning->filename_open_weight);
     (void) free(data->learning->filename_open_learn);
     (void) free(data->learning->filename_open_clust_learn);
@@ -404,10 +408,13 @@ free_main_data(data_struct *data) {
   (void) free(data->learning->nomvar_weight);
   (void) free(data->learning->nomvar_class_clusters);
   (void) free(data->learning->nomvar_precip_reg);
+  (void) free(data->learning->nomvar_precip_reg_dist);
   (void) free(data->learning->nomvar_precip_reg_cst);
   (void) free(data->learning->nomvar_precip_reg_rsq);
   (void) free(data->learning->nomvar_precip_reg_acor);
   (void) free(data->learning->nomvar_precip_reg_vif);
+  if (data->learning->nomvar_precip_reg_err != NULL)
+    (void) free(data->learning->nomvar_precip_reg_err);
   (void) free(data->learning->nomvar_precip_index);
   (void) free(data->learning->nomvar_precip_index_obs);
   (void) free(data->learning->nomvar_sup_index);
@@ -419,7 +426,7 @@ free_main_data(data_struct *data) {
   (void) free(data->learning->sup_latname);
   (void) free(data->learning->sup_lonname);
 
-  if (data->learning->learning_save == TRUE) {
+  if (data->learning->learning_save == TRUE && data->conf->output_only != TRUE) {
     (void) free(data->learning->filename_save_weight);
     (void) free(data->learning->filename_save_learn);
     (void) free(data->learning->filename_save_clust_learn);

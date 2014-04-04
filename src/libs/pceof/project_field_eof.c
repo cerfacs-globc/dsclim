@@ -46,15 +46,12 @@ knowledge of the CeCILL license and that you accept its terms.
 LICENSE END */
 
 
-
-
-
 #include <pceof.h>
 
 /** Subroutine to project a 2D-time field on pre-calculated EOFs. */
 int
 project_field_eof(double *bufout, double *bufin, double *bufeof, double *singular_value,
-                  double missing_value_eof, double scale, int ni, int nj, int ntime, int neof)
+                  double missing_value_eof, double *lon, double *lat, double scale, int ni, int nj, int ntime, int neof)
 {
   /**
      @param[out]     bufout            Output 2D (neof x ntime) projected bufin field using input eof and singular_value
@@ -62,6 +59,8 @@ project_field_eof(double *bufout, double *bufin, double *bufeof, double *singula
      @param[in]      bufeof            EOF of input field 3D (ni x nj x neof)
      @param[in]      singular_value    Singular value for EOF
      @param[in]      missing_value_eof Missing value for bufeof
+     @param[in]      lon               Longitude
+     @param[in]      lat               Latitude
      @param[in]      scale             Scaling for units to apply before projecting onto EOF
      @param[in]      ni                Horizontal dimension
      @param[in]      nj                Horizontal dimension
@@ -81,6 +80,10 @@ project_field_eof(double *bufout, double *bufin, double *bufeof, double *singula
   double variance_bufout; /* Variance of output buffer */
   double tot_variance_bufout = 0.0; /* Total Variance of output buffer */
 
+  double sum_scal = 0.0; /* EOF scaling factor sum */
+  double *scal = NULL; /* EOF Scaling factor */
+  double e1n, e2n; /* Scaling factor components */
+
   int eof; /* Loop counter */
   int i; /* Loop counter */
   int j; /* Loop counter */
@@ -91,6 +94,8 @@ project_field_eof(double *bufout, double *bufin, double *bufeof, double *singula
   /* Allocate memory */
   true_val = (double *) malloc(ni*nj * sizeof(double));
   if (true_val == NULL) alloc_error(__FILE__, __LINE__);
+  scal = (double *) malloc(ni*nj * sizeof(double));
+  if (scal == NULL) alloc_error(__FILE__, __LINE__);
 
   /* Compute norm */
 
@@ -139,8 +144,34 @@ project_field_eof(double *bufout, double *bufin, double *bufeof, double *singula
                    eof, sum_verif_norm);
     if (fabs(sum_verif_norm) < 0.01) {
       (void) fprintf(stderr, "%s: FATAL ERROR: Re-norming does not equal 1.0 : %lf.\nAborting\n", __FILE__, sum_verif_norm);
+      /* Free memory */
+      (void) free(true_val);
+      (void) free(scal);
       return -1;
     }
+
+    /* Compute EOF scale factor */
+    sum_scal = 0.0;
+    for (j=0; j<nj; j++)
+      for (i=0; i<ni; i++) {
+        if (j < (nj-1))
+          e1n = ( 2.0*M_PI*EARTH_RADIUS/(DEGTORAD*lon[i+j*ni]) ) * fabs( cos( DEGTORAD*(lat[i+(j+1)*ni]-lat[i+j*ni]) ) );
+        else
+          e1n = ( 2.0*M_PI*EARTH_RADIUS/(DEGTORAD*lon[i+j*ni]) ) * fabs( cos( DEGTORAD*(lat[i+j*ni]-lat[i+(j-1)*ni]) ) );
+        if (j < (nj-1))
+          e2n = ( 2.0*EARTH_RADIUS ) * fabs( cos( DEGTORAD*(lat[i+(j+1)*ni]-lat[i+j*ni]) ) );
+        else
+          e2n = ( 2.0*EARTH_RADIUS ) * fabs( cos( DEGTORAD*(lat[i+j*ni]-lat[i+(j-1)*ni]) ) );
+        //        printf("%lf %lf\n",e1n,e2n);
+        scal[i+j*ni] = e1n * e2n;
+        sum_scal += scal[i+j*ni];
+      }
+    for (j=0; j<nj; j++)
+      for (i=0; i<ni; i++) {
+        scal[i+j*ni] = sqrt( scal[i+j*ni] * (1.0/sum_scal) );
+        //        if (eof == 0)
+        //          printf("%d %d lon=%lf %lf %lf\n",i,j,lon[i+j*ni],lat[i+j*ni],scal[i+j*ni]);
+      }
 
     /* Project field onto EOF */
     for (t=0; t<ntime; t++) {
@@ -148,8 +179,10 @@ project_field_eof(double *bufout, double *bufin, double *bufeof, double *singula
       for (j=0; j<nj; j++)
         for (i=0; i<ni; i++)
           if (bufeof[i+j*ni+eof*ni*nj] != missing_value_eof)
+            /*            sum += ( bufin[i+j*ni+t*ni*nj] * scale * scal[i+j*ni] / sqrt(norm) * true_val[i+j*ni] );*/
             sum += ( bufin[i+j*ni+t*ni*nj] * scale / sqrt(norm) * true_val[i+j*ni] );
       bufout[t+eof*ntime] = sum;
+      //      printf("%d %d %lf\n",t,eof,sum);
     }
 
     variance_bufout = gsl_stats_variance(&(bufout[eof*ntime]), 1, ntime);
@@ -164,6 +197,9 @@ project_field_eof(double *bufout, double *bufin, double *bufeof, double *singula
     (void) fprintf(stdout, "%s: %lf\n", __FILE__, sqrt(variance_bufout) / singular_value[eof]);
     if ( (sqrt(gsl_stats_variance(&(bufout[eof*ntime]), 1, ntime)) / singular_value[eof]) >= 10.0) {
       (void) fprintf(stderr, "%s: FATAL ERROR: Problem in scaling factor! Variance is not of the same order. Verify configuration file scaling factor.\nAborting\n", __FILE__);
+      /* Free memory */
+      (void) free(true_val);
+      (void) free(scal);
       return -1;
     }
   }
@@ -173,6 +209,7 @@ project_field_eof(double *bufout, double *bufin, double *bufeof, double *singula
 
   /* Free memory */
   (void) free(true_val);
+  (void) free(scal);
 
   /* Success status */
   return 0;

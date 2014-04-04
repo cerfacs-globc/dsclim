@@ -91,12 +91,12 @@ fi
   AC_MSG_CHECKING(for udunits 2.x)
   AC_MSG_RESULT($udunits_dir)
   AC_CHECK_HEADER(udunits2.h,passed=1,passed=0)
-  AC_CHECK_LIB(udunits2,utInit,passed=1,passed=0,-lm -lexpat)
+  AC_CHECK_LIB(udunits2,utInit,passed=1,passed=0,-lm)
   AC_MSG_CHECKING(if udunits 2.x support package is complete)
 
   if test $passed -gt 0
   then
-    UDUNITS_LIBS='-ludunits2 -lexpat -lm'
+    UDUNITS_LIBS='-ludunits2 -lm'
     AC_SUBST(UDUNITS_LIBS)
     UDUNITS_CPPFLAGS='-I${udunits_dir}/include'
     AC_SUBST(UDUNITS_CPPFLAGS)
@@ -165,6 +165,52 @@ else
   exit
 fi
 
+# Check szlib library
+AC_ARG_WITH([szlib],
+        [AC_HELP_STRING([--with-szlib=SZLIB],
+        [use specified szlib installation directory])],
+        szlib_dir=$withval, szlib_dir='system')
+
+if test $szlib_dir != 'system'
+then
+  CPPFLAGS="$CPPFLAGS -I${szlib_dir}/include"
+  LDFLAGS="$LDFLAGS -L${szlib_dir}/lib"
+fi
+
+AC_MSG_CHECKING(for szlib)
+AC_MSG_RESULT()
+AC_CHECK_HEADER(szlib.h,passed=1,passed=0)
+AC_CHECK_LIB(sz,SZ_Decompress,passed=1,passed=0)
+AC_MSG_CHECKING(if szlib support package is complete)
+
+if test $passed -gt 0
+then
+  AC_DEFINE(HAVE_SZLIB,1,Define if you have SZLIB library)
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_NOTICE([
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  CONFIGURATION ERROR: SZLIB required.
+  SZLIB installation is not working or missing.
+
+  The HDF5 Library includes a predefined compression filter that 
+  uses the extended-Rice lossless compression algorithm for chunked 
+  datasets. For more information about Szip compression and license 
+  terms, see http://hdfgroup.org/doc_resource/SZIP/.
+
+  To fix this problem you have the following options.
+  1) Check if you have SZLIB installed in a path different from your system path.
+     In this case you can provide your SZLIB installation path to the configure
+     through the option --with-szlib="your_szlib_path"
+  2) Precompiled Szip binaries for each supported platform and a source 
+     tar file can be found at ftp://ftp.hdfgroup.org/lib-external/szip/.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ])
+  exit
+fi
+
 # Check HDF5 library
 AC_ARG_WITH([hdf5],
         [AC_HELP_STRING([--with-hdf5=HDF5],
@@ -180,7 +226,7 @@ fi
 AC_MSG_CHECKING(for hdf5)
 AC_MSG_RESULT()
 AC_CHECK_HEADER(hdf5.h,passed=1,passed=0)
-AC_CHECK_LIB(hdf5,H5check_version,passed=1,passed=0,-lhdf5_hl -lz -lm)
+AC_CHECK_LIB(hdf5,H5check_version,passed=1,passed=0,-lhdf5_hl -lsz -lz -lm)
 AC_MSG_CHECKING(if hdf5 support package is complete)
 
 if test $passed -gt 0
@@ -220,12 +266,12 @@ fi
 AC_MSG_CHECKING(for netcdf)
 AC_MSG_RESULT()
 AC_CHECK_HEADER(netcdf.h,passed=1,passed=0)
-AC_CHECK_LIB(netcdf,nc_create,passed=1,passed=0,-lhdf5_hl -lhdf5 -lz -lm)
+AC_CHECK_LIB(netcdf,nc_create,passed=1,passed=0,-lhdf5_hl -lhdf5 -lsz -lz -lm)
 AC_MSG_CHECKING(if netcdf support package is complete)
 
 if test $passed -gt 0
 then
-  NCDF_LIBS='-lnetcdf -lhdf5_hl -lhdf5 -lz -lm'
+  NCDF_LIBS='-lnetcdf -lhdf5_hl -lhdf5 -lsz -lz -lm'
   AC_SUBST(NCDF_LIBS)
   NCDF_CPPFLAGS='-I${netcdf_dir}/include'
   AC_SUBST(NCDF_CPPFLAGS)
@@ -253,52 +299,10 @@ fi
 
 AX_PATH_GSL(1.0, [], [])
 
-# Check xml2 library
-AC_ARG_WITH([xml2],
-        [AC_HELP_STRING([--with-xml2=XML2],
-        [use specified xml2 installation directory])],
-        xml2_dir=$withval, xml2_dir='system')
-
-if test $xml2_dir != 'system'
-then
-  CPPFLAGS="$CPPFLAGS -I${xml2_dir}/include/libxml2"
-  LDFLAGS="$LDFLAGS -L${xml2_dir}/lib"
-fi
-
-AC_MSG_CHECKING(for xml2)
-AC_MSG_RESULT($xml2_dir)
-AC_CHECK_HEADER(libxml/parser.h,passed=1,passed=0)
-AC_CHECK_LIB(xml2,xmlInitParser,passed=1,passed=0,-lxml2)
-AC_MSG_CHECKING(if xml2 support package is complete)
-
-if test $passed -gt 0
-then
-  XML_LIBS='-lxml2'
-  AC_SUBST(XML_LIBS)
-  XML_CPPFLAGS='-I${xml2_dir}/include/libxml2'
-  AC_SUBST(XML_CPPFLAGS)
-  XML_LDFLAGS='-L${xml2_dir}/lib'
-  AC_SUBST(XML_CPPFLAGS)
-  AC_DEFINE(HAVE_XML2,1,Define if you have XML2 library)
-  AC_MSG_RESULT(yes)
-else
-  AC_MSG_NOTICE([
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  CONFIGURATION ERROR: XML2 required.
-  XML2 installation is not working or missing.
-
-  To fix this problem you have the following options.
-  1) Check if you have XML2 installed in a path different from your system path.
-     In this case you can provide your XML2 installation path to the configure
-     through the option --with-xml2="your_xml2_path"
-  2) With your package manager, install the XML2 library.
-  3) Source code for XML2 can be found at http://www.xml2.net/.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ])
-  exit
-fi
+# Checl libxml2 library
+AM_PATH_XML2([], [], [AC_MSG_ERROR([*** cannot find the libxml2 library ])])
+AC_SUBST(XML_CPPFLAGS)
+AC_SUBST(XML_LIBS)
 
 # Example to add --with option
 #AC_ARG_WITH([readline],

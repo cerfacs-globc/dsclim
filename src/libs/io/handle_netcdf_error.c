@@ -71,6 +71,5 @@ handle_netcdf_error(int status, char *srcfilename, int lineno)
 
   if (status != NC_NOERR) {
     fprintf(stderr, "Source file: %s  Line: %d  Error %d: %s\n", srcfilename, lineno, status, nc_strerror(status));
-    exit(-1);
   }
 }

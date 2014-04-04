@@ -138,7 +138,7 @@ wt_learning(data_struct *data) {
   int j;
   int pt;
   int term;
-  int npt;
+  int *npt = NULL;
 
   /* udunits variables */
   ut_system *unitSystem = NULL; /* Unit System (udunits) */
@@ -244,7 +244,7 @@ wt_learning(data_struct *data) {
             precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] = missing_value_precip;
     (void) free(precip_liquid_obs);
     (void) free(precip_solid_obs);
-    
+
     /* Apply mask for learning data */
     if (data->conf->learning_maskfile->use_mask == TRUE) {
       /* Allocate memory */
@@ -277,41 +277,35 @@ wt_learning(data_struct *data) {
     (void) printf("%s: Perform spatial mean of observed precipitation around regression points.\n", __FILE__);
     mean_precip = (double *) malloc(data->reg->npts * data->learning->obs->ntime * sizeof(double));
     if (mean_precip == NULL) alloc_error(__FILE__, __LINE__);
+    npt = (int *) malloc(data->learning->obs->ntime * sizeof(int));
+    if (npt == NULL) alloc_error(__FILE__, __LINE__);
     for (pt=0; pt<data->reg->npts; pt++) {
-      for (t=0; t<data->learning->obs->ntime; t++)
+      for (t=0; t<data->learning->obs->ntime; t++) {
         mean_precip[t+pt*data->learning->obs->ntime] = 0.0;
-      npt = 0;
+        npt[t] = 0;
+      }
       for (j=0; j<data->learning->nlat; j++)
         for (i=0; i<data->learning->nlon; i++) {
           dist_pt = distance_point(data->reg->lon[pt], data->reg->lat[pt],
                                    data->learning->lon[i+j*data->learning->nlon], data->learning->lat[i+j*data->learning->nlon]);
-          if (dist_pt <= data->reg->dist) {
-            //(0)     139 3 41.5516 9.17469
-            //            if (pt == 0)
-            //              printf("%d %d %f %f %f\n",i,j,data->learning->lon[i+j*data->learning->nlon], data->learning->lat[i+j*data->learning->nlon],dist_pt);
-            //            if (pt == 0 && i == 139 && j == 3)
-              //              for (t=0; t<data->learning->obs->ntime; t++)
-              //                printf("DDD %d %f\n",t,precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat]);
+          if (dist_pt <= data->reg->dist)
             for (t=0; t<data->learning->obs->ntime; t++)
-              if (precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] != missing_value_precip)
+              if (precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] != missing_value_precip) {
                 mean_precip[t+pt*data->learning->obs->ntime] +=
                   precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat];
-            npt++;
-          }
+                npt[t]++;
+              }
         }
-      if (npt == 0) {
-        (void) fprintf(stderr, "%s: ERROR: There are no point of observation in the vicinity of the regression point #%d at a minimum distance of at least %f meters! Verify your regression points, or the configuration of your coordinate variable names in your configuration file. Must abort...\n",
-                       __FILE__, pt, data->reg->dist);
-        return -1;
-      }
-      for (t=0; t<data->learning->obs->ntime; t++) {
-        //        if (pt == 0)
-        //          printf("AAA %d %f\n",t,mean_precip[t+pt*data->learning->obs->ntime]);
-        mean_precip[t+pt*data->learning->obs->ntime] = sqrt(mean_precip[t+pt*data->learning->obs->ntime] / (double) npt);
-        //        if (pt == 0)
-        //          printf("BBB %d %f\n",t,mean_precip[t+pt*data->learning->obs->ntime]);
-      }
+      for (t=0; t<data->learning->obs->ntime; t++)
+        if (npt[t] == 0) {
+          (void) fprintf(stderr, "%s: ERROR: There are no point of observation in the vicinity of the regression point #%d at a minimum distance of at least %f meters! Verify your regression points, or the configuration of your coordinate variable names in your configuration file. Time=%d. Must abort...\n",
+                         __FILE__, pt, data->reg->dist, t);
+          return -1;
+        }
+      for (t=0; t<data->learning->obs->ntime; t++)
+        mean_precip[t+pt*data->learning->obs->ntime] = sqrt(mean_precip[t+pt*data->learning->obs->ntime] / (double) npt[t]);
     }
+    (void) free(npt);
     (void) free(precip_obs);
 
     /* Select common time period between the re-analysis and the observation data periods for */
@@ -594,10 +588,15 @@ wt_learning(data_struct *data) {
       if (data->learning->data[s].precip_reg_cst == NULL) alloc_error(__FILE__, __LINE__);
       data->learning->data[s].precip_reg = (double *) malloc(data->reg->npts*data->conf->season[s].nreg * sizeof(double));
       if (data->learning->data[s].precip_reg == NULL) alloc_error(__FILE__, __LINE__);
+      data->learning->data[s].precip_reg_dist = (double *)
+        malloc(data->conf->season[s].nclusters*ntime_sub[s] * sizeof(double));
+      if (data->learning->data[s].precip_reg_dist == NULL) alloc_error(__FILE__, __LINE__);
       data->learning->data[s].precip_index = (double *) malloc(data->reg->npts*ntime_sub[s] * sizeof(double));
       if (data->learning->data[s].precip_index == NULL) alloc_error(__FILE__, __LINE__);
       data->learning->data[s].precip_index_obs = (double *) malloc(data->reg->npts*ntime_sub[s] * sizeof(double));
       if (data->learning->data[s].precip_index_obs == NULL) alloc_error(__FILE__, __LINE__);
+      data->learning->data[s].precip_reg_err = (double *) malloc(data->reg->npts*ntime_sub[s] * sizeof(double));
+      if (data->learning->data[s].precip_reg_err == NULL) alloc_error(__FILE__, __LINE__);
       data->learning->data[s].precip_reg_rsq = (double *) malloc(data->reg->npts * sizeof(double));
       if (data->learning->data[s].precip_reg_rsq == NULL) alloc_error(__FILE__, __LINE__);
       data->learning->data[s].precip_reg_vif = (double *) malloc(data->conf->season[s].nreg * sizeof(double));
@@ -605,13 +604,20 @@ wt_learning(data_struct *data) {
       data->learning->data[s].precip_reg_autocor = (double *) malloc(data->reg->npts * sizeof(double));
       if (data->learning->data[s].precip_reg_autocor == NULL) alloc_error(__FILE__, __LINE__);
 
+      /* Save distances */
+      for (t=0; t<ntime_sub[s]; t++)
+        for (clust=0; clust<data->conf->season[s].nclusters; clust++)
+          data->learning->data[s].precip_reg_dist[clust+t*data->conf->season[s].nclusters] = dist[t+clust*ntime_sub[s]];
+
       for (pt=0; pt<data->reg->npts; pt++) {
         /* Compute regression and save regression constant */
         istat = regress(precip_reg, dist_reg, &(mean_precip_sub[pt*ntime_sub[s]]), &(data->learning->data[s].precip_reg_cst[pt]),
                         precip_index, precip_err, &chisq, &rsq, vif, &autocor, data->conf->season[s].nreg, ntime_sub[s]);
-
         /* Save R^2 */
         data->learning->data[s].precip_reg_rsq[pt] = rsq;
+        /* Save residuals */
+        for (t=0; t<ntime_sub[s]; t++)
+          data->learning->data[s].precip_reg_err[pt+t*data->reg->npts] = precip_err[t];
         /* Save autocorrelation of residuals */
         data->learning->data[s].precip_reg_autocor[pt] = autocor;
         /* Save Variance Inflation Factor VIF, and compute mean VIF */

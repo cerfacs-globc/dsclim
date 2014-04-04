@@ -527,6 +527,10 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
               istat = read_netcdf_var_3d_2d(&(buf[var]), info_tmp[var], proj_tmp, infile[var], obs_var->acronym[var],
                                             obs_var->dimxname, obs_var->dimyname, obs_var->timename,
                                             tl, &nlon, &nlat, &ntime_file, FALSE);
+              /* Apply factor and delta */
+              for (j=0; j<nlat; j++)
+                for (i=0; i<nlon; i++)
+                  buf[var][i+j*nlon] = (buf[var][i+j*nlon] * obs_var->factor[var]) + obs_var->delta[var];
               /* Overwrite units and height if it was specified in configuration file. In that case, the value is not unknown. */
               if ( strcmp(obs_var->units[var], "unknown")) {
                 (void) free(info_tmp[var]->units);
@@ -958,9 +962,28 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
           (void) free(proj_tmp);        
         }
         else {
-          if ( !strcmp(obs_var->frequency, "hourly") )
+          //output_downscaled_analog.c: Fatal error in algorithm: analog date 3276 2000 12 31 19 not found in database!!
+          //output_downscaled_analog.c: Writing data to /home/globc/page/downscaling_v2/data/results/scratch2010/hourly/arpege/arpege_ref/uvas_1d_19820101_19821231.nc
+          //output_downscaled_analog.c: Fatal error in algorithm: analog date 12050 2000 12 31 19 not found in database!!
+          if ( !strcmp(obs_var->frequency, "hourly") ) {
             (void) fprintf(stderr, "%s: Fatal error in algorithm: analog date %d %d %d %d %d not found in database!!\n", __FILE__, t,
                            analog_days.year[t],analog_days.month[t],analog_days.day[t],hour);
+            minh = 0;
+            maxh = 23;
+            for (hour=minh; hour<=maxh; hour++) {
+              found = FALSE;
+              tl = 0;
+              while (tl<ntime_obs && found == FALSE) {
+                (void) printf("%d %d %d %d %d\n",tl,time_s->year[tl],time_s->month[tl],time_s->day[tl],time_s->hour[tl]);
+                if (analog_days.year[t] == time_s->year[tl] && analog_days.month[t] == time_s->month[tl] &&
+                    analog_days.day[t] == time_s->day[tl] && hour == time_s->hour[tl]) {
+                  found = TRUE;
+                  (void) printf("Found analog %d %d %d %d\n",tl,analog_days.year[t],analog_days.month[t],analog_days.day[t]);
+                }
+                tl++;
+              }
+            }
+          }
           else
             (void) fprintf(stderr, "%s: Fatal error in algorithm: analog date %d %d %d %d not found in database!!\n", __FILE__, t,
                            analog_days.year[t],analog_days.month[t],analog_days.day[t]);

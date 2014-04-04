@@ -89,7 +89,6 @@ LICENSE END */
 #endif
 
 #include <zlib.h>
-#include <szlib.h>
 #include <hdf5.h>
 #include <netcdf.h>
 

@@ -116,6 +116,7 @@ read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *pro
   if (istat != NC_NOERR) {
     printf("%s: Failed Opening for reading NetCDF input file %s\n", __FILE__, filename);
     handle_netcdf_error(istat, __FILE__, __LINE__);
+    return -1;
   }
 
   if (outinfo == TRUE)
@@ -123,26 +124,26 @@ read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *pro
 
   /* Get dimensions length */
   istat = nc_inq_dimid(ncinid, dimyname, &latdiminid);  /* get ID for lat dimension */
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  if (istat != NC_NOERR) { handle_netcdf_error(istat, __FILE__, __LINE__); return -1; }
   istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  if (istat != NC_NOERR) { handle_netcdf_error(istat, __FILE__, __LINE__); return -1; }
   *nlat = (int) dimval;
 
   istat = nc_inq_dimid(ncinid, dimxname, &londiminid);  /* get ID for lon dimension */
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  if (istat != NC_NOERR) { handle_netcdf_error(istat, __FILE__, __LINE__); return -1; }
   istat = nc_inq_dimlen(ncinid, londiminid, &dimval); /* get lon length */
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  if (istat != NC_NOERR) { handle_netcdf_error(istat, __FILE__, __LINE__); return -1; }
   *nlon = (int) dimval;
   
   /* Get main variable ID */
   istat = nc_inq_varid(ncinid, varname, &varinid); /* get main variable ID */
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  if (istat != NC_NOERR) { handle_netcdf_error(istat, __FILE__, __LINE__); return -1; }
 
   /** Read data variable **/
   
   /* Get variable information */
   istat = nc_inq_var(ncinid, varinid, (char *) NULL, &vartype_main, &varndims, vardimids, (int *) NULL);
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  if (istat != NC_NOERR) { handle_netcdf_error(istat, __FILE__, __LINE__); return -1; }
 
   /* Verify that variable is really 2D or 1D */
   if (varndims != 2 && varndims != 1) {
@@ -266,7 +267,7 @@ read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *pro
     /* Get projection variable ID */
     if ( !strcmp(grid_mapping, "Lambert_Conformal") ) {
       istat = nc_inq_varid(ncinid, grid_mapping, &projinid); /* get projection variable ID */
-      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      if (istat != NC_NOERR) { handle_netcdf_error(istat, __FILE__, __LINE__); return -1; }
     }
     if (proj->name != NULL)
       if ( (strcmp(grid_mapping, "Lambert_Conformal") && strcmp(grid_mapping, "Latitude_Longitude")) &&
@@ -284,7 +285,7 @@ read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *pro
                       Lambert_Conformal:false_northing = 2200000.f ;
       */
       istat = nc_get_var1_int(ncinid, projinid, 0, &vali);
-      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
+      if (istat != NC_NOERR) { handle_netcdf_error(istat, __FILE__, __LINE__); return -1; }
       proj->name = strdup(grid_mapping);
       istat = get_attribute_str(&(proj->grid_mapping_name), ncinid, projinid, "grid_mapping_name");
       
@@ -363,11 +364,11 @@ read_netcdf_var_2d(double **buf, info_field_struct *info_field, proj_struct *pro
 
   /* Read values from netCDF variable */
   istat = nc_get_vara_double(ncinid, varinid, start, count, *buf);
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  if (istat != NC_NOERR) { handle_netcdf_error(istat, __FILE__, __LINE__); return -1; }
 
   /* Close the input netCDF file. */
   istat = ncclose(ncinid);
-  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  if (istat != NC_NOERR) { handle_netcdf_error(istat, __FILE__, __LINE__); return -1; }
 
   /* Free memory */
   (void) free(tmpstr);

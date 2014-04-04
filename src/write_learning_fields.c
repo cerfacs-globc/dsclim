@@ -74,11 +74,13 @@ write_learning_fields(data_struct *data) {
   int lonoutid; /* NetCDF longitude variable ID */
   int *cstoutid; /* NetCDF regression constant variable ID */
   int *regoutid; /* NetCDF regression coefficients variable ID */
+  int *distoutid; /* NetCDF regression distances variable ID */
   int *rrdoutid; /* NetCDF precipitation index variable ID */
   int *rrooutid; /* NetCDF observed precipitation index variable ID */
   int *taoutid; /* NetCDF secondary large-scale field index variable ID */
   int *tadoutid; /* NetCDF secondary large-scale 2D field variable ID */
   int *rsqoutid; /* NetCDF regression R^2 variable ID */
+  int *erroutid; /* NetCDF regression residuals variable ID */
   int *acoroutid; /* NetCDF regression autocorrelation variable ID */
   int *vifoutid; /* NetCDF regression VIF variable ID */
   int pcoutid; /* NetCDF pc_normalized_var variable ID */
@@ -126,6 +128,8 @@ write_learning_fields(data_struct *data) {
   if (cstoutid == NULL) alloc_error(__FILE__, __LINE__);
   regoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
   if (regoutid == NULL) alloc_error(__FILE__, __LINE__);
+  distoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
+  if (distoutid == NULL) alloc_error(__FILE__, __LINE__);
   rrdoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
   if (rrdoutid == NULL) alloc_error(__FILE__, __LINE__);
   rrooutid = (int *) malloc(data->conf->nseasons * sizeof(int));
@@ -140,6 +144,8 @@ write_learning_fields(data_struct *data) {
   if (weightoutid == NULL) alloc_error(__FILE__, __LINE__);
   rsqoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
   if (rsqoutid == NULL) alloc_error(__FILE__, __LINE__);
+  erroutid = (int *) malloc(data->conf->nseasons * sizeof(int));
+  if (erroutid == NULL) alloc_error(__FILE__, __LINE__);
   acoroutid = (int *) malloc(data->conf->nseasons * sizeof(int));
   if (acoroutid == NULL) alloc_error(__FILE__, __LINE__);
   vifoutid = (int *) malloc(data->conf->nseasons * sizeof(int));
@@ -267,6 +273,24 @@ write_learning_fields(data_struct *data) {
     istat = nc_put_att_text(ncoutid, regoutid[s], "units", strlen(tmpstr), tmpstr);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+    /* Define regression distances variables */
+    if (data->learning->data[s].precip_reg_dist != NULL) {
+      (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_dist, s+1);
+      vardimids[0] = timedimoutid[s];
+      vardimids[1] = clustdimoutid[s];
+      istat = nc_def_var(ncoutid, nomvar, NC_DOUBLE, 2, vardimids, &(distoutid[s]));
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      
+      istat = nc_put_att_double(ncoutid, distoutid[s], "missing_value", NC_DOUBLE, 1, &fillvalue);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      istat = sprintf(tmpstr, "%s_%d %s_%d", data->learning->nomvar_time, s+1, data->learning->nomvar_class_clusters, s+1);
+      istat = nc_put_att_text(ncoutid, distoutid[s], "coordinates", strlen(tmpstr), tmpstr);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      istat = sprintf(tmpstr, "none");
+      istat = nc_put_att_text(ncoutid, distoutid[s], "units", strlen(tmpstr), tmpstr);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    }
+
     /* Define regression R^2 diagnostic */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_rsq, s+1);
     vardimids[0] = ptsdimoutid;
@@ -281,6 +305,24 @@ write_learning_fields(data_struct *data) {
     istat = nc_put_att_text(ncoutid, rsqoutid[s], "units", strlen(tmpstr), tmpstr);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     
+    /* Define regression residuals diagnostic */
+    if (data->learning->data[s].precip_reg_err != NULL) {
+      (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_err, s+1);
+      vardimids[0] = timedimoutid[s];
+      vardimids[1] = ptsdimoutid;
+      istat = nc_def_var(ncoutid, nomvar, NC_DOUBLE, 2, vardimids, &(erroutid[s]));
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      
+      istat = nc_put_att_double(ncoutid, erroutid[s], "missing_value", NC_DOUBLE, 1, &fillvalue);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      istat = sprintf(tmpstr, "%s %s_%d", data->conf->ptsname, data->learning->nomvar_time, s+1);
+      istat = nc_put_att_text(ncoutid, erroutid[s], "coordinates", strlen(tmpstr), tmpstr);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      istat = sprintf(tmpstr, "none");
+      istat = nc_put_att_text(ncoutid, erroutid[s], "units", strlen(tmpstr), tmpstr);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    }
+
     /* Define regression autocorrelation diagnostic */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_acor, s+1);
     vardimids[0] = ptsdimoutid;
@@ -495,6 +537,18 @@ write_learning_fields(data_struct *data) {
     istat = nc_put_vara_double(ncoutid, regoutid[s], start, count, data->learning->data[s].precip_reg);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
+    /* Write regressions distances */
+    if (data->learning->data[s].precip_reg_dist != NULL) {
+      start[0] = 0;
+      start[1] = 0;
+      start[2] = 0;
+      count[0] = (size_t) data->learning->data[s].ntime;
+      count[1] = (size_t) data->conf->season[s].nclusters;
+      count[2] = 0;
+      istat = nc_put_vara_double(ncoutid, distoutid[s], start, count, data->learning->data[s].precip_reg_dist);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    }
+
     /* Write regression R^2 diagnostic */
     start[0] = 0;
     start[1] = 0;
@@ -504,6 +558,18 @@ write_learning_fields(data_struct *data) {
     count[2] = 0;
     istat = nc_put_vara_double(ncoutid, rsqoutid[s], start, count, data->learning->data[s].precip_reg_rsq);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    
+    if (data->learning->data[s].precip_reg_err != NULL) {
+      /* Write regression residuals diagnostic */
+      start[0] = 0;
+      start[1] = 0;
+      start[2] = 0;
+      count[0] = (size_t) data->learning->data[s].ntime;
+      count[1] = (size_t) data->reg->npts;
+      count[2] = 0;
+      istat = nc_put_vara_double(ncoutid, erroutid[s], start, count, data->learning->data[s].precip_reg_err);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    }
     
     /* Write regression autocorrelation diagnostic */
     start[0] = 0;
@@ -800,6 +866,7 @@ write_learning_fields(data_struct *data) {
   (void) free(timeoutid);
   (void) free(cstoutid);
   (void) free(regoutid);
+  (void) free(distoutid);
   (void) free(rrdoutid);
   (void) free(rrooutid);
   (void) free(taoutid);
@@ -807,6 +874,7 @@ write_learning_fields(data_struct *data) {
   (void) free(clustoutid);
   (void) free(weightoutid);
   (void) free(rsqoutid);
+  (void) free(erroutid);
   (void) free(acoroutid);
   (void) free(vifoutid);
 

@@ -276,7 +276,60 @@ read_learning_fields(data_struct *data) {
       return istat;
     }
 
-    /* Read cluster distances data */
+    /* Read optional precip_reg_err data (regression residuals for learning period over all regression points) */
+    (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_err, i+1);
+    istat = read_netcdf_var_2d(&(data->learning->data[i].precip_reg_err), (info_field_struct *) NULL, (proj_struct *) NULL,
+                               data->learning->filename_open_learn,
+                               nomvar, data->conf->ptsname, nomvar_time,
+                               &npts, &(data->learning->data[i].ntime), TRUE);
+    if (istat != 0) {
+      /* In case of failure */
+      /* Support the fact that this variable is not in pre-1.5.15 dsclim version output files, so it is optional */
+      data->learning->data[i].precip_reg_err = NULL;
+      (void) fprintf(stderr, "%s: WARNING: Old learning file without precip_reg_err data.\n", __FILE__);
+    }
+    else {
+      /* Verify that points dimension match configuration value */
+      if (npts != data->reg->npts) {
+        (void) fprintf(stderr, "%s: ERROR: Incorrect number of points in NetCDF file %d vs configuration file %d.\n",
+                       __FILE__, npts, data->reg->npts);
+        (void) free(nomvar);
+        (void) free(nomvar_time);
+        (void) free(nomvar_season);
+        (void) free(name);
+        return -1;
+      }
+    }
+
+    /* Read cluster distances data (normalized distances for learning period over all clusters) */
+    (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_dist, i+1);
+    istat = read_netcdf_var_2d(&(data->learning->data[i].precip_reg_dist), (info_field_struct *) NULL, (proj_struct *) NULL,
+                               data->learning->filename_open_learn,
+                               nomvar, data->conf->ptsname, nomvar_time,
+                               &nclusters, &(data->learning->data[i].ntime), TRUE);
+    if (istat != 0) {
+      /* In case of failure */
+      /* Support the fact that this variable is not in pre-1.5.15 dsclim version output files, so it is optional */
+      data->learning->data[i].precip_reg_dist = NULL;
+      (void) fprintf(stderr, "%s: WARNING: Old learning file without cluster distances data.\n", __FILE__);
+    }
+    else {
+      /* If clusters dimension is not initialized, use retrieved info from input file */
+      if (data->conf->season[i].nclusters == -1)
+        data->conf->season[i].nclusters = nclusters;
+      /* Else verify that they match */
+      else if (data->conf->season[i].nclusters != nclusters) {
+        (void) fprintf(stderr, "%s: ERROR: Incorrect number of clusters in NetCDF file. Season %d, nclusters=%d vs configuration file %d.\n",
+                       __FILE__, i, nclusters, data->conf->season[i].nclusters);
+        (void) free(nomvar);
+        (void) free(nomvar_time);
+        (void) free(nomvar_season);
+        (void) free(name);
+        return -1;
+      }
+    }
+
+    /* Read cluster allocation data */
     bufd = NULL;
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_class_clusters, i+1);
     istat = read_netcdf_var_1d(&bufd, (info_field_struct *) NULL,

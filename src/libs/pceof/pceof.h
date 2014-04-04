@@ -91,6 +91,11 @@ LICENSE END */
 /** FALSE value macro is 0. */
 #define FALSE 0
 
+/** Earth Radius. */
+#define EARTH_RADIUS 6371229.0
+/** Convert Degrees to Radian. */
+#define DEGTORAD M_PI/180.0
+
 #include <gsl/gsl_statistics.h>
 
 /* Local dependent includes */
@@ -99,6 +104,6 @@ LICENSE END */
 /* Prototypes */
 void normalize_pc(double *norm_all, double *first_variance, double *buf_renorm, double *bufin, int neof, int ntime);
 int project_field_eof(double *bufout, double *bufin, double *bufeof, double *singular_value,
-                            double missing_value_eof, double scale, int ni, int nj, int ntime, int neof);
+                      double missing_value_eof, double *lon, double *lat, double scale, int ni, int nj, int ntime, int neof);
 
 #endif

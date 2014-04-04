@@ -101,13 +101,13 @@ sub_period_common(double **buf_sub, int *ntime_sub, double *bufin, int *year, in
   if ( (*ntime_sub) == 0 ) {
     (void) fprintf(stderr, "%s: FATAL ERROR: No common subperiod! Maybe a problem in the time representation in the control run file.\nAborting.\n", __FILE__);
     (void) printf("MODEL TIMES ntime=%d\n", ntime);
-#if DEBUG > 7
+    //#if DEBUG > 7
     for (t=0; t<ntime; t++)
       (void) printf("%d %d %d\n", year[t], month[t], day[t]);
     (void) printf("LEARNING TIMES ntime=%d\n", ntime_learn);
     for (t=0; t<ntime_learn; t++)
       (void) printf("%d %d %d\n", year_learn[t], month_learn[t], day_learn[t]);
-#endif
+    //#endif
     return -1;
   }
   

@@ -74,7 +74,6 @@ LICENSE END */
 
 /* NetCDF-related includes */
 #include <zlib.h>
-#include <szlib.h>
 #include <hdf5.h>
 #include <netcdf.h>
 
@@ -175,6 +174,7 @@ typedef struct {
 /* Can be NULL for non-appropriate category. */
   int eof_project; /**< If we want to project a large scale field onto its EOF. */
   double eof_scale; /**< Large scale field scaling for projection on EOF. */
+  int eof_weight; /**< If we want to apply EOF surface weighting (default is not, scaling weight factor 1.0). */
   char *eof_filein_ls; /**< EOF and singular values of large-scale fields input filename. */
   info_field_struct *info; /**< Information (field attributes) about large scale fields EOF. */
   int neof_ls; /**< EOF dimension of large scale fields. */
@@ -272,8 +272,10 @@ typedef struct {
   double *precip_reg; /**< Precipitation regression values. */
   double *precip_reg_cst; /**< Precipitation regression constant values. */
   double *precip_reg_rsq; /**< Precipitation regression statistics R^2. */
+  double *precip_reg_err; /**< Precipitation regression statistics residuals. */
   double *precip_reg_vif; /**< Precipitation regression statistics VIF Variance Inflation Factor. */
   double *precip_reg_autocor; /**< Precipitation regression statistics auto-correlation of residuals. */
+  double *precip_reg_dist; /**< Precipitation regression distance values to each cluster. */
   double *precip_index; /**< Precipitation index. */
   double *precip_index_obs; /**< Observed precipitation index on regression points. */
   double *sup_index; /**< Secondary field index. */
@@ -310,7 +312,9 @@ typedef struct {
   char *nomvar_precip_reg_cst; /**< NetCDF variable name for precipitation regression constant. */
   char *nomvar_precip_index; /**< NetCDF variable name for precipitation index. */
   char *nomvar_precip_index_obs; /**< NetCDF variable name for observed precipitation index. */
+  char *nomvar_precip_reg_dist; /**< NetCDF variable name for distance regression diagnostic. */
   char *nomvar_precip_reg_rsq; /**< NetCDF variable name for R^2 regression diagnostic. */
+  char *nomvar_precip_reg_err; /**< NetCDF variable name for residuals regression diagnostic. */
   char *nomvar_precip_reg_acor; /**< NetCDF variable name for autocorrelation regression diagnostic. */
   char *nomvar_precip_reg_vif; /**< NetCDF variable name for VIF regression diagnostic. */
   char *nomvar_sup_index; /**< NetCDF variable name for secondary large-scale field index. */

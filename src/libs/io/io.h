@@ -159,7 +159,6 @@ typedef struct {
 
 /* NetCDF-related includes */
 #include <zlib.h>
-#include <szlib.h>
 #include <hdf5.h>
 #include <netcdf.h>
 

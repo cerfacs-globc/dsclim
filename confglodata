@@ -1,0 +1,10 @@
+#!/bin/csh
+#
+setenv CC gcc44
+setenv F77 gfortran44
+setenv FC gfortran44
+setenv CPPFLAGS "-I/data/local64/include"
+setenv LDFLAGS "-L/usr/lib64 -L/data/local64/lib"
+
+./configure --prefix=/home/globc/page/codes/local --with-debugging=4 --with-xml2=/usr --with-udunits2=/data/local64/udunits2 --with-netcdf=/data/local64 --with-hdf5=/data/local64
+

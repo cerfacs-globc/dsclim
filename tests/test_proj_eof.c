@@ -89,7 +89,6 @@ LICENSE END */
 #endif
 
 #include <zlib.h>
-#include <szlib.h>
 #include <hdf5.h>
 #include <netcdf.h>
 
@@ -155,6 +154,8 @@ int main(int argc, char **argv)
   double *psl_sub = NULL;
   double *psl_eof_sub = NULL;
   double *psl_sing = NULL;
+  double *lon_sub = NULL;
+  double *lat_sub = NULL;
   double *timein = NULL;
   tstruct *timein_ts;
   double *lat = NULL;
@@ -230,13 +231,13 @@ int main(int argc, char **argv)
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
   ntime = (int) dimval;
 
-  istat = nc_inq_dimid(ncinid, "lat1", &latdiminid);  /* get ID for lat dimension */
+  istat = nc_inq_dimid(ncinid, "lat", &latdiminid);  /* get ID for lat dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
   istat = nc_inq_dimlen(ncinid, latdiminid, &dimval); /* get lat length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
   nlat = (int) dimval;
 
-  istat = nc_inq_dimid(ncinid, "lon1", &londiminid);  /* get ID for lon dimension */
+  istat = nc_inq_dimid(ncinid, "lon", &londiminid);  /* get ID for lon dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
   istat = nc_inq_dimlen(ncinid, londiminid, &dimval); /* get lon length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
@@ -244,9 +245,9 @@ int main(int argc, char **argv)
   
   istat = nc_inq_varid(ncinid, "time", &timeinid);  /* get ID for time variable */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
-  istat = nc_inq_varid(ncinid, "er40.lat", &latinid);  /* get ID for lat variable */
+  istat = nc_inq_varid(ncinid, "lat", &latinid);  /* get ID for lat variable */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
-  istat = nc_inq_varid(ncinid, "er40.lon", &loninid);  /* get ID for lon variable */
+  istat = nc_inq_varid(ncinid, "lon", &loninid);  /* get ID for lon variable */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
 
   istat = nc_inq_varid(ncinid, "psl", &varinid); /* get psl variable ID */
@@ -381,7 +382,7 @@ int main(int argc, char **argv)
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
   nlon_eof = (int) dimval;
   
-  istat = nc_inq_dimid(ncinid_eof, "pc", &eofdiminid_eof);  /* get ID for pc dimension */
+  istat = nc_inq_dimid(ncinid_eof, "eof", &eofdiminid_eof);  /* get ID for pc dimension */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
   istat = nc_inq_dimlen(ncinid_eof, eofdiminid_eof, &dimval); /* get pc length */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
@@ -559,8 +560,6 @@ int main(int argc, char **argv)
   istat = nc_enddef(ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __LINE__);
 
-
-
   /** Project data onto EOF **/
 
   clim_filter_width = 60;
@@ -571,7 +570,9 @@ int main(int argc, char **argv)
   if (psl_proj == NULL) alloc_error(__FILE__, __LINE__);
   timein_ts = (tstruct *) malloc(ntime * sizeof(tstruct));
   if (timein_ts == NULL) alloc_error(__FILE__, __LINE__);
+  printf("NLON=%d %d\n",nlon,ntime);
   (void) get_calendar_ts(timein_ts, time_units, timein, ntime);
+  printf("NLON=%d\n",nlon);
 
   /* Compute subdomain and apply to arrays */
   /*  blon=where(lone ge 345 or lone le 20)
@@ -602,19 +603,28 @@ int main(int argc, char **argv)
   psl_noclim = (double *) calloc(nlat_sub*nlon_sub*ntime, sizeof(double));
   if (psl_noclim == NULL) alloc_error(__FILE__, __LINE__);
 
+  lon_sub = (double *) malloc(nlon_sub*nlat_sub * sizeof(double));
+  if (lon_sub == NULL) alloc_error(__FILE__, __LINE__);
+  lat_sub = (double *) malloc(nlon_sub*nlat_sub * sizeof(double));
+  if (lat_sub == NULL) alloc_error(__FILE__, __LINE__);
+
   ii = 0;
   jj = 0;
   for (j=0; j<nlat; j++) {
     if (ii > 0)
       jj++;
     ii = 0;
+    printf("j=%d %d %d\n",j,nlon,nlat);
     for (i=0; i<nlon; i++) {
+      printf("i=%d\n",i);
       if (lon_eof[i] > 180.0)
         curlon = lon_eof[i] - 360.0;
       else
         curlon = lon_eof[i];
       curlat = lat_eof[j];
       if (curlon >= minlon && curlon <= maxlon && curlat >= minlat && curlat <= maxlat) {
+        lon_sub[ii+jj*nlon_sub] = lon[i+j*nlon];
+        lat_sub[ii+jj*nlon_sub] = lat[i+j*nlon];
         for (t=0; t<ntime; t++)
           psl_sub[ii+jj*nlon_sub+t*nlon_sub*nlat_sub] = psl[i+j*nlon+t*nlon*nlat];
         for (t=0; t<neof; t++)
@@ -626,7 +636,8 @@ int main(int argc, char **argv)
 
   (void) remove_seasonal_cycle(psl_noclim, psl_clim, psl_sub, timein_ts, fillvalue, clim_filter_width, clim_filter_type,
                                clim_provided, nlon_sub, nlat_sub, ntime);
-  (void) project_field_eof(psl_proj, psl_noclim, psl_eof_sub, psl_sing, fillvalue_eof, scale, nlon_sub, nlat_sub, ntime, neof);
+  (void) project_field_eof(psl_proj, psl_noclim, psl_eof_sub, psl_sing, fillvalue_eof, lon_sub, lat_sub,
+                           scale, nlon_sub, nlat_sub, ntime, neof);
 
   (void) fprintf(stderr, "Input/output time units: %s\n", time_units);
 
@@ -666,6 +677,8 @@ int main(int argc, char **argv)
   (void) free(psl_noclim);
   (void) free(psl_sub);
   (void) free(psl_eof_sub);
+  (void) free(lon_sub);
+  (void) free(lat_sub);
   (void) free(lon);
   (void) free(lat);
   (void) free(lon_eof);

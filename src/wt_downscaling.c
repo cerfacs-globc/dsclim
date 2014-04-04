@@ -186,7 +186,9 @@ wt_downscaling(data_struct *data) {
           /* Project large-scale field on EOFs */
           istat = project_field_eof(data->field[cat].data[i].field_eof_ls, data->field[cat].data[i].field_ls,
                                     data->field[cat].data[i].eof_data->eof_ls, data->field[cat].data[i].eof_data->sing_ls,
-                                    data->field[cat].data[i].eof_info->info->fillvalue, data->field[cat].data[i].eof_info->eof_scale,
+                                    data->field[cat].data[i].eof_info->info->fillvalue, 
+                                    data->field[cat].lon_eof_ls, data->field[cat].lat_eof_ls, 
+                                    data->field[cat].data[i].eof_info->eof_scale,
                                     data->field[cat].nlon_eof_ls, data->field[cat].nlat_eof_ls, data->field[cat].ntime_ls,
                                     data->field[cat].data[i].eof_info->neof_ls);
           if (istat != 0) return istat;
