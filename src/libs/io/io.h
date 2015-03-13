@@ -4,7 +4,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -38,6 +38,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -146,6 +147,8 @@ typedef struct {
   double lat0; /**< Lat0 (first latitude point) projection parameter. */
   double false_easting; /**< False_easting projection parameter. */
   double false_northing; /**< False_northing projection parameter. */
+  double latpole; /**< Latitude of North Pole projection parameter in rotated lat lon. */
+  double lonpole; /**< Longitude of North Pole projection parameter in rotated lat lon. */
 } proj_struct;
 
 /** Easy time structure of vectors. **/
@@ -200,6 +203,7 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double 
                          int nlon, int nlat, int ntime, char *timestep, char *gridname, char *coords,
                          char *grid_mapping_name, double latin1, double latin2,
                          double lonc, double lat0, double false_easting, double false_northing,
+                         double lonpole, double latpole,
                          char *lonname, char *latname, char *timename,
                          char *filename, int outinfo);
 int create_netcdf(char *title, char *title_french, char *summary, char *summary_french,

@@ -11,7 +11,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -51,6 +51,7 @@ LICENSE END */
 
 
 
+
 #include <dsclim.h>
 
 /** Read analog day data and write it for downscaled period. */
@@ -58,6 +59,7 @@ int
 output_downscaled_analog(analog_day_struct analog_days, double *delta, int output_month_begin, char *output_path,
                          char *config, char *time_units, char *cal_type,
                          double deltat, int file_format, int file_compression, int file_compression_level,
+                         int debug,
                          info_struct *info, var_struct *obs_var, period_struct *period,
                          double *time_ls, int ntime) {
   /**
@@ -72,6 +74,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
      @param[in]   file_format            File format version for NetCDF
      @param[in]   file_compression       Compression flag for NetCDF-4 file format
      @param[in]   file_compression_level Compression level for NetCDF-4 file format
+     @param[in]   debug                  Debugging supplemental info (TRUE or FALSE)
      @param[in]   info                   General meta-data information structure for NetCDF output file
      @param[in]   obs_var                Input/output observation variables data structure
      @param[in]   period                 Period structure for downscaling output
@@ -527,7 +530,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
               }
               istat = read_netcdf_var_3d_2d(&(buf[var]), info_tmp[var], proj_tmp, infile[var], obs_var->acronym[var],
                                             obs_var->dimxname, obs_var->dimyname, obs_var->timename,
-                                            tl, &nlon, &nlat, &ntime_file, FALSE);
+                                            tl, &nlon, &nlat, &ntime_file, debug);
               /* Apply factor and delta */
               for (j=0; j<nlat; j++)
                 for (i=0; i<nlon; i++)
@@ -799,8 +802,9 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                                              obs_var->proj->grid_mapping_name, obs_var->proj->latin1,
                                              obs_var->proj->latin2, obs_var->proj->lonc, obs_var->proj->lat0,
                                              obs_var->proj->false_easting, obs_var->proj->false_northing,
+                                             obs_var->proj->lonpole, obs_var->proj->latpole,
                                              obs_var->lonname, obs_var->latname, obs_var->timename,
-                                             outfile[var], FALSE);
+                                             outfile[var], debug);
                 if (istat != 0) {
                   /* In case of failure */
                   (void) free(time_s->year);
@@ -858,7 +862,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                                                info_tmp[var]->long_name, info_tmp[var]->units, info_tmp[var]->height, proj_tmp->name, 
                                                obs_var->dimxname, obs_var->dimyname, obs_var->timename,
                                                0, !(found_file[var]), file_format, file_compression_level,
-                                               nlon, nlat, ntime_file, FALSE);
+                                               nlon, nlat, ntime_file, debug);
                 found_file[var] = TRUE;
               }
               else if ( !strcmp(info->timestep, "daily") && !strcmp(obs_var->frequency, "hourly") ) {
@@ -877,7 +881,7 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                                                  info_tmp[var]->long_name, info_tmp[var]->units, info_tmp[var]->height, proj_tmp->name, 
                                                  obs_var->dimxname, obs_var->dimyname, obs_var->timename,
                                                  0, !(found_file[var]),  file_format, file_compression_level,
-                                                 nlon, nlat, ntime_file, FALSE);
+                                                 nlon, nlat, ntime_file, debug);
                   found_file[var] = TRUE;
                 }
                 else {

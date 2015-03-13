@@ -18,7 +18,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -52,6 +52,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -209,6 +210,7 @@ remove_clim(data_struct *data) {
                                        data->field[cat].proj[i].grid_mapping_name, data->field[cat].proj[i].latin1,
                                        data->field[cat].proj[i].latin2, data->field[cat].proj[i].lonc, data->field[cat].proj[i].lat0,
                                        data->field[cat].proj[i].false_easting, data->field[cat].proj[i].false_northing,
+                                       data->field[cat].proj[i].lonpole, data->field[cat].proj[i].latpole,
                                        data->field[cat].data[i].lonname, data->field[cat].data[i].latname,
                                        data->field[cat].data[i].timename,
                                        data->field[cat].data[i].clim_info->clim_fileout_ls, TRUE);
@@ -344,6 +346,7 @@ remove_clim(data_struct *data) {
                                        data->field[cat].proj[i].grid_mapping_name, data->field[cat].proj[i].latin1,
                                        data->field[cat].proj[i].latin2, data->field[cat].proj[i].lonc, data->field[cat].proj[i].lat0,
                                        data->field[cat].proj[i].false_easting, data->field[cat].proj[i].false_northing,
+                                       data->field[cat].proj[i].lonpole, data->field[cat].proj[i].latpole,
                                        data->field[cat].data[i].lonname, data->field[cat].data[i].latname,
                                        data->field[cat].data[i].timename,
                                        data->field[cat].data[i].clim_info->clim_fileout_ls, TRUE);

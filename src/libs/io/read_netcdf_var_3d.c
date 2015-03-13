@@ -5,12 +5,13 @@
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
 /* Date of creation: sep 2008                            */
-/* Last date of modification: sep 2008                   */
+/* Last date of modification: feb 2015                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
-/* Current revision:                                     */
+/* Current revision: 1.1                                 */
 /* ***************************************************** */
 /* Revisions                                             */
+/* 1.1: Added rotated_latlon projection support: C. Page */
 /* ***************************************************** */
 /*! \file read_netcdf_var_3d.c
     \brief Read a NetCDF variable.
@@ -18,7 +19,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -52,6 +53,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -279,12 +281,21 @@ read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct *pro
       istat = nc_inq_varid(ncinid, grid_mapping, &projinid); /* get projection variable ID */
       if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     }
-    if (proj->name != NULL)
-      if ( (strcmp(grid_mapping, "Lambert_Conformal") && strcmp(grid_mapping, "Latitude_Longitude")) &&
+    else if ( !strcmp(grid_mapping, "rotated_latitude_longitude") ) {
+      istat = nc_inq_varid(ncinid, grid_mapping, &projinid); /* get projection variable ID */
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    }
+    if (proj->name != NULL) {
+      if ( strcmp(grid_mapping, "Lambert_Conformal") && strcmp(grid_mapping, "Latitude_Longitude") &&
            ( !strcmp(proj->name, "Latitude_Longitude") || !strcmp(proj->name, "Lambert_Conformal") ) ) {
         (void) free(grid_mapping);
         grid_mapping = strdup(proj->name);
       }
+      else if ( strcmp(grid_mapping, "rotated_latitude_longitude") && !strcmp(proj->name, "rotated_pole") ) {
+        (void) free(grid_mapping);
+        grid_mapping = strdup("rotated_latitude_longitude");
+      }
+    }
     if ( !strcmp(grid_mapping, "Lambert_Conformal") ) {
       /*              int Lambert_Conformal ;
                       Lambert_Conformal:grid_mapping_name = "lambert_conformal_conic" ;
@@ -314,6 +325,25 @@ read_netcdf_var_3d(double **buf, info_field_struct *info_field, proj_struct *pro
       istat = nc_get_att_double(ncinid, projinid, "latitude_of_projection_origin", &(proj->lat0));
       istat = nc_get_att_double(ncinid, projinid, "false_easting", &(proj->false_easting));
       istat = nc_get_att_double(ncinid, projinid, "false_northing", &(proj->false_northing));
+    
+    }
+    else if ( !strcmp(grid_mapping, "rotated_latitude_longitude") ) {
+      /*        int rotated_pole ;
+                rotated_pole:grid_mapping_name = "rotated_latitude_longitude" ;
+                rotated_pole:grid_north_pole_latitude = 39.25 ;
+                rotated_pole:grid_north_pole_longitude = -162. ;
+      */
+      istat = nc_get_var1_int(ncinid, projinid, 0, &vali);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
+      if (proj->name != NULL)
+        (void) free(proj->name);
+      proj->name = strdup(grid_mapping);
+      if (proj->grid_mapping_name != NULL)
+        (void) free(proj->grid_mapping_name);
+      istat = get_attribute_str(&(proj->grid_mapping_name), ncinid, projinid, "grid_mapping_name");
+    
+      istat = nc_get_att_double(ncinid, projinid, "grid_north_pole_latitude", &(proj->latpole));
+      istat = nc_get_att_double(ncinid, projinid, "grid_north_pole_longitude", &(proj->lonpole));
     
     }
     else if ( !strcmp(grid_mapping, "Latitude_Longitude") ) {

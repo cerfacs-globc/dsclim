@@ -18,7 +18,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -58,11 +58,13 @@ LICENSE END */
 
 
 
+
 #include <dsclim.h>
 
 /** Read analog data from NetCDF input file. */
 void
-read_analog_data(analog_day_struct *analog_days, double **delta, double **time_ls, char *filename, char *timename) {
+read_analog_data(analog_day_struct *analog_days, double **delta, double **time_ls,
+                 char *filename, char *timename) {
   /**
      @param[out]  analog_days           Analog days time indexes and dates with corresponding dates being downscaled.
      @param[out]  delta                 Temperature difference to apply to analog day data.

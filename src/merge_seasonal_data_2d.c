@@ -54,10 +54,10 @@ LICENSE END */
 
 #include <dsclim.h>
 
-/** Merge seasonal 3D double field data using analog day structure. */
+/** Merge seasonal 3D double field data using analog day structure, with another supplemental dimension. */
 int
-merge_seasonal_data(double *buf_merged, double *buf, analog_day_struct analog_days, int *merged_itimes, int dimx, int dimy,
-                    int ntimes_merged, int ntimes) {
+merge_seasonal_data_2d(double **buf_merged, double **buf, analog_day_struct analog_days, int *merged_itimes, int dimx, int dimy,
+                       int supdim, int ntimes_merged, int ntimes) {
   /**
      @param[out]  buf_merged            3D field dimx X dimy X ntimes_merged
      @param[in]   buf                   3D field dimx X dimy X ntimes
@@ -65,6 +65,7 @@ merge_seasonal_data(double *buf_merged, double *buf, analog_day_struct analog_da
      @param[in]   merged_itimes         Time index of total time vector against current merged time vector that could span less than the whole year
      @param[in]   dimx                  X dimension
      @param[in]   dimy                  Y dimension
+     @param[in]   supdim                Supplemental dimension
      @param[in]   ntimes_merged         Number of times of days to downscale for this period, all seasons merged
      @param[in]   ntimes                Number of times of days to downscale for this period
   */
@@ -72,6 +73,7 @@ merge_seasonal_data(double *buf_merged, double *buf, analog_day_struct analog_da
   int t; /* Time loop counter */
   int i; /* Loop counter */
   int j; /* Loop counter */
+  int ii; /* Loop counter */
   int curindex; /* Current index in the merged times vector */
   int index_all; /* Current index in the whole time vector */
 
@@ -84,7 +86,8 @@ merge_seasonal_data(double *buf_merged, double *buf, analog_day_struct analog_da
     /* Retrieve values */
     for (i=0; i<dimx; i++)
       for (j=0; j<dimy; j++)
-        buf_merged[i+j*dimx+curindex*dimx*dimy] = buf[i+j*dimx+t*dimx*dimy];
+        for (ii=0; ii<supdim; ii++)
+          buf_merged[i+j*dimx+curindex*dimx*dimy][ii] = buf[i+j*dimx+t*dimx*dimy][ii];
   }
   
   /* Success status */

@@ -8,10 +8,11 @@
 /* Last date of modification: oct 2010                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
-/* Current revision: 1.1                                 */
+/* Current revision: 1.2                                 */
 /* ***************************************************** */
 /* Revisions                                             */
 /* 1.1 Added altitude optional variable                  */
+/* 1.2 Added rotated_latlon projection support: C. Page  */
 /* ***************************************************** */
 /*! \file write_netcdf_dims_3d.c
     \brief Write NetCDF dimensions and create output file.
@@ -19,7 +20,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -59,6 +60,7 @@ LICENSE END */
 
 
 
+
 #include <io.h>
 
 /** Write NetCDF dimensions and create output file. */
@@ -67,6 +69,7 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
                      int nlon, int nlat, int ntime, char *timestep, char *gridname, char *coords,
                      char *grid_mapping_name, double latin1, double latin2,
                      double lonc, double lat0, double false_easting, double false_northing,
+                     double lonpole, double latpole,
                      char *lonname, char *latname, char *timename,
                      char *filename, int outinfo) {
   /**
@@ -217,6 +220,10 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
     istat = nc_def_var(ncoutid, gridname, NC_INT, 0, 0, &projoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
+  else if ( !strcmp(gridname, "rotated_pole")) {
+    istat = nc_def_var(ncoutid, gridname, NC_INT, 0, 0, &projoutid);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  }
 
   if (alt != NULL) {
     /* Define Altitude variable */
@@ -301,6 +308,12 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
                 Lambert_Conformal:false_easting = 600000.f ;
                 Lambert_Conformal:false_northing = 2200000.f ;
     */
+    /*
+        int rotated_pole ;
+                rotated_pole:grid_mapping_name = "rotated_latitude_longitude" ;
+                rotated_pole:grid_north_pole_latitude = 39.25 ;
+                rotated_pole:grid_north_pole_longitude = -162. ;
+    */
   }
 
   if ( !strcmp(gridname, "Lambert_Conformal")) {
@@ -320,6 +333,15 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
     istat = nc_put_att_double(ncoutid, projoutid, "latitude_of_projection_origin", NC_FLOAT, 1, &lat0);
     istat = nc_put_att_double(ncoutid, projoutid, "false_easting", NC_FLOAT, 1, &false_easting);
     istat = nc_put_att_double(ncoutid, projoutid, "false_northing", NC_FLOAT, 1, &false_northing);
+  }
+  else if ( !strcmp(gridname, "rotated_pole")) {
+    
+    istat = nc_put_att_text(ncoutid, projoutid, "grid_mapping_name", strlen(grid_mapping_name), grid_mapping_name);
+    if (alt != NULL)
+      istat = nc_put_att_text(ncoutid, altoutid, "grid_mapping_name", strlen(grid_mapping_name), grid_mapping_name);
+    
+    istat = nc_put_att_double(ncoutid, projoutid, "grid_north_pole_latitude", NC_FLOAT, 1, &latpole);
+    istat = nc_put_att_double(ncoutid, projoutid, "grid_north_pole_longitude", NC_FLOAT, 1, &lonpole);
   }
 
   (void) strcpy(tmpstr, "Grid");
@@ -359,7 +381,7 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
   istat = nc_enddef(ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  if ( !strcmp(gridname, "Lambert_Conformal")) {
+  if ( !strcmp(gridname, "Lambert_Conformal") || !strcmp(gridname, "rotated_pole") ) {
     /* Write projection variable */
     vali = 1;
     istat = nc_put_var1_int(ncoutid, projoutid, 0, &vali);
@@ -443,7 +465,7 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
 
-  if ( !strcmp(gridname, "Lambert_Conformal") && x != NULL && y != NULL) {
+  if ( (!strcmp(gridname, "Lambert_Conformal")||!strcmp(gridname, "rotated_pole")) && x != NULL && y != NULL) {
     start[0] = 0;
     start[1] = 0;
     start[2] = 0;

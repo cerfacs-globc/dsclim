@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -50,15 +50,17 @@ LICENSE END */
 
 
 
+
 #include <dsclim.h>
 
 /** Save analog data information for further use. */
 void
-save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int *cluster, double *time_ls,
+save_analog_data(analog_day_struct analog_days, double *delta, double **delta_dayschoice, double *dist, int *cluster, double *time_ls,
                  char *filename, data_struct *data) {
   /**
      @param[in]   analog_days           Analog days time indexes and dates with corresponding dates being downscaled.
      @param[in]   delta                 Temperature difference to apply to analog day data.
+     @param[in]   delta_dayschoice      Temperature difference to apply to analog day data, for all ndayschoice analogs.
      @param[in]   dist                  Distance to cluster associated with each downscaled/analog day.
      @param[in]   cluster               Cluster number associated with each downscaled/analog day.
      @param[in]   time_ls               Time values in udunit
@@ -87,10 +89,12 @@ save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int
   int distoutid; /* NetCDF cluster distance variable ID */
   int clusteroutid; /* NetCDF cluster number variable ID */
   int deltatoutid; /* NetCDF delta T variable ID */
+  int deltatndaysoutid; /* NetCDF delta T ndayschoice variable ID */
   int vardimids[NC_MAX_VAR_DIMS]; /* NetCDF dimension IDs */
   
   int *buftmp = NULL; /* Temporary int buffer for writing data */
   float *buftmpf = NULL; /* Temporary float buffer for writing data */
+  //  double *buftmpd = NULL; /* Temporary double buffer for writing data */
   int maxndays; /* Maximum number of days selected for any particular date */
     
   size_t start[2]; /* Start element when writing */
@@ -305,6 +309,25 @@ save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int
   istat = nc_put_att_text(ncoutid, deltatoutid, "long_name", strlen(tmpstr), tmpstr);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   
+  /* Define analog delta Temperature ndayschoice variable */
+  vardimids[0] = timedimoutid;
+  vardimids[1] = ndayschoicedimoutid;
+  istat = nc_def_var(ncoutid, "analog_ndays_delta_t", NC_FLOAT, 2, vardimids, &deltatndaysoutid);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  fillvaluef = -9999.0;
+  istat = nc_put_att_float(ncoutid, deltatndaysoutid, "missing_value", NC_FLOAT, 1, &fillvaluef);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) sprintf(tmpstr, "time ndayschoice");
+  istat = nc_put_att_text(ncoutid, deltatndaysoutid, "coordinates", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) strcpy(tmpstr, "K");
+  istat = nc_put_att_text(ncoutid, deltatndaysoutid, "units", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) strcpy(tmpstr, "Delta of Temperature ndays");
+  istat = nc_put_att_text(ncoutid, deltatndaysoutid, "long_name", strlen(tmpstr), tmpstr);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  
   /* Define cluster distance variable */
   vardimids[0] = timedimoutid;
   istat = nc_def_var(ncoutid, "cluster_distance", NC_FLOAT, 1, vardimids, &distoutid);
@@ -509,6 +532,20 @@ save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int
   count[1] = 0;
   istat = nc_put_vara_double(ncoutid, deltatoutid, start, count, delta);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+
+  /* Write ndayschoice delta of temperature */
+  start[0] = 0;
+  start[1] = 0;
+  count[0] = (size_t) analog_days.ntime;
+  count[1] = (size_t) maxndays;
+  buftmpf = (float *) calloc(analog_days.ntime * maxndays, sizeof(float));
+  if (buftmpf == NULL) alloc_error(__FILE__, __LINE__);
+  for (t=0; t<analog_days.ntime; t++)
+    for (i=0; i<analog_days.ndayschoice[t]; i++)
+      buftmpf[i+t*maxndays] = (float) delta_dayschoice[t][i];
+  istat = nc_put_vara_float(ncoutid, deltatndaysoutid, start, count, buftmpf);
+  if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+  (void) free(buftmpf);
 
   /* Write cluster distance */
   start[0] = 0;

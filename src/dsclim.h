@@ -4,7 +4,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -38,6 +38,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -134,6 +135,7 @@ typedef struct {
   char **netcdfname; /**< Standard NetCDF variable acronym. */
   char **name; /**< Long name of observation variable. */
   char **post; /**< Post-processing attribute. */
+  char **clim; /**< Climatology Anomaly attribute. */
   char **output; /**< Output attribute. */
   char **units; /**< Units attribute for post-processing variables. */
   char **height; /**< Height attribute for post-processing variables. */
@@ -151,6 +153,7 @@ typedef struct {
   int *day; /**< Day of analog day. */
   int *ndayschoice; /**< Number of days in the first selection of analog days. */
   tstruct **analog_dayschoice; /**< All analog days in the first selection. */
+  int **tindex_dayschoice; /**< Time index of all analog days. */
   float **metric_norm; /**< Metric normalized for all analog days in the selection. */
   int ntime; /**< Number of analog times. */
   int *tindex_s_all; /**< Time index of day being downscaled in the season-merged index. */
@@ -210,8 +213,11 @@ typedef struct {
   double *mean; /**< Seasonal mean of spatially-averaged secondary fields. */
   double *var; /**< Seasonal variance of spatially-averaged secondary fields. */
   double *var_pc_norm; /**< Normalization for EOF-projected large-scale fields. */
+  int *ndayschoice; /**< Number of days in the first selection of analog days. */
   double **delta; /**< Secondary large-scale field difference between value of learning field at analog date vs model field at downscaled date, seasonal-dependent. */
   double *delta_all; /**< Secondary large-scale field difference between value of learning field at analog date vs model field at downscaled date. */
+  double ***delta_dayschoice; /**< All analog days in the first selection, seasonal-dependent. */
+  double **delta_dayschoice_all; /**< All analog days in the first selection. */
 } downscale_struct;
 
 /** Field data structure field_data_struct. */
@@ -512,24 +518,27 @@ int find_the_days(analog_day_struct analog_days, double *precip_index, double *p
                   int *year_learn, int *month_learn, int *day_learn, char *time_units,
                   int ntime, int ntime_learn, int *months, int nmonths, int ndays, int ndayschoices, int npts, int shuffle, int sup,
                   int sup_choice, int sup_cov, int use_downscaled_year, int only_wt, int nlon, int nlat, int sup_nlon, int sup_nlat);
-void compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days, double *sup_field_index,
+void compute_secondary_large_scale_diff(double *delta, double **delta_dayschoice, analog_day_struct analog_days, double *sup_field_index,
                                         double *sup_field_index_learn, double sup_field_var, double sup_field_var_learn, int ntimes);
 int merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_days, int *merged_itimes, int ntimes_merged, int ntimes);
 int merge_seasonal_data(double *buf_merged, double *buf, analog_day_struct analog_days, int *merged_itimes, int dimx, int dimy,
                         int ntimes_merged, int ntimes);
 int merge_seasonal_data_i(int *buf_merged, int *buf, analog_day_struct analog_days, int *merged_itimes, int dimx, int dimy,
                           int ntimes_merged, int ntimes);
+int merge_seasonal_data_2d(double **buf_merged, double **buf, analog_day_struct analog_days, int *merged_itimes, int dimx, int dimy,
+                           int supdim, int ntimes_merged, int ntimes);
 int output_downscaled_analog(analog_day_struct analog_days, double *delta, int output_month_begin, char *output_path,
                              char *config, char *time_units, char *cal_type, double deltat,
                              int file_format, int file_compression, int file_compression_level,
+                             int debug,
                              info_struct *info, var_struct *obs_var, period_struct *period,
                              double *time_ls, int ntime);
 int write_learning_fields(data_struct *data);
 int write_regression_fields(data_struct *data, char *filename, double **timeval, int *ntime, double **precip_index, double **distclust,
                             double **sup_index);
 void read_analog_data(analog_day_struct *analog_days, double **delta, double **time_ls, char *filename, char *timename);
-void save_analog_data(analog_day_struct analog_days, double *delta, double *dist, int *cluster, double *time_ls,
-                      char *filename, data_struct *data);
+void save_analog_data(analog_day_struct analog_days, double *delta, double **delta_dayschoice, double *dist, int *cluster,
+                      double *time_ls, char *filename, data_struct *data);
 void free_main_data(data_struct *data);
 
 #endif

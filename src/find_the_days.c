@@ -11,7 +11,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -45,6 +45,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -407,8 +408,11 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
         if (analog_days.analog_dayschoice[t] == NULL) alloc_error(__FILE__, __LINE__);
         analog_days.metric_norm[t] = (float *) malloc(ndayschoices * sizeof(float));
         if (analog_days.metric_norm[t] == NULL) alloc_error(__FILE__, __LINE__);
+        analog_days.tindex_dayschoice[t] = (int *) malloc(ndayschoices * sizeof(int));
+        if (analog_days.tindex_dayschoice[t] == NULL) alloc_error(__FILE__, __LINE__);
         for (ii=0; ii<ndayschoices; ii++) {
           analog_days.metric_norm[t][ii] = metric_norm[metric_index[ii]];
+          analog_days.tindex_dayschoice[t][ii] = ntime_days_learn[metric_index[ii]];
           analog_days.analog_dayschoice[t][ii].year = year_learn[ntime_days_learn[metric_index[ii]]];
           analog_days.analog_dayschoice[t][ii].month = month_learn[ntime_days_learn[metric_index[ii]]];
           analog_days.analog_dayschoice[t][ii].day = day_learn[ntime_days_learn[metric_index[ii]]];
@@ -473,8 +477,11 @@ find_the_days(analog_day_struct analog_days, double *precip_index, double *preci
         if (analog_days.analog_dayschoice[t] == NULL) alloc_error(__FILE__, __LINE__);
         analog_days.metric_norm[t] = (float *) malloc(ndayschoices * sizeof(float));
         if (analog_days.metric_norm[t] == NULL) alloc_error(__FILE__, __LINE__);
+        analog_days.tindex_dayschoice[t] = (int *) malloc(ndayschoices * sizeof(int));
+        if (analog_days.tindex_dayschoice[t] == NULL) alloc_error(__FILE__, __LINE__);
         for (ii=0; ii<ndayschoices; ii++) {
           analog_days.metric_norm[t][ii] = metric_norm[metric_index[ii]];
+          analog_days.tindex_dayschoice[t][ii] = ntime_days_learn[metric_index[ii]];
           analog_days.analog_dayschoice[t][ii].year = year_learn[ntime_days_learn[metric_index[ii]]];
           analog_days.analog_dayschoice[t][ii].month = month_learn[ntime_days_learn[metric_index[ii]]];
           analog_days.analog_dayschoice[t][ii].day = day_learn[ntime_days_learn[metric_index[ii]]];

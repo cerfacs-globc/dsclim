@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -44,6 +44,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -94,16 +95,12 @@ merge_seasons(analog_day_struct analog_days_merged, analog_day_struct analog_day
     //    printf("%d %d\n",analog_days_merged.ndayschoice[curindex],analog_days.ndayschoice[t]);
       if (analog_days_merged.analog_dayschoice[curindex] == NULL) alloc_error(__FILE__, __LINE__);
     }
-    else
-      fprintf(stderr,"AAAAAAAA %d %d\n",ntimes_merged,curindex);
     //    printf("%d %d\n",analog_days_merged.ndayschoice[curindex],analog_days.ndayschoice[t]);
     if (analog_days_merged.metric_norm[curindex] == NULL) {
       analog_days_merged.metric_norm[curindex] = (float *) malloc(analog_days_merged.ndayschoice[curindex] * sizeof(float));
     //    printf("%d %d\n",analog_days_merged.ndayschoice[curindex],analog_days.ndayschoice[t]);
       if (analog_days_merged.metric_norm[curindex] == NULL) alloc_error(__FILE__, __LINE__);
     }
-    else
-      fprintf(stderr,"AAAAAAAA %d %d\n",ntimes_merged,curindex);
     //    printf("%d %d\n",analog_days_merged.ndayschoice[curindex],analog_days.ndayschoice[t]);
     for (i=0; i<analog_days_merged.ndayschoice[curindex]; i++) {
       analog_days_merged.metric_norm[curindex][i] = analog_days.metric_norm[t][i];

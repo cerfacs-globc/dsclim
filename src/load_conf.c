@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -44,6 +44,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -1294,6 +1295,8 @@ load_conf(data_struct *data, char *fileconf) {
     if (data->conf->obs_var->delta == NULL) alloc_error(__FILE__, __LINE__);
     data->conf->obs_var->post = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
     if (data->conf->obs_var->post == NULL) alloc_error(__FILE__, __LINE__);
+    data->conf->obs_var->clim = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
+    if (data->conf->obs_var->clim == NULL) alloc_error(__FILE__, __LINE__);
     data->conf->obs_var->output = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
     if (data->conf->obs_var->output == NULL) alloc_error(__FILE__, __LINE__);
     data->conf->obs_var->units = (char **) malloc(data->conf->obs_var->nobs_var * sizeof(char *));
@@ -1375,6 +1378,21 @@ load_conf(data_struct *data, char *fileconf) {
       }
       if (i == 0 && !strcmp(data->conf->obs_var->post[i], "yes")) {
         (void) fprintf(stderr, "%s: Invalid observation variable postprocess setting. A variable having a postprocess attribute of \"yes\" must not be the first one in the list. Aborting.\n", __FILE__);
+        return -1;
+      }
+
+      (void) sprintf(path, "/configuration/%s[@name=\"%s\"]/%s/%s[@id=\"%d\"]/@%s", "setting", "observations", "variables", "name", i+1, "clim");
+      val = xml_get_setting(conf, path);
+      if (val != NULL) {
+        data->conf->obs_var->clim[i] = strdup((char *) val);
+        (void) xmlFree(val);
+      }
+      else {
+        data->conf->obs_var->clim[i] = strdup("no");
+      }
+
+      if ( strcmp(data->conf->obs_var->clim[i], "yes") && strcmp(data->conf->obs_var->clim[i], "no") ) {
+        (void) fprintf(stderr, "%s: Invalid observation variable climatology anomaly setting (valid values are \"yes\" or \"no\"). Aborting.\n", __FILE__);
         return -1;
       }
 
@@ -3200,6 +3218,8 @@ load_conf(data_struct *data, char *fileconf) {
           if (data->field[cat].data[i].down->var == NULL) alloc_error(__FILE__, __LINE__);
           data->field[cat].data[i].down->delta = (double **) malloc(data->conf->nseasons * sizeof(double *));
           if (data->field[cat].data[i].down->delta == NULL) alloc_error(__FILE__, __LINE__);
+          data->field[cat].data[i].down->delta_dayschoice = (double ***) malloc(data->conf->nseasons * sizeof(double **));
+          if (data->field[cat].data[i].down->delta_dayschoice == NULL) alloc_error(__FILE__, __LINE__);
           data->field[cat].data[i].down->sup_val_norm = (double **) malloc(data->conf->nseasons * sizeof(double));
           if (data->field[cat].data[i].down->sup_val_norm == NULL) alloc_error(__FILE__, __LINE__);
           /* Only needed for secondary large-scale control field */
@@ -3479,6 +3499,10 @@ load_conf(data_struct *data, char *fileconf) {
     }
   }
 
+  /* Warning for some combinations of settings */
+  for (i=0; i<data->conf->obs_var->nobs_var; i++)
+    if (strcmp(data->conf->obs_var->netcdfname[i], "rsds") && data->conf->season[i].ndays > 10 && strcmp(data->conf->obs_var->clim[i], "no") )
+      fprintf(stderr, "%s: WARNING: Number of days to search around downscaled date is greater than 10 at +-%d days and Global Solar Radiation output variable has not the clim setting set to yes.\n", __FILE__, data->conf->season[i].ndays);
 
   /* Free memory */
   (void) xml_free_config(conf);

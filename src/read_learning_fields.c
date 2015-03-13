@@ -18,7 +18,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -52,6 +52,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -304,9 +305,10 @@ read_learning_fields(data_struct *data) {
 
     /* Read cluster distances data (normalized distances for learning period over all clusters) */
     (void) sprintf(nomvar, "%s_%d", data->learning->nomvar_precip_reg_dist, i+1);
+    (void) sprintf(name, "%s_%d", data->conf->clustname, i+1);
     istat = read_netcdf_var_2d(&(data->learning->data[i].precip_reg_dist), (info_field_struct *) NULL, (proj_struct *) NULL,
                                data->learning->filename_open_learn,
-                               nomvar, data->conf->ptsname, nomvar_time,
+                               nomvar, name, nomvar_time,
                                &nclusters, &(data->learning->data[i].ntime), TRUE);
     if (istat != 0) {
       /* In case of failure */

@@ -12,7 +12,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -52,14 +52,16 @@ LICENSE END */
 
 
 
+
 #include <dsclim.h>
 
 /** Compute secondary large-scale field difference between value of learning field at analog date vs model field at downscaled date. */
 void
-compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days, double *sup_field_index,
+compute_secondary_large_scale_diff(double *delta, double **delta_dayschoice, analog_day_struct analog_days, double *sup_field_index,
                                    double *sup_field_index_learn, double sup_field_var, double sup_field_var_learn, int ntimes) {
   /**
      @param[out]  delta                 Difference between value of secondary large-scale learning field at analog date vs model field at downscaled date
+     @param[out]  delta_dayschoice      Difference between value of secondary large-scale learning field at analog date vs model field at downscaled date, for ndayschoice analog days
      @param[in]   analog_days           Analog days time indexes and dates with corresponding dates being downscaled
      @param[in]   sup_field_index       Secondary large-scale field index of days to downscale
      @param[in]   sup_field_index_learn Secondary large-scale field index of learning period
@@ -69,6 +71,7 @@ compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days,
   */
   
   int t; /* Time loop counter */
+  int ii; /* ndayschoice loop counter */
   //  double sup_diff; /**< Secondary large-scale field difference. */
   //  int count = 0;
 
@@ -77,6 +80,9 @@ compute_secondary_large_scale_diff(double *delta, analog_day_struct analog_days,
     /** Compute normalized secondary large-scale field difference (delta) **/
     delta[t] = (sup_field_index[t] * sqrt(sup_field_var)) -
       (sup_field_index_learn[analog_days.tindex[t]] * sqrt(sup_field_var_learn));
+    for (ii=0; ii<analog_days.ndayschoice[t]; ii++)
+      delta_dayschoice[t][ii] = (sup_field_index[t] * sqrt(sup_field_var)) -
+      (sup_field_index_learn[analog_days.tindex_dayschoice[t][ii]] * sqrt(sup_field_var_learn));
     
     //    if (fabs(sup_diff) > 2.0) {
     //      delta[t] = sup_diff;

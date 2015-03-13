@@ -6,13 +6,16 @@
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
 /* Date of creation: oct 2008                            */
-/* Last date of modification: jul 2011                   */
+/* Last date of modification: feb 2015                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
-/* Current revision: 1.1                                 */
+/* Current revision: 1.2                                 */
 /* Adapted to udunits2                                   */
 /* ***************************************************** */
 /* Revisions                                             */
+/* 1.1: Adapted to udunits2 (Christian Page)             */
+/* 1.2: Added deactivation of regression points with     */
+/*      all missing data in the vicinity (Christian Page)*/
 /* ***************************************************** */
 /*! \file wt_learning.c
     \brief Compute or read learning data needed for downscaling climate scenarios using weather typing.
@@ -20,7 +23,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -54,6 +57,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -140,6 +144,7 @@ wt_learning(data_struct *data) {
   int pt;
   int term;
   int *npt = NULL;
+  short int allpt;
 
   /* udunits variables */
   ut_system *unitSystem = NULL; /* Unit System (udunits) */
@@ -297,14 +302,18 @@ wt_learning(data_struct *data) {
                 npt[t]++;
               }
         }
+      allpt = FALSE;
       for (t=0; t<data->learning->obs->ntime; t++)
-        if (npt[t] == 0) {
-          (void) fprintf(stderr, "%s: ERROR: There are no point of observation in the vicinity of the regression point #%d at a minimum distance of at least %f meters! Verify your regression points, or the configuration of your coordinate variable names in your configuration file. Time=%d. Must abort...\n",
-                         __FILE__, pt, data->reg->dist, t);
-          return -1;
-        }
-      for (t=0; t<data->learning->obs->ntime; t++)
-        mean_precip[t+pt*data->learning->obs->ntime] = sqrt(mean_precip[t+pt*data->learning->obs->ntime] / (double) npt[t]);
+        if (npt[t] == 0) allpt = TRUE;
+      if (allpt == TRUE) {
+        (void) fprintf(stderr, "%s: WARNING: There are no point of observation in the vicinity of the regression point #%d at a minimum distance of at least %f meters! Verify your regression points, or the configuration of your coordinate variable names in your configuration file, or that you don't have all missing values in your observations in the vicinity of the regression point. Time=%d. lon=%lf lat=%lf. WARNING: Will desactivate this regression point.\n",
+                       __FILE__, pt, data->reg->dist, t, data->reg->lon[pt], data->reg->lat[pt]);
+        for (t=0; t<data->learning->obs->ntime; t++)
+          mean_precip[t+pt*data->learning->obs->ntime] = missing_value_precip;
+      }
+      else
+        for (t=0; t<data->learning->obs->ntime; t++)
+          mean_precip[t+pt*data->learning->obs->ntime] = sqrt(mean_precip[t+pt*data->learning->obs->ntime] / (double) npt[t]);
     }
     (void) free(npt);
     (void) free(precip_obs);

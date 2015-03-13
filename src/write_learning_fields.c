@@ -10,7 +10,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -44,6 +44,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -177,7 +178,8 @@ write_learning_fields(data_struct *data) {
   istat = nc_put_att_text(ncoutid, NC_GLOBAL, "other_contact_name", strlen(data->info->other_contact_name),
                           data->info->other_contact_name);
 
-  fillvalue = fillvaluef = -9999.9;
+  fillvalue = -9999.9;
+  fillvaluef = -9999.9;
 
   /* Set dimensions */
   istat = nc_def_dim(ncoutid, "season", data->conf->nseasons, &sdimoutid);

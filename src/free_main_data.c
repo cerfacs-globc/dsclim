@@ -18,7 +18,7 @@
 
 /* LICENSE BEGIN
 
-Copyright Cerfacs (Christian Page) (2014)
+Copyright Cerfacs (Christian Page) (2015)
 
 christian.page@cerfacs.fr
 
@@ -52,6 +52,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
+
 
 
 
@@ -164,8 +165,12 @@ free_main_data(data_struct *data) {
         (void) free(data->field[i].data[j].down->dist);
         (void) free(data->field[i].data[j].down->days_class_clusters);
         (void) free(data->field[i].data[j].down->var_pc_norm);
-        if (i == 0 || (i == 1 && data->conf->period_ctrl->downscale == TRUE))
+        if (i == 0 || (i == 1 && data->conf->period_ctrl->downscale == TRUE)) {
           (void) free(data->field[i+2].data[j].down->delta_all);
+          for (tt=0; tt<data->field[i].analog_days_year.ntime; tt++)
+            (void) free(data->field[i+2].data[j].down->delta_dayschoice_all[tt]);
+          (void) free(data->field[i+2].data[j].down->delta_dayschoice_all);
+        }
       }
       else {
         if (data->conf->period_ctrl->downscale == TRUE || i == 2)
@@ -189,14 +194,20 @@ free_main_data(data_struct *data) {
         
         if (data->conf->period_ctrl->downscale == TRUE || i == 2)
           if (data->conf->output_only != TRUE)
-            for (s=0; s<data->conf->nseasons; s++)
+            for (s=0; s<data->conf->nseasons; s++) {
+              for (tt=0; tt<data->field[0].analog_days[s].ntime; tt++) {
+                (void) free(data->field[i].data[j].down->delta_dayschoice[s][tt]);
+              }
               (void) free(data->field[i].data[j].down->delta[s]);
-
+              (void) free(data->field[i].data[j].down->delta_dayschoice[s]);
+            }
+        
         (void) free(data->field[i].data[j].down->smean_norm);
         (void) free(data->field[i].data[j].down->sup_val_norm);
         (void) free(data->field[i].data[j].down->mean);
         (void) free(data->field[i].data[j].down->var);
         (void) free(data->field[i].data[j].down->delta);
+        (void) free(data->field[i].data[j].down->delta_dayschoice);
       }
 
       (void) free(data->field[i].data[j].down);
@@ -231,17 +242,16 @@ free_main_data(data_struct *data) {
             (void) free(data->field[i].analog_days[s].year_s);
             (void) free(data->field[i].analog_days[s].month_s);
             (void) free(data->field[i].analog_days[s].day_s);
-            //            printf("%d %d\n",i,s);
-            //            printf("%d\n",data->field[i].analog_days[s].ntime);
             for (tt=0; tt<data->field[i].analog_days[s].ntime; tt++) {
-              //              printf("ALLO %d\n", tt);
               if (data->field[i].analog_days[s].analog_dayschoice[tt] != NULL)
                 (void) free(data->field[i].analog_days[s].analog_dayschoice[tt]);
-              //              printf("ALLO\n");
               if (data->field[i].analog_days[s].metric_norm[tt] != NULL)
                 (void) free(data->field[i].analog_days[s].metric_norm[tt]);
+              if (data->field[i].analog_days[s].tindex_dayschoice[tt] != NULL)
+                (void) free(data->field[i].analog_days[s].tindex_dayschoice[tt]);
             }
             (void) free(data->field[i].analog_days[s].analog_dayschoice);
+            (void) free(data->field[i].analog_days[s].tindex_dayschoice);
             (void) free(data->field[i].analog_days[s].metric_norm);
             (void) free(data->field[i].analog_days[s].ndayschoice);
           }
@@ -256,6 +266,7 @@ free_main_data(data_struct *data) {
               (void) free(data->field[i].analog_days_year.metric_norm[tt]);
           }
           (void) free(data->field[i].analog_days_year.analog_dayschoice);
+          (void) free(data->field[i].analog_days_year.tindex_dayschoice);
           (void) free(data->field[i].analog_days_year.metric_norm);
           (void) free(data->field[i].analog_days_year.ndayschoice);
         }
@@ -517,6 +528,7 @@ free_main_data(data_struct *data) {
       (void) free(data->conf->obs_var->netcdfname[i]);
       (void) free(data->conf->obs_var->name[i]);
       (void) free(data->conf->obs_var->post[i]);
+      (void) free(data->conf->obs_var->clim[i]);
       (void) free(data->conf->obs_var->output[i]);
       (void) free(data->conf->obs_var->height[i]);
       (void) free(data->conf->obs_var->units[i]);
@@ -527,6 +539,7 @@ free_main_data(data_struct *data) {
     (void) free(data->conf->obs_var->factor);
     (void) free(data->conf->obs_var->delta);
     (void) free(data->conf->obs_var->post);
+    (void) free(data->conf->obs_var->clim);
     (void) free(data->conf->obs_var->output);
     (void) free(data->conf->obs_var->height);
     (void) free(data->conf->obs_var->units);
