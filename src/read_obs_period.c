@@ -103,6 +103,10 @@ read_obs_period(double **buffer, double **lon, double **lat, double *missing_val
 
   char *prev_infile = NULL;
 
+  /* Search variable */
+  var = find_str_value(varname, data->conf->obs_var->netcdfname, data->conf->obs_var->nobs_var);
+  if (var == -1) return -2;
+
   infile = (char *) malloc(MAXPATH * sizeof(char));
   if (infile == NULL) alloc_error(__FILE__, __LINE__);
   prev_infile = (char *) malloc(MAXPATH * sizeof(char));
@@ -128,191 +132,169 @@ read_obs_period(double **buffer, double **lon, double **lat, double *missing_val
   data->conf->obs_var->proj->grid_mapping_name = NULL;
   proj->grid_mapping_name = NULL;
 
-  /* Search variable */
-  var = find_str_value(varname, data->conf->obs_var->netcdfname, data->conf->obs_var->nobs_var);
-
-  /* Found variable */
-
-  if (var != -1) {
-
-    /* Loop over time */
-    for (t=0; t<ntime; t++) {
-      
-      /* Create input filename for reading data */
-      (void) strcpy(format, "%s/%s/");
-      (void) strcat(format, data->conf->obs_var->template);
-      if (data->conf->obs_var->month_begin != 1) {
-        /* Months in observation files *does not* begin in January: must have 2 years in filename */
-        if (month[t] < data->conf->obs_var->month_begin)
-          year1 = year[t] - 1;
-        else
-          year1 = year[t];
-        year2 = year1 + 1;
-        if (data->conf->obs_var->year_digits == 4)
-          (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
-                         data->conf->obs_var->acronym[var], year1, year2);
-        else {
-          tmpi = year1 / 100;
-          year1 = year1 - (tmpi*100);
-          tmpi = year2 / 100;
-          year2 = year2 - (tmpi*100);
-          (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
-                         data->conf->obs_var->acronym[var], year1, year2);
-        }
+  /* Loop over time */
+  for (t=0; t<ntime; t++) {
+    
+    /* Create input filename for reading data */
+    (void) strcpy(format, "%s/%s/");
+    (void) strcat(format, data->conf->obs_var->template);
+    if (data->conf->obs_var->month_begin != 1) {
+      /* Months in observation files *does not* begin in January: must have 2 years in filename */
+      if (month[t] < data->conf->obs_var->month_begin)
+        year1 = year[t] - 1;
+      else
+        year1 = year[t];
+      year2 = year1 + 1;
+      if (data->conf->obs_var->year_digits == 4)
+        (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
+                       data->conf->obs_var->acronym[var], year1, year2);
+      else {
+        tmpi = year1 / 100;
+        year1 = year1 - (tmpi*100);
+        tmpi = year2 / 100;
+        year2 = year2 - (tmpi*100);
+        (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
+                       data->conf->obs_var->acronym[var], year1, year2);
+      }
+    }
+    else {
+      /* Months in observation files begins in January: must have 1 year in filename */
+      if (data->conf->obs_var->year_digits == 4) {
+        year1 = year[t];
+        (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
+                       data->conf->obs_var->acronym[var], year1);
       }
       else {
-        /* Months in observation files begins in January: must have 1 year in filename */
-        if (data->conf->obs_var->year_digits == 4) {
-          year1 = year[t];
-          (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
-                         data->conf->obs_var->acronym[var], year1);
-        }
-        else {
-          tmpi = year1 / 100;
-          year1 = year1 - (tmpi*100);
-          (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
-                         data->conf->obs_var->acronym[var], year1);
-        }
+        tmpi = year1 / 100;
+        year1 = year1 - (tmpi*100);
+        (void) sprintf(infile, format, data->conf->obs_var->path, data->conf->obs_var->frequency,
+                       data->conf->obs_var->acronym[var], year1);
+      }
+    }
+    
+    /* Get time information for this input file if needed */
+    if ( strcmp(prev_infile, infile) ) {
+      (void) printf("%s: Reading observation data %s from %s\n", __FILE__, varname, infile);
+      if (time_s != NULL) {
+        (void) free(time_s->year);
+        (void) free(time_s->month);
+        (void) free(time_s->day);
+        (void) free(time_s->hour);
+        (void) free(time_s->minutes);
+        (void) free(time_s->seconds);
+        
+        (void) free(time_s);
+        (void) free(cal_type);
+        (void) free(time_units);
+        (void) free(timeval);
       }
       
-      /* Get time information for this input file if needed */
-      if ( strcmp(prev_infile, infile) ) {
-        (void) printf("%s: Reading observation data %s from %s\n", __FILE__, varname, infile);
-        if (time_s != NULL) {
-          (void) free(time_s->year);
-          (void) free(time_s->month);
-          (void) free(time_s->day);
-          (void) free(time_s->hour);
-          (void) free(time_s->minutes);
-          (void) free(time_s->seconds);
-          
-          (void) free(time_s);
-          (void) free(cal_type);
-          (void) free(time_units);
-          (void) free(timeval);
-        }
-        
-        time_s = (time_vect_struct *) malloc(sizeof(time_vect_struct));
-        if (time_s == NULL) alloc_error(__FILE__, __LINE__);
-        
-        istat = get_time_info(time_s, &timeval, &time_units, &cal_type, &ntime_obs, infile, data->conf->obs_var->timename, FALSE);
-        if (istat < 0) {
-          (void) free(time_s);
-          (void) free(infile);
-          (void) free(prev_infile);
-          (void) free(format);
-          (void) free(info);
-          (void) free(proj);
-          return -1;
-        }
-      }
+      time_s = (time_vect_struct *) malloc(sizeof(time_vect_struct));
+      if (time_s == NULL) alloc_error(__FILE__, __LINE__);
       
-      /* Find date in observation database */
-      found = FALSE;
-      tl = 0;
-      while (tl<ntime_obs && found == FALSE) {
-        if (year[t] == time_s->year[tl] && month[t] == time_s->month[tl] && day[t] == time_s->day[tl])
-          found = TRUE;
-        tl++;
-      }
-      
-      if (found == TRUE) {
-        
-        tl--;
-          
-        /* Read data */
-        istat = read_netcdf_var_3d_2d(&buf, info, proj, infile, data->conf->obs_var->acronym[var],
-                                      data->conf->obs_var->dimxname, data->conf->obs_var->dimyname, data->conf->obs_var->timename,
-                                      tl, nlon, nlat, &ntime_file, FALSE);
-        *missing_value = info->fillvalue;
-
-        if (data->conf->obs_var->proj->name == NULL) {
-          /* Retrieve observation grid parameters if not done already */
-          data->conf->obs_var->proj->name = strdup(proj->name);
-          data->conf->obs_var->proj->grid_mapping_name = strdup(proj->grid_mapping_name);
-          data->conf->obs_var->proj->latin1 = proj->latin1;
-          data->conf->obs_var->proj->latin2 = proj->latin2;
-          data->conf->obs_var->proj->lonc = proj->lonc;
-          data->conf->obs_var->proj->lat0 = proj->lat0;
-          data->conf->obs_var->proj->false_easting = proj->false_easting;
-          data->conf->obs_var->proj->false_northing = proj->false_northing;
-        }
-            
-        if ( (*lat) == NULL && (*lon) == NULL ) {
-          /* Get latitude and longitude coordinates information */
-          istat = read_netcdf_latlon(lon, lat, nlon, nlat, data->conf->obs_var->dimcoords, data->conf->obs_var->proj->coords,
-                                     data->conf->obs_var->proj->name, data->conf->obs_var->lonname,
-                                     data->conf->obs_var->latname, data->conf->obs_var->dimxname,
-                                     data->conf->obs_var->dimyname, infile);
-            
-          /* Allocate buffer memory given dimensions */
-          *buffer = (double *) malloc((*nlon)*(*nlat)*ntime * sizeof(double));
-          if ( (*buffer) == NULL) alloc_error(__FILE__, __LINE__);
-        }
-
-        /* Transfer data */
-        for (j=0; j<(*nlat); j++)
-          for (i=0; i<(*nlon); i++)
-            if (buf[i+j*(*nlon)] != (*missing_value))
-              (*buffer)[i+j*(*nlon)+t*(*nlon)*(*nlat)] = (buf[i+j*(*nlon)] * data->conf->obs_var->factor[var]) +
-                data->conf->obs_var->delta[var];
-            else
-              (*buffer)[i+j*(*nlon)+t*(*nlon)*(*nlat)] = (*missing_value);
-                    
-        /* Free allocated memory */
-        (void) free(proj->name);
-        (void) free(proj->grid_mapping_name);
-          
-        (void) free(info->grid_mapping);
-        (void) free(info->units);
-        (void) free(info->height);
-        (void) free(info->coordinates);
-        (void) free(info->long_name);
-
-        (void) free(buf);
-      }
-      else {
-        (void) fprintf(stderr, "%s: Fatal error in algorithm: date not found: %d %d %d %d!!\n", __FILE__, t, year[t],month[t],day[t]);
-          
-        /* Fatal error */
+      istat = get_time_info(time_s, &timeval, &time_units, &cal_type, &ntime_obs, infile, data->conf->obs_var->timename, FALSE);
+      if (istat < 0) {
+        (void) free(time_s);
         (void) free(infile);
+        (void) free(prev_infile);
         (void) free(format);
-          
         (void) free(info);
         (void) free(proj);
-          
-        if (time_s != NULL) {
-          (void) free(time_s->year);
-          (void) free(time_s->month);
-          (void) free(time_s->day);
-          (void) free(time_s->hour);
-          (void) free(time_s->minutes);
-          (void) free(time_s->seconds);
-          
-          (void) free(time_s);
-          (void) free(cal_type);
-          (void) free(time_units);
-          (void) free(timeval);
-        }
-          
         return -1;
       }
-      (void) strcpy(prev_infile, infile);
     }
-  }
-  else {
-    (void) free(infile);
-    (void) free(prev_infile);
+    
+    /* Find date in observation database */
+    found = FALSE;
+    tl = 0;
+    while (tl<ntime_obs && found == FALSE) {
+      if (year[t] == time_s->year[tl] && month[t] == time_s->month[tl] && day[t] == time_s->day[tl])
+        found = TRUE;
+      tl++;
+    }
+    
+    if (found == TRUE) {
+      
+      tl--;
+          
+      /* Read data */
+      istat = read_netcdf_var_3d_2d(&buf, info, proj, infile, data->conf->obs_var->acronym[var],
+                                    data->conf->obs_var->dimxname, data->conf->obs_var->dimyname, data->conf->obs_var->timename,
+                                    tl, nlon, nlat, &ntime_file, FALSE);
+      *missing_value = info->fillvalue;
 
-    (void) free(format);
+      if (data->conf->obs_var->proj->name == NULL) {
+        /* Retrieve observation grid parameters if not done already */
+        data->conf->obs_var->proj->name = strdup(proj->name);
+        data->conf->obs_var->proj->grid_mapping_name = strdup(proj->grid_mapping_name);
+        data->conf->obs_var->proj->latin1 = proj->latin1;
+        data->conf->obs_var->proj->latin2 = proj->latin2;
+        data->conf->obs_var->proj->lonc = proj->lonc;
+        data->conf->obs_var->proj->lat0 = proj->lat0;
+        data->conf->obs_var->proj->false_easting = proj->false_easting;
+        data->conf->obs_var->proj->false_northing = proj->false_northing;
+      }
+            
+      if ( (*lat) == NULL && (*lon) == NULL ) {
+        /* Get latitude and longitude coordinates information */
+        istat = read_netcdf_latlon(lon, lat, nlon, nlat, data->conf->obs_var->dimcoords, data->conf->obs_var->proj->coords,
+                                   data->conf->obs_var->proj->name, data->conf->obs_var->lonname,
+                                   data->conf->obs_var->latname, data->conf->obs_var->dimxname,
+                                   data->conf->obs_var->dimyname, infile);
+            
+        /* Allocate buffer memory given dimensions */
+        *buffer = (double *) malloc((*nlon)*(*nlat)*ntime * sizeof(double));
+        if ( (*buffer) == NULL) alloc_error(__FILE__, __LINE__);
+      }
 
-    (void) free(info);
-    (void) free(proj);
+      /* Transfer data */
+      for (j=0; j<(*nlat); j++)
+        for (i=0; i<(*nlon); i++)
+          if (buf[i+j*(*nlon)] != (*missing_value))
+            (*buffer)[i+j*(*nlon)+t*(*nlon)*(*nlat)] = (buf[i+j*(*nlon)] * data->conf->obs_var->factor[var]) +
+              data->conf->obs_var->delta[var];
+          else
+            (*buffer)[i+j*(*nlon)+t*(*nlon)*(*nlat)] = (*missing_value);
+                    
+      /* Free allocated memory */
+      (void) free(proj->name);
+      (void) free(proj->grid_mapping_name);
+          
+      (void) free(info->grid_mapping);
+      (void) free(info->units);
+      (void) free(info->height);
+      (void) free(info->coordinates);
+      (void) free(info->long_name);
 
-    (void) fprintf(stderr, "%s: Cannot find variable %s. Check your configuration file for observed liquid and solid precipitation!\n",
-                   __FILE__, varname);
-
-    return -1;
+      (void) free(buf);
+    }
+    else {
+      (void) fprintf(stderr, "%s: Fatal error in algorithm: date not found: %d %d %d %d!!\n", __FILE__, t, year[t],month[t],day[t]);
+          
+      /* Fatal error */
+      (void) free(infile);
+      (void) free(format);
+          
+      (void) free(info);
+      (void) free(proj);
+          
+      if (time_s != NULL) {
+        (void) free(time_s->year);
+        (void) free(time_s->month);
+        (void) free(time_s->day);
+        (void) free(time_s->hour);
+        (void) free(time_s->minutes);
+        (void) free(time_s->seconds);
+          
+        (void) free(time_s);
+        (void) free(cal_type);
+        (void) free(time_units);
+        (void) free(timeval);
+      }
+          
+      return -1;
+    }
+    (void) strcpy(prev_infile, infile);
   }
 
   /* Free allocated memory */
@@ -336,7 +318,7 @@ read_obs_period(double **buffer, double **lon, double **lat, double *missing_val
   (void) free(infile);
   (void) free(prev_infile);
   (void) free(format);
-
+  
   /* Success diagnostic */
   return 0;
 }

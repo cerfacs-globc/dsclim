@@ -98,6 +98,7 @@ wt_downscaling(data_struct *data) {
   int s; /* Loop counter for seasons */
   int cat; /* Loop counter for field categories */
   int beg_cat; /* Beginning category to process in loop */
+  int maxndays; /* Maximum number of analog days choices within all seasons */
 
   char *analog_file = NULL; /* Analog data filename */
   period_struct *period = NULL; /* Period structure for output */
@@ -711,16 +712,23 @@ wt_downscaling(data_struct *data) {
         if (data->field[cat].data[i].down->dist_all == NULL) alloc_error(__FILE__, __LINE__);
         data->field[cat].data[i].down->days_class_clusters_all = (int *) malloc(ntimes_merged * sizeof(int));
         if (data->field[cat].data[i].down->days_class_clusters_all == NULL) alloc_error(__FILE__, __LINE__);
+
+        /* Find maximum number of days choices within all seasons */
+        maxndays = data->conf->season[0].ndayschoices;
+        for (s=0; s<data->conf->nseasons; s++)
+          if (maxndays < data->conf->season[s].ndayschoices)
+            maxndays = data->conf->season[s].ndayschoices;
+        /* Allocate memory for special 2D delta t vector. Initialize to zero because dimensions can vary for each season. */
+        for (ii=0; ii<ntimes_merged; ii++) {
+          data->field[cat+2].data[i].down->delta_dayschoice_all[ii] = (double *) calloc(maxndays, sizeof(double));
+          if (data->field[cat+2].data[i].down->delta_dayschoice_all[ii] == NULL) alloc_error(__FILE__, __LINE__);
+        }
+
         /* Loop over each season */
         data->field[cat].analog_days_year.ntime = 0;
         for (s=0; s<data->conf->nseasons; s++) {
           /* Merge all seasons of analog_day data, supplemental field index, and cluster info */
           printf("Season: %d\n",s);
-          for (ii=0; ii<ntimes_merged; ii++) {
-            data->field[cat+2].data[i].down->delta_dayschoice_all[ii] = (double *) malloc(data->conf->season[s].ndayschoices *
-                                                                                           sizeof(double));
-            if (data->field[cat+2].data[i].down->delta_dayschoice_all[ii] == NULL) alloc_error(__FILE__, __LINE__);
-          }
           istat = merge_seasons(data->field[cat].analog_days_year, data->field[cat].analog_days[s],
                                 merged_itimes, ntimes_merged, ntime_sub[cat][s]);
           istat = merge_seasonal_data(data->field[cat+2].data[i].down->delta_all,

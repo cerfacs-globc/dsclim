@@ -236,20 +236,32 @@ wt_learning(data_struct *data) {
     if (istat == -1) return -1;
 
     /* Calculate total precipitation */
-    (void) printf("%s: Calculating total precipitation from solid and liquid.\n", __FILE__);
     precip_obs = (double *) malloc(data->learning->nlon*data->learning->nlat*data->learning->obs->ntime * sizeof(double));
     if (precip_obs == NULL) alloc_error(__FILE__, __LINE__);
-    for (t=0; t<data->learning->obs->ntime; t++)
-      for (j=0; j<data->learning->nlat; j++)
-        for (i=0; i<data->learning->nlon; i++)
-          if (precip_liquid_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] != missing_value_precip)
+
+    if (istat == -2) {
+      fprintf(stderr, "%s: WARNING: Snow observation variable not found in dsclim XML config file. Will assume that you don't have snow observations, and set it to zero.\n", __FILE__);
+      for (t=0; t<data->learning->obs->ntime; t++)
+        for (j=0; j<data->learning->nlat; j++)
+          for (i=0; i<data->learning->nlon; i++)
             precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] =
-              (precip_liquid_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] +
-               precip_solid_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat]) * 86400.0;
-          else
-            precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] = missing_value_precip;
-    (void) free(precip_liquid_obs);
-    (void) free(precip_solid_obs);
+              precip_liquid_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat];
+      (void) free(precip_liquid_obs);
+    }
+    else {
+      (void) printf("%s: Calculating total precipitation from solid and liquid.\n", __FILE__);
+      for (t=0; t<data->learning->obs->ntime; t++)
+        for (j=0; j<data->learning->nlat; j++)
+          for (i=0; i<data->learning->nlon; i++)
+            if (precip_liquid_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] != missing_value_precip)
+              precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] =
+                (precip_liquid_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] +
+                 precip_solid_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat]) * 86400.0;
+            else
+              precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] = missing_value_precip;
+      (void) free(precip_liquid_obs);
+      (void) free(precip_solid_obs);
+    }
 
     /* Apply mask for learning data */
     if (data->conf->learning_maskfile->use_mask == TRUE) {
