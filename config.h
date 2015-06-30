@@ -34,6 +34,9 @@
 /* Define if you have NETCDF library */
 #define HAVE_NETCDFLIB 1
 
+/* Define if you have SHAPEFILE library */
+#define HAVE_SHAPEFILE 1
+
 /* Define to 1 if you have the <signal.h> header file. */
 #define HAVE_SIGNAL_H 1
 

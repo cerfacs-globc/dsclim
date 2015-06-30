@@ -165,6 +165,47 @@ else
   exit
 fi
 
+# Check shapefile library
+AC_ARG_WITH([shapefile],
+        [AC_HELP_STRING([--with-shapefile=SHAPEFILE],
+        [use specified shapefile installation directory])],
+        shapefile_dir=$withval, shapefile_dir='system')
+
+if test $shapefile_dir != 'system'
+then
+  CPPFLAGS="$CPPFLAGS -I${shapefile_dir}/include"
+  LDFLAGS="$LDFLAGS -L${shapefile_dir}/lib"
+fi
+
+AC_MSG_CHECKING(for shapefile)
+AC_MSG_RESULT($shapefile_dir)
+AC_CHECK_HEADER(shapefil.h,passed=1,passed=0)
+AC_CHECK_LIB(shp,SHPOpen,passed=1,passed=0)
+AC_MSG_CHECKING(if shapefile support package is complete)
+
+if test $passed -gt 0
+then
+  AC_DEFINE(HAVE_SHAPEFILE,1,Define if you have SHAPEFILE library)
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_NOTICE([
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  CONFIGURATION ERROR: SHAPEFILE library required.
+  SHAPEFILE installation is not working or missing.
+
+  To fix this problem you have the following options.
+  1) Check if you have SHAPEFILE installed in a path different from your system path.
+     In this case you can provide your SHAPEFILE installation path to the configure
+     through the option --with-shapefile="your_shapefile_path"
+  2) With your package manager, install the SHAPEFILE library.
+  3) Source code for SHAPEFILE can be found at http://shapelib.maptools.org/.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ])
+  exit
+fi
+
 # Check HDF5 library
 AC_ARG_WITH([hdf5],
         [AC_HELP_STRING([--with-hdf5=HDF5],

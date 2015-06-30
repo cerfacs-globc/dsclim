@@ -1,19 +1,19 @@
 /* ***************************************************** */
-/* read_mask Read a mask file.                           */
-/* read_mask.c                                           */
+/* get_filename_ext Get filename extension               */
+/* get_filename_ext.c                                    */
 /* ***************************************************** */
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
-/* Date of creation: feb 2009                            */
-/* Last date of modification: feb 2009                   */
+/* Date of creation: jun 2015                            */
+/* Last date of modification: jun 2015                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
 /* Current revision:                                     */
 /* ***************************************************** */
 /* Revisions                                             */
 /* ***************************************************** */
-/*! \file read_mask.c
-    \brief Read a mask file.
+/*! \file get_filename_ext.c
+    \brief Get filename extension.
 */
 
 /* LICENSE BEGIN
@@ -53,53 +53,10 @@ knowledge of the CeCILL license and that you accept its terms.
 
 LICENSE END */
 
+#include <utils.h>
 
-
-
-
-
-
-#include <dsclim.h>
-#include <shapefil.h>
-
-/** Read a mask file. */
-int
-read_mask(mask_struct *mask) {
-  /**
-     @param[in]  mask  Mask structure.
-     
-     \return           Status.
-  */
-
-  int istat;
-
-  if ( !strcmp(get_filename_ext(mask->filename), ".nc")) {
-
-    /* Read latitudes and longitudes */
-    istat = read_netcdf_latlon(&(mask->lon), &(mask->lat), &(mask->nlon), &(mask->nlat), mask->dimcoords, mask->coords, mask->proj,
-                               mask->lonname, mask->latname, mask->dimxname, mask->dimyname, mask->filename);
-    if (istat < 0)  {
-      (void) fprintf(stdout, "%s: ERROR reading mask file.\n", __FILE__);
-      return istat;
-    }
-    
-    /* Read mask */
-    istat = read_netcdf_var_2d(&(mask->field), (info_field_struct *) NULL, (proj_struct *) NULL, mask->filename, mask->maskname,
-                               mask->dimxname, mask->dimyname, &(mask->nlon), &(mask->nlat), FALSE);
-    if (istat < 0)  {
-      (void) fprintf(stdout, "%s: ERROR reading mask file.\n", __FILE__);
-      return istat;
-    }
-
-  }
-  else if ( !strcmp(get_filename_ext(mask->filename), ".shp")) {
-
-    
-    
-  }
-    
-    (void) fprintf(stdout, "%s: mask file read successfully.\n", __FILE__);
-
-  /* Return status */
-  return 0;
+const char *get_filename_ext(const char *filename) {
+    const char *dot = strrchr(filename, '.');
+    if(!dot || dot == filename) return "";
+    return dot + 1;
 }

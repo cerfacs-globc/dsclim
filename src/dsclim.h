@@ -540,5 +540,6 @@ void read_analog_data(analog_day_struct *analog_days, double **delta, double **t
 void save_analog_data(analog_day_struct analog_days, double *delta, double **delta_dayschoice, double *dist, int *cluster,
                       double *time_ls, char *filename, data_struct *data);
 void free_main_data(data_struct *data);
+const char *get_filename_ext(const char *filename);
 
 #endif
