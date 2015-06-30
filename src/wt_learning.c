@@ -244,8 +244,11 @@ wt_learning(data_struct *data) {
       for (t=0; t<data->learning->obs->ntime; t++)
         for (j=0; j<data->learning->nlat; j++)
           for (i=0; i<data->learning->nlon; i++)
-            precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] =
-              precip_liquid_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat];
+            if (precip_liquid_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] != missing_value_precip)
+              precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] =
+                precip_liquid_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] * 86400;
+            else
+              precip_obs[i+j*data->learning->nlon+t*data->learning->nlon*data->learning->nlat] = missing_value_precip;
       (void) free(precip_liquid_obs);
     }
     else {

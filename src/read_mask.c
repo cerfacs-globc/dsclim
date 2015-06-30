@@ -73,7 +73,7 @@ read_mask(mask_struct *mask) {
 
   int istat;
 
-  if ( !strcmp(get_filename_ext(mask->filename), ".nc")) {
+  if ( !strcmp(get_filename_ext(mask->filename), "nc")) {
 
     /* Read latitudes and longitudes */
     istat = read_netcdf_latlon(&(mask->lon), &(mask->lat), &(mask->nlon), &(mask->nlat), mask->dimcoords, mask->coords, mask->proj,
@@ -82,7 +82,7 @@ read_mask(mask_struct *mask) {
       (void) fprintf(stdout, "%s: ERROR reading mask file.\n", __FILE__);
       return istat;
     }
-    
+
     /* Read mask */
     istat = read_netcdf_var_2d(&(mask->field), (info_field_struct *) NULL, (proj_struct *) NULL, mask->filename, mask->maskname,
                                mask->dimxname, mask->dimyname, &(mask->nlon), &(mask->nlat), FALSE);
