@@ -71,6 +71,7 @@ load_conf(data_struct *data, char *fileconf) {
   xmlChar *val; /* Value in XML file */
   int i; /* Loop counter */
   int j; /* Loop counter */
+  int ii; /* Loop counter */
   int cat; /* Loop counter for field category */
   int istat; /* Diagnostic status */
   char *path = NULL; /* XPath */
@@ -3500,10 +3501,13 @@ load_conf(data_struct *data, char *fileconf) {
   }
 
   /* Warning for some combinations of settings */
-  for (i=0; i<data->conf->obs_var->nobs_var; i++)
-    if (strcmp(data->conf->obs_var->netcdfname[i], "rsds") && data->conf->season[i].ndays > 10 && strcmp(data->conf->obs_var->clim[i], "no") )
-      fprintf(stderr, "%s: WARNING: Number of days to search around downscaled date is greater than 10 at +-%d days and Global Solar Radiation output variable has not the clim setting set to yes.\n", __FILE__, data->conf->season[i].ndays);
-
+  for (i=0; i<data->conf->obs_var->nobs_var; i++) {
+    if (strcmp(data->conf->obs_var->netcdfname[i], "rsds") && strcmp(data->conf->obs_var->clim[i], "no") )
+      for (ii=0; ii<data->conf->nseasons; ii++)
+        if (data->conf->season[ii].ndays > 10)
+          fprintf(stderr, "%s: WARNING: Number of days to search around downscaled date is greater than 10 at +-%d days and Global Solar Radiation output variable has not the clim setting set to yes.\n", __FILE__, data->conf->season[i].ndays);
+  }
+  
   /* Free memory */
   (void) xml_free_config(conf);
   (void) xmlCleanupParser();

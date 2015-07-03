@@ -171,6 +171,19 @@ free_main_data(data_struct *data) {
             (void) free(data->field[i+2].data[j].down->delta_dayschoice_all[tt]);
           (void) free(data->field[i+2].data[j].down->delta_dayschoice_all);
         }
+
+        /*
+          if ((data->conf->period_ctrl->downscale == TRUE && i == 1) || i == 0)
+          if (data->conf->output_only != TRUE) {
+            for (s=0; s<data->conf->nseasons; s++) {
+              for (tt=0; tt<data->field[i].analog_days[s].ntime; tt++) {
+                (void) free(data->field[i].data[j].down->delta_dayschoice[s][tt]);
+                (void) free(data->field[i].data[j].down->delta[s]);
+              }
+            }
+            (void) free(data->field[i].data[j].down->delta_dayschoice[s]);
+          }
+        */
       }
       else {
         if (data->conf->period_ctrl->downscale == TRUE || i == 2)
@@ -191,17 +204,7 @@ free_main_data(data_struct *data) {
           }
           (void) free(data->field[i].data[j].down->smean);
         }
-        
-        if (data->conf->period_ctrl->downscale == TRUE || i == 2)
-          if (data->conf->output_only != TRUE)
-            for (s=0; s<data->conf->nseasons; s++) {
-              for (tt=0; tt<data->field[0].analog_days[s].ntime; tt++) {
-                (void) free(data->field[i].data[j].down->delta_dayschoice[s][tt]);
-              }
-              (void) free(data->field[i].data[j].down->delta[s]);
-              (void) free(data->field[i].data[j].down->delta_dayschoice[s]);
-            }
-        
+                
         (void) free(data->field[i].data[j].down->smean_norm);
         (void) free(data->field[i].data[j].down->sup_val_norm);
         (void) free(data->field[i].data[j].down->mean);
@@ -280,7 +283,6 @@ free_main_data(data_struct *data) {
     }
 
     (void) free(data->field[i].precip_index);
-    (void) free(data->field[i].analog_days);
 
     if (data->field[i].n_ls > 0) {
       (void) free(data->field[i].data);
@@ -297,6 +299,9 @@ free_main_data(data_struct *data) {
     (void) free(data->field[i].time_s);
     (void) free(data->field[i].time_ls);    
   }
+
+  for (i=0; i<NCAT; i++)
+    (void) free(data->field[i].analog_days);
 
   for (s=0; s<data->conf->nseasons; s++) {
     if (data->conf->output_only != TRUE) {
