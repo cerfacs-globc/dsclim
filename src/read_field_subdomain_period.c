@@ -185,7 +185,7 @@ read_field_subdomain_period(double **buffer, double **lon, double **lat, double 
           (void) free(*lat);
         if ((*lon) != NULL)
           (void) free(*lon);
-        (void) extract_subdomain(&buf_sub, lat, lon, nlon, nlat, buf_total, lon_total, lat_total,
+        (void) extract_subdomain(&buf_sub, lon, lat, nlon, nlat, buf_total, lon_total, lat_total,
                                  lonmin, lonmax, latmin, latmax, nlon_file, nlat_file, 1);
         (void) free(buf_total);
 

@@ -153,6 +153,7 @@ wt_learning(data_struct *data) {
   int niter = 2;
 
   int istat; /** Return status. */
+  int istat_solid; /** Return status solid precipitation. */
 
   if (data->learning->learning_provided == TRUE) {
     /** Read learning data **/
@@ -224,13 +225,16 @@ wt_learning(data_struct *data) {
     if (ntime_sub == NULL) alloc_error(__FILE__, __LINE__);
 
     /* Read observed precipitation (liquid and solid) */
+    istat_solid = read_obs_period(&precip_solid_obs, &(data->learning->lon), &(data->learning->lat), &missing_value_precip,
+                                  data, "prsn", data->learning->obs->time_s->year, data->learning->obs->time_s->month,
+                                  data->learning->obs->time_s->day, &(data->learning->nlon), &(data->learning->nlat),
+                                  data->learning->obs->ntime);
+    if (istat_solid == -1) return -1;
+    if (istat_solid >= 0) {
+      (void) free(data->learning->lon);
+      (void) free(data->learning->lat);
+    }
     istat = read_obs_period(&precip_liquid_obs, &(data->learning->lon), &(data->learning->lat), &missing_value_precip, data, "prr",
-                            data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
-                            &(data->learning->nlon), &(data->learning->nlat), data->learning->obs->ntime);
-    (void) free(data->learning->lon);
-    (void) free(data->learning->lat);
-    if (istat == -1) return -1;
-    istat = read_obs_period(&precip_solid_obs, &(data->learning->lon), &(data->learning->lat), &missing_value_precip, data, "prsn",
                             data->learning->obs->time_s->year, data->learning->obs->time_s->month, data->learning->obs->time_s->day,
                             &(data->learning->nlon), &(data->learning->nlat), data->learning->obs->ntime);
     if (istat == -1) return -1;
@@ -239,7 +243,7 @@ wt_learning(data_struct *data) {
     precip_obs = (double *) malloc(data->learning->nlon*data->learning->nlat*data->learning->obs->ntime * sizeof(double));
     if (precip_obs == NULL) alloc_error(__FILE__, __LINE__);
 
-    if (istat == -2) {
+    if (istat_solid == -2) {
       fprintf(stderr, "%s: WARNING: Snow observation variable not found in dsclim XML config file. Will assume that you don't have snow observations, and set it to zero.\n", __FILE__);
       for (t=0; t<data->learning->obs->ntime; t++)
         for (j=0; j<data->learning->nlat; j++)

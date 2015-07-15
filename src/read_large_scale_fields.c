@@ -211,7 +211,7 @@ read_large_scale_fields(data_struct *data) {
         }
 
         /* Extraction of subdomain */
-        (void) extract_subdomain(&(data->field[cat].data[i].field_ls), &(data->field[cat].lat_ls), &(data->field[cat].lon_ls),
+        (void) extract_subdomain(&(data->field[cat].data[i].field_ls), &(data->field[cat].lon_ls), &(data->field[cat].lat_ls),
                                  &(data->field[cat].nlon_ls), &(data->field[cat].nlat_ls), buf, lon, lat,
                                  longitude_min, longitude_max, latitude_min, latitude_max, nlon, nlat, ntime);
         (void) free(buf);

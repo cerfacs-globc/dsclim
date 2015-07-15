@@ -234,7 +234,7 @@ read_obs_period(double **buffer, double **lon, double **lat, double *missing_val
         data->conf->obs_var->proj->false_easting = proj->false_easting;
         data->conf->obs_var->proj->false_northing = proj->false_northing;
       }
-            
+
       if ( (*lat) == NULL && (*lon) == NULL ) {
         /* Get latitude and longitude coordinates information */
         istat = read_netcdf_latlon(lon, lat, nlon, nlat, data->conf->obs_var->dimcoords, data->conf->obs_var->proj->coords,
