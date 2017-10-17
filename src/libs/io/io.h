@@ -204,7 +204,7 @@ int write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double 
                          char *grid_mapping_name, double latin1, double latin2,
                          double lonc, double lat0, double false_easting, double false_northing,
                          double lonpole, double latpole,
-                         char *lonname, char *latname, char *timename,
+                         char *lonname, char *latname, char *dimxname, char *dimyname, char *timename,
                          char *filename, int outinfo);
 int create_netcdf(char *title, char *title_french, char *summary, char *summary_french,
                   char *keywords, char *processor, char *software, char *description, char *institution,

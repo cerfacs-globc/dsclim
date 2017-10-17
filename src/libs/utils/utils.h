@@ -111,6 +111,20 @@ typedef struct {
   float sec; /**< Second (0-59). */
 } tstruct;
 
+#ifndef PERIOD_STRUCT_H
+/** Period definition period_struct */
+typedef struct {
+  int year_begin; /**< 4-digit year begin. */
+  int month_begin; /**< Month of the year begin 1-12. */
+  int day_begin; /**< Day of the month begin 1-31. */
+  int year_end; /**< 4-digit year end. */
+  int month_end; /**< Month of the year end 1-12. */
+  int day_end; /**< Day of the month end 1-31. */
+  int downscale; /**< Downscale period or not. */
+} period_struct;
+#define PERIOD_STRUCT_H
+#endif
+
 void alloc_mmap_shortint(short int **map, int *fd, size_t *byte_size, char *filename, size_t page_size, int size);
 void alloc_mmap_longint(long int **map, int *fd, size_t *byte_size, char *filename, size_t page_size, int size);
 void alloc_mmap_int(int **map, int *fd, size_t *byte_size, char *filename, size_t page_size, int size);
@@ -134,7 +148,8 @@ void extract_subdomain(double **buf_sub, double **lon_sub, double **lat_sub, int
                        double *lon, double *lat, double minlon, double maxlon, double minlat, double maxlat,
                        int nlon, int nlat, int ndim);
 void extract_subperiod_months(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
-                              int *smonths, int timedim, int ndima, int ndimb, int ntime, int nmonths);
+                              char *time_units, char *cal_type, period_struct *period,
+                              int *smonths, int timedim, double *time_ls, int ndima, int ndimb, int ntime, int nmonths);
 void mask_region(double *buffer, double missing_value, double *lon, double *lat,
                  double minlon, double maxlon, double minlat, double maxlat,
                  int nlon, int nlat, int ndim);

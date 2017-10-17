@@ -417,6 +417,7 @@ typedef struct {
   int ndays; /**< Number of +- days around current *day of year* being downscaled to search. Hard-bounded by seasons.. */
 } season_struct;
 
+#ifndef PERIOD_STRUCT_H
 /** Period definition period_struct */
 typedef struct {
   int year_begin; /**< 4-digit year begin. */
@@ -427,6 +428,8 @@ typedef struct {
   int day_end; /**< Day of the month end 1-31. */
   int downscale; /**< Downscale period or not. */
 } period_struct;
+#define PERIOD_STRUCT_H
+#endif
 
 /** General configuration data structure conf_struct. */
 typedef struct {

@@ -258,6 +258,7 @@ read_obs_period(double **buffer, double **lon, double **lat, double *missing_val
                     
       /* Free allocated memory */
       (void) free(proj->name);
+      proj->name = NULL;
       (void) free(proj->grid_mapping_name);
           
       (void) free(info->grid_mapping);

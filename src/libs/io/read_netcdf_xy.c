@@ -96,6 +96,8 @@ read_netcdf_xy(double **x, double **y, int *nx, int *ny, char *xname, char *ynam
 
   int ndims; /* Number of dimensions of y and x variables */
 
+  static short int error_report = 0;
+
   /* Read data in NetCDF file */
 
   /* Open NetCDF file for reading */
@@ -126,7 +128,10 @@ read_netcdf_xy(double **x, double **y, int *nx, int *ny, char *xname, char *ynam
   istat = nc_inq_var(ncinid, yinid, (char *) NULL, &vartype, &varndims, vardimids, (int *) NULL); /* get variable information */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
   if (varndims != ndims) {
-    (void) fprintf(stderr, "Error NetCDF type and/or dimensions %d != %d.\n", varndims, ndims);
+    if (error_report == 0) {
+      (void) fprintf(stderr, "%s:: WARNING: We do not have 1D dimensions so it means that we have no coordinate system in our projection..\n", __FILE__);
+      error_report = 1;
+    }
     istat = ncclose(ncinid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     return -1;
@@ -139,7 +144,10 @@ read_netcdf_xy(double **x, double **y, int *nx, int *ny, char *xname, char *ynam
   istat = nc_inq_var(ncinid, xinid, (char *) NULL, &vartype, &varndims, vardimids, (int *) NULL); /* get variable information */
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
   if (varndims != ndims) {
-    (void) fprintf(stderr, "Error NetCDF type and/or dimensions %d != %d.\n", varndims, ndims);
+    if (error_report == 0) {
+      (void) fprintf(stderr, "%s:: WARNING: We do not have 1D dimensions so it means that we have no coordinate system in our projection..\n", __FILE__);
+      error_report = 1;
+    }
     istat = ncclose(ncinid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     return -1;

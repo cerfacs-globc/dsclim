@@ -105,6 +105,8 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
   int ntime_obs; /* Number of times dimension in observation database */
   int nlon; /* Longitude dimension */
   int nlat; /* Latitude dimension */
+  int nlon_file; /* Longitude dimension of X dimension in the file */
+  int nlat_file; /* Latitude dimension of Y dimension in the file */
   int *noutf = NULL; /* Number of files in filelist */
   int found = FALSE; /* Used to tag if we found a specific date */
   int *found_file = NULL; /* Used to tag if we found a specific filename in the filelist */
@@ -578,10 +580,17 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
             if ( !strcmp(obs_var->proj->name, "list") )
               /* List of lat + lon points only : keep only X dimension */
               nlat = 0;
-            else
+            else {
               /* Read coordinates information */
-              istat = read_netcdf_xy(&x, &y, &nlon, &nlat, obs_var->dimxname, obs_var->dimyname, 
+              istat = read_netcdf_xy(&x, &y, &nlon_file, &nlat_file, obs_var->dimxname, obs_var->dimyname, 
                                      obs_var->dimxname, obs_var->dimyname, infile[0]);
+              if (istat < 0)
+                x = y = (double *) NULL;
+              else {
+                nlon = nlon_file;
+                nlat = nlat_file;
+              }
+            }
           }
           
           /*** Apply modifications to data ***/
@@ -803,8 +812,8 @@ output_downscaled_analog(analog_day_struct analog_days, double *delta, int outpu
                                              obs_var->proj->latin2, obs_var->proj->lonc, obs_var->proj->lat0,
                                              obs_var->proj->false_easting, obs_var->proj->false_northing,
                                              obs_var->proj->lonpole, obs_var->proj->latpole,
-                                             obs_var->lonname, obs_var->latname, obs_var->timename,
-                                             outfile[var], debug);
+                                             obs_var->lonname, obs_var->latname, obs_var->dimxname, obs_var->dimyname,
+                                             obs_var->timename, outfile[var], debug);
                 if (istat != 0) {
                   /* In case of failure */
                   (void) free(time_s->year);

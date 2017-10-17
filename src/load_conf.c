@@ -731,7 +731,7 @@ load_conf(data_struct *data, char *fileconf) {
         (void) xmlFree(val);
       }
       else
-        data->secondary_mask->proj = strdup("Latitude_Longitude");
+        data->secondary_mask->proj = strdup("latitude_longitude");
       (void) fprintf(stdout, "%s: Secondary large-scale fields mask projection = %s\n",
                      __FILE__, data->secondary_mask->proj);
     }
@@ -928,7 +928,7 @@ load_conf(data_struct *data, char *fileconf) {
         (void) xmlFree(val);
       }
       else
-        data->conf->learning_maskfile->proj = strdup("Latitude_Longitude");
+        data->conf->learning_maskfile->proj = strdup("latitude_longitude");
       (void) fprintf(stdout, "%s: Learning domain maskfile projection = %s\n",
                      __FILE__, data->conf->learning_maskfile->proj);
     }
@@ -1940,7 +1940,7 @@ load_conf(data_struct *data, char *fileconf) {
       (void) xmlFree(val);
     }
     else {
-      data->learning->rea_gridname = strdup("Latitude_Longitude");
+      data->learning->rea_gridname = strdup("latitude_longitude");
     }
     (void) fprintf(stdout, "%s: Learning rea_gridname = %s\n", __FILE__, data->learning->rea_gridname);
 

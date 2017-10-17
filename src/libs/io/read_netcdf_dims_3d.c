@@ -145,7 +145,7 @@ read_netcdf_dims_3d(double **lon, double **lat, double **timeval, char **cal_typ
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     *nlon = (int) dimval;
   }
-  else if ( !strcmp(coords, "2D") && !strcmp(gridname, "Latitude_Longitude") ) {
+  else if ( !strcmp(coords, "2D") && ( !strcmp(gridname, "Latitude_Longitude") || !strcmp(gridname, "latitude_longitude") ) ) {
     /** 1D dimensions x and y with 2D lat & lon related variables **/
     ndims = 2;
 

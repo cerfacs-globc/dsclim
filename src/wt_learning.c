@@ -240,6 +240,7 @@ wt_learning(data_struct *data) {
     if (istat == -1) return -1;
 
     /* Calculate total precipitation */
+    printf("%d %d %d\n",data->learning->nlon, data->learning->nlat, data->learning->obs->ntime);
     precip_obs = (double *) malloc(data->learning->nlon*data->learning->nlat*data->learning->obs->ntime * sizeof(double));
     if (precip_obs == NULL) alloc_error(__FILE__, __LINE__);
 

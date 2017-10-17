@@ -5,12 +5,13 @@
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
 /* Date of creation: oct 2008                            */
-/* Last date of modification: oct 2008                   */
+/* Last date of modification: jul 2015                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
-/* Current revision:                                     */
+/* Current revision: 1.1                                 */
 /* ***************************************************** */
 /* Revisions                                             */
+/* 1.1: Added new write_netcdf_dims_3d parameters.       */
 /* ***************************************************** */
 /*! \file remove_clim.c
     \brief Remove climatologies.
@@ -212,6 +213,7 @@ remove_clim(data_struct *data) {
                                        data->field[cat].proj[i].false_easting, data->field[cat].proj[i].false_northing,
                                        data->field[cat].proj[i].lonpole, data->field[cat].proj[i].latpole,
                                        data->field[cat].data[i].lonname, data->field[cat].data[i].latname,
+                                       data->field[cat].data[i].dimxname, data->field[cat].data[i].dimyname,
                                        data->field[cat].data[i].timename,
                                        data->field[cat].data[i].clim_info->clim_fileout_ls, TRUE);
           if (istat != 0) {
@@ -348,6 +350,7 @@ remove_clim(data_struct *data) {
                                        data->field[cat].proj[i].false_easting, data->field[cat].proj[i].false_northing,
                                        data->field[cat].proj[i].lonpole, data->field[cat].proj[i].latpole,
                                        data->field[cat].data[i].lonname, data->field[cat].data[i].latname,
+                                       data->field[cat].data[i].dimxname, data->field[cat].data[i].dimyname,
                                        data->field[cat].data[i].timename,
                                        data->field[cat].data[i].clim_info->clim_fileout_ls, TRUE);
           if (istat != 0) {

@@ -5,14 +5,15 @@
 /* Author: Christian Page, CERFACS, Toulouse, France.    */
 /* ***************************************************** */
 /* Date of creation: oct 2010                            */
-/* Last date of modification: oct 2010                   */
+/* Last date of modification: jul 2015                   */
 /* ***************************************************** */
 /* Original version: 1.0                                 */
-/* Current revision: 1.2                                 */
+/* Current revision: 1.3                                 */
 /* ***************************************************** */
 /* Revisions                                             */
 /* 1.1 Added altitude optional variable                  */
 /* 1.2 Added rotated_latlon projection support: C. Page  */
+/* 1.3 Added dimxname and dimyname parameters: C. Page   */
 /* ***************************************************** */
 /*! \file write_netcdf_dims_3d.c
     \brief Write NetCDF dimensions and create output file.
@@ -70,7 +71,7 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
                      char *grid_mapping_name, double latin1, double latin2,
                      double lonc, double lat0, double false_easting, double false_northing,
                      double lonpole, double latpole,
-                     char *lonname, char *latname, char *timename,
+                     char *lonname, char *latname, char *dimxname, char *dimyname, char *timename,
                      char *filename, int outinfo) {
   /**
      @param[in]  lon                Longitude field
@@ -94,10 +95,12 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
      @param[in]  lat0               Lat0 first latitude projection parameter
      @param[in]  false_easting      False_easting projection parameter
      @param[in]  false_northing     False_northing projection parameter
-     @param[in]  filename           Output NetCDF filename
      @param[in]  lonname            Longitude name dimension in the NetCDF file
      @param[in]  latname            Latitude name dimension in the NetCDF file
+     @param[in]  dimxname           X name dimension in the NetCDF file
+     @param[in]  dimyname           Y name dimension in the NetCDF file
      @param[in]  timename           Time name dimension in the NetCDF file
+     @param[in]  filename           Output NetCDF filename
      @param[in]  outinfo            TRUE if we want information output, FALSE if not
      
      \return                        Status.
@@ -116,6 +119,7 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
   size_t count[3];
 
   int vali;
+  char valc;
   int i;
 
   float *proj_latin = NULL;
@@ -151,7 +155,7 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
   /* Set dimensions */
   istat = nc_def_dim(ncoutid, timename, NC_UNLIMITED, &timedimoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-  if ( !strcmp(gridname, "Latitude_Longitude")) {
+  if ( (!strcmp(gridname, "Latitude_Longitude") || !strcmp(gridname, "latitude_longitude")) && !strcmp(coords, "1D") ) {
     istat = nc_def_dim(ncoutid, lonname, nlon, &xdimoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     istat = nc_def_dim(ncoutid, latname, nlat, &ydimoutid);
@@ -164,9 +168,9 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
   else {
-    istat = nc_def_dim(ncoutid, "x", nlon, &xdimoutid);
+    istat = nc_def_dim(ncoutid, dimxname, nlon, &xdimoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-    istat = nc_def_dim(ncoutid, "y", nlat, &ydimoutid);
+    istat = nc_def_dim(ncoutid, dimyname, nlat, &ydimoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
 
@@ -186,7 +190,7 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
     istat = nc_def_var(ncoutid, latname, NC_DOUBLE, 1, vardimids, &latoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
-  else if ( !strcmp(gridname, "Latitude_Longitude") && !strcmp(coords, "2D") ) {
+  else if ( (!strcmp(gridname, "Latitude_Longitude") || !strcmp(gridname, "latitude_longitude")) && !strcmp(coords, "2D") ) {
     vardimids[0] = ydimoutid;
     vardimids[1] = xdimoutid;
     istat = nc_def_var(ncoutid, lonname, NC_DOUBLE, 2, vardimids, &lonoutid);
@@ -201,18 +205,22 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
     vardimids[1] = xdimoutid;
     istat = nc_def_var(ncoutid, lonname, NC_DOUBLE, 2, vardimids, &lonoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-    vardimids[0] = xdimoutid;
-    vardimids[1] = 0;
-    istat = nc_def_var(ncoutid, "x", NC_INT, 1, vardimids, &xoutid);
-    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    if (x != NULL) {
+      vardimids[0] = xdimoutid;
+      vardimids[1] = 0;
+      istat = nc_def_var(ncoutid, "x", NC_INT, 1, vardimids, &xoutid);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    }
     vardimids[0] = ydimoutid;
     vardimids[1] = xdimoutid;
     istat = nc_def_var(ncoutid, latname, NC_DOUBLE, 2, vardimids, &latoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
-    vardimids[0] = ydimoutid;
-    vardimids[1] = 0;
-    istat = nc_def_var(ncoutid, "y", NC_INT, 1, vardimids, &youtid);
-    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    if (y != NULL) {
+      vardimids[0] = ydimoutid;
+      vardimids[1] = 0;
+      istat = nc_def_var(ncoutid, "y", NC_INT, 1, vardimids, &youtid);
+      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+    }
   }
 
   /* Define projection variable */
@@ -221,7 +229,7 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
   else if ( !strcmp(gridname, "rotated_pole")) {
-    istat = nc_def_var(ncoutid, gridname, NC_INT, 0, 0, &projoutid);
+    istat = nc_def_var(ncoutid, gridname, NC_CHAR, 0, 0, &projoutid);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
 
@@ -274,7 +282,7 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
   }
 
-  if ( strcmp(gridname, "Latitude_Longitude") && strcmp(gridname, "list")) {
+  if ( strcmp(gridname, "Latitude_Longitude") && strcmp(gridname, "latitude_longitude") && strcmp(gridname, "list") && x != NULL && y != NULL) {
     /* Set x attributes */
     /*          int x(x) ;
                 x:units = "m" ;
@@ -381,10 +389,16 @@ write_netcdf_dims_3d(double *lon, double *lat, double *x, double *y, double *alt
   istat = nc_enddef(ncoutid);
   if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
 
-  if ( !strcmp(gridname, "Lambert_Conformal") || !strcmp(gridname, "rotated_pole") ) {
+  if ( !strcmp(gridname, "Lambert_Conformal")) {
     /* Write projection variable */
     vali = 1;
     istat = nc_put_var1_int(ncoutid, projoutid, 0, &vali);
+    if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
+  }
+  else  if ( !strcmp(gridname, "rotated_pole") ) {
+    /* Write projection variable */
+    valc = 1;
+    istat = nc_put_var1_text(ncoutid, projoutid, 0, &valc);
     if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
   }
 

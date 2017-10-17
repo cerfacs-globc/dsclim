@@ -383,8 +383,10 @@ wt_downscaling(data_struct *data) {
           /* Select season months in the whole time period and create sub-period large-scale field buffer */
           (void) extract_subperiod_months(&buf_sub, &(ntime_sub[cat][s]), buftmp,
                                           data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
+                                          data->conf->time_units, data->conf->cal_type, period,
                                           data->conf->season[s].month,
-                                          1, 1, data->field[cat].data[i].eof_info->neof_ls, data->field[cat].ntime_ls,
+                                          1, data->field[cat].time_ls, 1,
+                                          data->field[cat].data[i].eof_info->neof_ls, data->field[cat].ntime_ls,
                                           data->conf->season[s].nmonths);
 
           /* Compute distances to clusters using normalization and against the control reference run */
@@ -429,7 +431,9 @@ wt_downscaling(data_struct *data) {
           /* Select season months in the whole time period to create a sub-period buffer */
           (void) extract_subperiod_months(&buf_sub, &(ntime_sub[cat][s]), data->field[cat].data[i].down->smean,
                                           data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
-                                          data->conf->season[s].month, 3, 1, 1, data->field[cat].ntime_ls, data->conf->season[s].nmonths);
+                                          data->conf->time_units, data->conf->cal_type, period,
+                                          data->conf->season[s].month, 3, data->field[cat].time_ls, 1,
+                                          1, data->field[cat].ntime_ls, data->conf->season[s].nmonths);
           /* Normalize the spatial mean of secondary large-scale fields */
           data->field[cat].data[i].down->smean_norm[s] = (double *) malloc(data->field[cat].ntime_ls * sizeof(double));
           if (data->field[cat].data[i].down->smean_norm[s] == NULL) alloc_error(__FILE__, __LINE__);
@@ -442,7 +446,9 @@ wt_downscaling(data_struct *data) {
           /* Select season months in the whole time period to create a 2D sub-period buffer */
           (void) extract_subperiod_months(&buf_sub, &(ntime_sub[cat][s]), data->field[cat].data[i].field_ls,
                                           data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
-                                          data->conf->season[s].month, 3, data->field[cat].nlon_ls, data->field[cat].nlat_ls,
+                                          data->conf->time_units, data->conf->cal_type, period,
+                                          data->conf->season[s].month, 3, data->field[cat].time_ls,
+                                          data->field[cat].nlon_ls, data->field[cat].nlat_ls,
                                           data->field[cat].ntime_ls, data->conf->season[s].nmonths);
           /* Normalize the secondary large-scale fields */
           data->field[cat].data[i].down->sup_val_norm[s] =
@@ -487,8 +493,9 @@ wt_downscaling(data_struct *data) {
             /* Select season months in the whole time period and create sub-period time vector */
             (void) extract_subperiod_months(&(time_ls_sub[s]), &ntime_sub_tmp, data->field[cat].time_ls,
                                             data->field[cat].time_s->year, data->field[cat].time_s->month, data->field[cat].time_s->day,
+                                            data->conf->time_units, data->conf->cal_type, period,
                                             data->conf->season[s].month,
-                                            1, 1, 1, data->field[cat].ntime_ls,
+                                            1, data->field[cat].time_ls, 1, 1, data->field[cat].ntime_ls,
                                             data->conf->season[s].nmonths);
         }
         if (data->reg->reg_save == TRUE) {

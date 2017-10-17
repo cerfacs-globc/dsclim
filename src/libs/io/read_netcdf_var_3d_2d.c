@@ -104,6 +104,7 @@ read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *
 
   float valf; /* Variable used to retrieve fillvalue */
   int vali; /* Variable used to retrieve integer values */
+  char valc; /* Variable used to retrieve char values */
   char *tmpstr = NULL; /* Temporary string */
   size_t t_len; /* Length of string attribute */
 
@@ -191,15 +192,24 @@ read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *
     /* Get missing value */
     if (vartype_main == NC_FLOAT) {
       istat = nc_get_att_float(ncinid, varinid, "missing_value", &valf);
-      if (istat != NC_NOERR)
+      if (istat != NC_NOERR) {
         info_field->fillvalue = -9999.0;
+        istat = nc_get_att_float(ncinid, varinid, "_FillValue", &valf);
+        if (istat != NC_NOERR)
+          info_field->fillvalue = -9999.0;
+        else
+          info_field->fillvalue = (double) valf;
+      }
       else
         info_field->fillvalue = (double) valf;
     }
     else if (vartype_main == NC_DOUBLE) {
       istat = nc_get_att_double(ncinid, varinid, "missing_value", &(info_field->fillvalue));
-      if (istat != NC_NOERR)
-        info_field->fillvalue = -9999.0;
+      if (istat != NC_NOERR) {
+        istat = nc_get_att_double(ncinid, varinid, "_FillValue", &(info_field->fillvalue));
+        if (istat != NC_NOERR)
+          info_field->fillvalue = -9999.0;
+      }
     }
 
     /* Get coordinates */
@@ -294,12 +304,16 @@ read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *
       if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
     }
     else if ( !strcmp(grid_mapping, "rotated_latitude_longitude") ) {
-      istat = nc_inq_varid(ncinid, grid_mapping, &projinid); /* get projection variable ID */
-      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      istat = nc_inq_varid(ncinid, "rotated_pole", &projinid); /* get projection variable ID */
+      if (istat != NC_NOERR) {
+        (void) fprintf(stderr, "%s:: Trying rotated_latitude_longitude instead of rotated_pole.\n", __FILE__);
+        istat = nc_inq_varid(ncinid, "rotated_pole", &projinid); /* get projection variable ID */
+        if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);
+      }
     }
     if (proj->name != NULL) {
-      if ( strcmp(grid_mapping, "Lambert_Conformal") && strcmp(grid_mapping, "Latitude_Longitude") &&
-           ( !strcmp(proj->name, "Latitude_Longitude") || !strcmp(proj->name, "Lambert_Conformal") ) ) {
+      if ( strcmp(grid_mapping, "Lambert_Conformal") && strcmp(grid_mapping, "Latitude_Longitude") && strcmp(grid_mapping, "latitude_longitude") &&
+           ( !strcmp(proj->name, "Latitude_Longitude") || !strcmp(proj->name, "latitude_longitude") || !strcmp(proj->name, "Lambert_Conformal") ) ) {
         (void) free(grid_mapping);
         grid_mapping = strdup(proj->name);
       }
@@ -341,8 +355,11 @@ read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *
                 rotated_pole:grid_north_pole_latitude = 39.25 ;
                 rotated_pole:grid_north_pole_longitude = -162. ;
       */
-      istat = nc_get_var1_int(ncinid, projinid, 0, &vali);
-      if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
+      istat = nc_get_var1_text(ncinid, projinid, 0, &valc);
+      if (istat != NC_NOERR) {
+        istat = nc_get_var1_int(ncinid, projinid, 0, &vali);
+        if (istat != NC_NOERR) handle_netcdf_error(istat, __FILE__, __LINE__);  
+      }
       proj->name = strdup("rotated_pole");
       istat = get_attribute_str(&(proj->grid_mapping_name), ncinid, projinid, "grid_mapping_name");
     
@@ -350,9 +367,9 @@ read_netcdf_var_3d_2d(double **buf, info_field_struct *info_field, proj_struct *
       istat = nc_get_att_double(ncinid, projinid, "grid_north_pole_longitude", &(proj->lonpole));
     
     }
-    else if ( !strcmp(grid_mapping, "Latitude_Longitude") ) {
+    else if ( !strcmp(grid_mapping, "Latitude_Longitude") || !strcmp(grid_mapping, "latitude_longitude") ) {
       proj->name = strdup(grid_mapping);
-      proj->grid_mapping_name = strdup("Latitude_Longitude");
+      proj->grid_mapping_name = strdup("latitude_longitude");
       proj->latin1 = 0.0;
       proj->latin2 = 0.0;
       proj->lonc = 0.0;

@@ -178,7 +178,7 @@ write_netcdf_var_3d_2d(double *buf, double *timein, double fillvalue, char *file
   }
   else {
     if ( ((nlat_file != nlat) || (nlon_file != nlon) )) {
-      (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions.\n", __FILE__);
+      (void) fprintf(stderr, "%s: Error NetCDF type and/or dimensions %d %d %d %d.\n", __FILE__, nlat_file, nlat, nlon_file, nlon);
       return -1;
     }
   }

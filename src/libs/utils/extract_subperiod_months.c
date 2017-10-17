@@ -56,7 +56,8 @@ LICENSE END */
 /** Extract a sub period of a vector of selected months. */
 void
 extract_subperiod_months(double **buf_sub, int *ntime_sub, double *bufin, int *year, int *month, int *day,
-                         int *smonths, int timedim, int ndima, int ndimb, int ntime, int nmonths) {
+                         char *time_units, char *cal_type, period_struct *period,
+                         int *smonths, int timedim, double *time_ls, int ndima, int ndimb, int ntime, int nmonths) {
   /**
      @param[out] buf_sub       3D buffer spanning only time subperiod
      @param[out] ntime_sub     Number of times in subperiod
@@ -65,7 +66,11 @@ extract_subperiod_months(double **buf_sub, int *ntime_sub, double *bufin, int *y
      @param[in]  month         Month vector
      @param[in]  day           Day vector
      @param[in]  smonths       Selected months vector (values 1-12)
+     @param[in]  time_units    Output base time units
+     @param[in]  cal_type      Output calendar-type
+     @param[in]  period        Period structure for downscaling output
      @param[in]  timedim       Time dimension position (1 or 3)
+     @param[in]  time_ls       Time values
      @param[in]  ndima         First dimension length
      @param[in]  ndimb         Second dimension length
      @param[in]  ntime         Time dimension length
@@ -79,17 +84,56 @@ extract_subperiod_months(double **buf_sub, int *ntime_sub, double *bufin, int *y
   int t; /* Time loop counter */
   int tt; /* Time subperiod loop counter */
 
+  int istat; /* Diagnostic status */
+
+  ut_system *unitSystem = NULL; /* Unit System (udunits) */
+  ut_unit *dataunits = NULL; /* udunits variable */
+
+  double period_begin;
+  double period_end;
+
+  int year;
+  int month;
+  int day;
+  int hour;
+  int minutes;
+  double seconds;
+
   /* Initializing */
   *ntime_sub = 0;
   
+  /* Initialize udunits */
+  ut_set_error_message_handler(ut_ignore);
+  unitSystem = ut_read_xml(NULL);
+  ut_set_error_message_handler(ut_write_to_stderr);
+  dataunits = ut_parse(unitSystem, time_units, UT_ASCII);
+
+  /* Compute time limits for writing */
+  if (period->year_begin != -1) {
+    (void) printf("%s: Analog output from %02d/%02d/%04d to %02d/%02d/%04d inclusively.\n", __FILE__,
+                  period->month_begin, period->day_begin, period->year_begin,
+                  period->month_end, period->day_end, period->year_end);
+    istat = utInvCalendar2(period->year_begin, period->month_begin, period->day_begin, 0, 0, 0.0, dataunits, &period_begin);
+    istat = utInvCalendar2(period->year_end, period->month_end, period->day_end, 23, 59, 0.0, dataunits, &period_end);
+  }
+  else {
+    istat = utCalendar2(time_ls[0], dataunits, &year, &month, &day, &hour, &minutes, &seconds);
+    (void) printf("%s: Analog for the whole period: %02d/%02d/%04d", __FILE__, month, day, year);
+    istat = utCalendar2(time_ls[ntime-1], dataunits, &year, &month, &day, &hour, &minutes, &seconds);
+    (void) printf(" to %02d/%02d/%04d inclusively.\n", month, day, year);
+    period_begin = time_ls[0];
+    period_end = time_ls[ntime-1];
+  }
+
   /* Retrieve time index spanning selected months */
   for (t=0; t<ntime; t++)
-    for (tt=0; tt<nmonths; tt++)
-      if (month[t] == smonths[tt]) {
-        buf_sub_i = (int *) realloc(buf_sub_i, ((*ntime_sub)+1) * sizeof(int));
-        if (buf_sub_i == NULL) alloc_error(__FILE__, __LINE__);
-        buf_sub_i[(*ntime_sub)++] = t;
-      }
+    if (time_ls[t] >= period_begin && time_ls[t] <= period_end)
+      for (tt=0; tt<nmonths; tt++)
+        if (month[t] == smonths[tt]) {
+          buf_sub_i = (int *) realloc(buf_sub_i, ((*ntime_sub)+1) * sizeof(int));
+          if (buf_sub_i == NULL) alloc_error(__FILE__, __LINE__);
+          buf_sub_i[(*ntime_sub)++] = t;
+        }
   
   /* Allocate memory */
   (*buf_sub) = (double *) malloc((*ntime_sub)*ndima*ndimb * sizeof(double));
